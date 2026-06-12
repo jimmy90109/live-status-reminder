@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">乘車碼下車提醒</string>
+    <string name="notification_channel_name">下車提醒</string>
+    <string name="notification_channel_description">搭乘大眾運輸時持續顯示乘車碼捷徑</string>
+</resources>
