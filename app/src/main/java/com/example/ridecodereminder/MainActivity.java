@@ -27,7 +27,10 @@ public final class MainActivity extends Activity {
     private static final int REQUEST_NOTIFICATIONS = 7;
     private static final String ACTION_OPEN_IPASS =
             "com.example.ridecodereminder.action.OPEN_IPASS";
+    private static final String ACTION_OPEN_FOODPANDA =
+            "com.example.ridecodereminder.action.OPEN_FOODPANDA";
     private static final String IPASS_PACKAGE = "com.ipass.ipassmoney";
+    private static final String FOODPANDA_PACKAGE = "com.global.foodpanda.android";
 
     private static final int BACKGROUND = Color.rgb(246, 251, 247);
     private static final int ON_SURFACE = Color.rgb(24, 48, 41);
@@ -61,6 +64,11 @@ public final class MainActivity extends Activity {
             finish();
             return;
         }
+        if (ACTION_OPEN_FOODPANDA.equals(getIntent().getAction())) {
+            openFoodpanda();
+            finish();
+            return;
+        }
         setContentView(createContentView());
     }
 
@@ -76,6 +84,12 @@ public final class MainActivity extends Activity {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
 
+    public static Intent createOpenFoodpandaIntent(Context context) {
+        return new Intent(context, MainActivity.class)
+                .setAction(ACTION_OPEN_FOODPANDA)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    }
+
     private View createContentView() {
         LinearLayout page = column();
         page.setPadding(dp(20), dp(20), dp(20), dp(32));
@@ -83,14 +97,14 @@ public final class MainActivity extends Activity {
 
         page.addView(heroCard());
         page.addView(spacer(28));
-        page.addView(sectionLabel("必要設定", "完成設定後，App 就能在乘車時自動提醒你。"));
+        page.addView(sectionLabel("必要設定", "完成設定後，App 就能把乘車與外送狀態變成即時通知。"));
         page.addView(spacer(12));
 
         notificationAccessStatus = statusPill();
         page.addView(settingCard(
                 "01",
-                "讀取乘車通知",
-                "允許 App 辨識 iPASS MONEY 的進站與出站交易。",
+                "讀取狀態通知",
+                "允許 App 辨識 iPASS MONEY 進出站與 foodpanda 訂單狀態。",
                 notificationAccessStatus,
                 "開啟通知存取權限",
                 view -> openNotificationListenerSettings(),
@@ -101,8 +115,8 @@ public final class MainActivity extends Activity {
         notificationPermissionStatus = statusPill();
         page.addView(settingCard(
                 "02",
-                "顯示下車提醒",
-                "讓即時通知固定顯示在通知列，點一下就能開啟乘車碼。",
+                "顯示即時通知",
+                "讓提醒固定顯示在通知列，點一下就能開啟對應 App。",
                 notificationPermissionStatus,
                 "允許提醒通知",
                 view -> requestNotificationPermission(),
@@ -115,7 +129,7 @@ public final class MainActivity extends Activity {
             page.addView(settingCard(
                     "03",
                     "Live Update",
-                    "允許乘車狀態顯示為 Android 16 即時通知與狀態列 chip。",
+                    "允許乘車與外送狀態顯示為 Android 16 即時通知與狀態列 chip。",
                     liveUpdateStatus,
                     "開啟 Live Update 設定",
                     view -> openLiveUpdateSettings(),
@@ -126,7 +140,7 @@ public final class MainActivity extends Activity {
         }
 
         page.addView(spacer(28));
-        page.addView(sectionLabel("先試一次", "不用真的搭車，也可以確認提醒操作是否順手。"));
+        page.addView(sectionLabel("先試一次", "不用真的搭車或訂餐，也可以確認提醒操作是否順手。"));
         page.addView(spacer(12));
         page.addView(testCard());
 
@@ -139,12 +153,12 @@ public final class MainActivity extends Activity {
     private View heroCard() {
         LinearLayout card = card(PRIMARY_CONTAINER, 36);
         card.setPadding(dp(22), dp(22), dp(22), dp(24));
-        card.addView(labelPill("LIVE RIDE", PRIMARY, Color.WHITE));
+        card.addView(labelPill("LIVE STATUS", PRIMARY, Color.WHITE));
         card.addView(spacer(34));
-        card.addView(text("下車時，\n不用再手忙腳亂。", 34, Color.rgb(0, 72, 51), true));
+        card.addView(text("重要狀態，\n留在最前面。", 34, Color.rgb(0, 72, 51), true));
         card.addView(spacer(12));
         card.addView(text(
-                "進站後自動顯示乘車碼捷徑，準備下車時點一下就能開啟 iPASS MONEY。",
+                "進站後顯示乘車碼捷徑；foodpanda 外送中時顯示取餐狀態，點一下就能開啟對應 App。",
                 16,
                 Color.rgb(33, 91, 71),
                 false
@@ -189,9 +203,9 @@ public final class MainActivity extends Activity {
     private View testCard() {
         LinearLayout card = card(Color.rgb(224, 242, 227), 30);
         card.setPadding(dp(18), dp(18), dp(18), dp(18));
-        card.addView(text("測試搭車流程", 20, ON_SURFACE, true));
+        card.addView(text("測試即時通知", 20, ON_SURFACE, true));
         card.addView(spacer(6));
-        card.addView(text("依序點擊模擬上車與模擬下車，確認通知是否出現並消失。", 15, ON_SURFACE_VARIANT, false));
+        card.addView(text("依序測試乘車與 foodpanda 狀態，確認通知能出現、更新並消失。", 15, ON_SURFACE_VARIANT, false));
         card.addView(spacer(14));
         card.addView(actionButton(
                 "模擬上車，顯示提醒  ↑",
@@ -201,6 +215,33 @@ public final class MainActivity extends Activity {
         ));
         card.addView(spacer(8));
         card.addView(actionButton("模擬下車，移除提醒  ✓", TERTIARY_CONTAINER, ON_SURFACE, view -> RideReminder.clear(this)));
+        card.addView(spacer(14));
+        card.addView(actionButton(
+                "模擬 foodpanda 外送中",
+                PRIMARY,
+                Color.WHITE,
+                view -> RideReminder.showFoodpanda(
+                        this,
+                        RideNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY
+                )
+        ));
+        card.addView(spacer(8));
+        card.addView(actionButton(
+                "模擬 foodpanda 即將抵達",
+                SECONDARY_CONTAINER,
+                ON_SURFACE,
+                view -> RideReminder.showFoodpanda(
+                        this,
+                        RideNotificationParser.FoodpandaEvent.COURIER_ARRIVING
+                )
+        ));
+        card.addView(spacer(8));
+        card.addView(actionButton(
+                "清除 foodpanda 狀態  ✓",
+                TERTIARY_CONTAINER,
+                ON_SURFACE,
+                view -> RideReminder.clearFoodpanda(this)
+        ));
         return card;
     }
 
@@ -279,13 +320,21 @@ public final class MainActivity extends Activity {
     }
 
     private void openIpass() {
-        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(IPASS_PACKAGE);
+        openPackage(IPASS_PACKAGE, "iPASS MONEY");
+    }
+
+    private void openFoodpanda() {
+        openPackage(FOODPANDA_PACKAGE, "foodpanda");
+    }
+
+    private void openPackage(String packageName, String appName) {
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageName);
         if (launchIntent != null) {
             startActivity(launchIntent);
             return;
         }
-        Toast.makeText(this, "尚未安裝 iPASS MONEY，將開啟 Google Play。", Toast.LENGTH_LONG).show();
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + IPASS_PACKAGE)));
+        Toast.makeText(this, "尚未安裝 " + appName + "，將開啟 Google Play。", Toast.LENGTH_LONG).show();
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName)));
     }
 
     private LinearLayout card(int color, int radiusDp) {

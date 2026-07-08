@@ -32,4 +32,52 @@ public final class RideNotificationParserTest {
                 RideNotificationParser.parse("付款完成")
         );
     }
+
+    @Test
+    public void foodpandaCourierOnTheWayUpdatesReminder() {
+        assertEquals(
+                RideNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY,
+                RideNotificationParser.parseFoodpanda(
+                        "foodpanda\n外送夥伴在路上囉🚴，請隨時留意手機來電或訊息！"
+                )
+        );
+    }
+
+    @Test
+    public void foodpandaCourierArrivingUpdatesReminder() {
+        assertEquals(
+                RideNotificationParser.FoodpandaEvent.COURIER_ARRIVING,
+                RideNotificationParser.parseFoodpanda(
+                        "foodpanda\n我們的外送夥伴即將抵達💪！"
+                )
+        );
+    }
+
+    @Test
+    public void foodpandaEndedNotificationsClearReminder() {
+        assertEquals(
+                RideNotificationParser.FoodpandaEvent.ORDER_ENDED,
+                RideNotificationParser.parseFoodpanda("foodpanda\n您的訂單已送達")
+        );
+        assertEquals(
+                RideNotificationParser.FoodpandaEvent.ORDER_ENDED,
+                RideNotificationParser.parseFoodpanda("foodpanda\n訂單完成，祝您用餐愉快！")
+        );
+        assertEquals(
+                RideNotificationParser.FoodpandaEvent.ORDER_ENDED,
+                RideNotificationParser.parseFoodpanda("foodpanda\n您的訂單已取消")
+        );
+        assertEquals(
+                RideNotificationParser.FoodpandaEvent.ORDER_ENDED,
+                RideNotificationParser.parseFoodpanda("foodpanda\n訂單取消")
+        );
+    }
+
+    @Test
+    public void unrelatedFoodpandaNotificationsAreIgnored() {
+        assertEquals(
+                RideNotificationParser.FoodpandaEvent.NONE,
+                RideNotificationParser.parseFoodpanda("foodpanda\n優惠快訊")
+        );
+    }
 }

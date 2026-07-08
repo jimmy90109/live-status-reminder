@@ -5,6 +5,7 @@
 
     <queries>
         <package android:name="com.ipass.ipassmoney" />
+        <package android:name="com.global.foodpanda.android" />
     </queries>
 
     <application
