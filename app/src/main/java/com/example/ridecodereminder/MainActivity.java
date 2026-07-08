@@ -25,6 +25,8 @@ import android.widget.Toast;
 
 public final class MainActivity extends Activity {
     private static final int REQUEST_NOTIFICATIONS = 7;
+    private static final int TAB_IPASS = 0;
+    private static final int TAB_FOODPANDA = 1;
     private static final String ACTION_OPEN_IPASS =
             "com.example.ridecodereminder.action.OPEN_IPASS";
     private static final String ACTION_OPEN_FOODPANDA =
@@ -32,14 +34,20 @@ public final class MainActivity extends Activity {
     private static final String IPASS_PACKAGE = "com.ipass.ipassmoney";
     private static final String FOODPANDA_PACKAGE = "com.global.foodpanda.android";
 
-    private static final int BACKGROUND = Color.rgb(246, 251, 247);
-    private static final int ON_SURFACE = Color.rgb(24, 48, 41);
-    private static final int ON_SURFACE_VARIANT = Color.rgb(70, 94, 86);
-    private static final int PRIMARY = Color.rgb(0, 111, 79);
-    private static final int PRIMARY_CONTAINER = Color.rgb(191, 239, 216);
-    private static final int SECONDARY_CONTAINER = Color.rgb(214, 238, 224);
-    private static final int TERTIARY_CONTAINER = Color.rgb(205, 236, 205);
-    private static final int SURFACE_CONTAINER = Color.rgb(233, 244, 237);
+    private static final int BACKGROUND = Color.rgb(248, 249, 250);
+    private static final int ON_SURFACE = Color.rgb(32, 37, 42);
+    private static final int ON_SURFACE_VARIANT = Color.rgb(91, 99, 106);
+    private static final int COMMON_PRIMARY = Color.rgb(96, 105, 114);
+    private static final int COMMON_CONTAINER = Color.rgb(232, 235, 238);
+    private static final int COMMON_SURFACE = Color.rgb(240, 242, 244);
+    private static final int IPASS_PRIMARY = Color.rgb(0, 111, 79);
+    private static final int IPASS_CONTAINER = Color.rgb(191, 239, 216);
+    private static final int IPASS_SECONDARY_CONTAINER = Color.rgb(214, 238, 224);
+    private static final int IPASS_TERTIARY_CONTAINER = Color.rgb(205, 236, 205);
+    private static final int FOODPANDA_PRIMARY = Color.rgb(224, 0, 119);
+    private static final int FOODPANDA_CONTAINER = Color.rgb(255, 214, 235);
+    private static final int FOODPANDA_SECONDARY_CONTAINER = Color.rgb(255, 232, 244);
+    private static final int FOODPANDA_TEXT = Color.rgb(105, 0, 56);
     private static final int SUCCESS_CONTAINER = Color.rgb(206, 237, 217);
     private static final int SUCCESS_TEXT = Color.rgb(27, 82, 49);
     private static final int WARNING_CONTAINER = Color.rgb(255, 224, 170);
@@ -48,6 +56,12 @@ public final class MainActivity extends Activity {
     private TextView notificationAccessStatus;
     private TextView notificationPermissionStatus;
     private TextView liveUpdateStatus;
+    private int selectedAppTab = TAB_IPASS;
+    private TextView ipassTabButton;
+    private TextView foodpandaTabButton;
+    private LinearLayout appTabContent;
+    private TextView ipassInstallStatus;
+    private TextView foodpandaInstallStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +106,10 @@ public final class MainActivity extends Activity {
 
     private View createContentView() {
         LinearLayout page = column();
+        page.setLayoutParams(new ScrollView.LayoutParams(
+                ScrollView.LayoutParams.MATCH_PARENT,
+                ScrollView.LayoutParams.WRAP_CONTENT
+        ));
         page.setPadding(dp(20), dp(20), dp(20), dp(32));
         page.setBackgroundColor(BACKGROUND);
 
@@ -108,7 +126,7 @@ public final class MainActivity extends Activity {
                 notificationAccessStatus,
                 "開啟通知存取權限",
                 view -> openNotificationListenerSettings(),
-                PRIMARY_CONTAINER
+                COMMON_CONTAINER
         ));
         page.addView(spacer(10));
 
@@ -120,7 +138,7 @@ public final class MainActivity extends Activity {
                 notificationPermissionStatus,
                 "允許提醒通知",
                 view -> requestNotificationPermission(),
-                SECONDARY_CONTAINER
+                COMMON_CONTAINER
         ));
 
         liveUpdateStatus = statusPill();
@@ -133,16 +151,24 @@ public final class MainActivity extends Activity {
                     liveUpdateStatus,
                     "開啟 Live Update 設定",
                     view -> openLiveUpdateSettings(),
-                    TERTIARY_CONTAINER
+                    COMMON_CONTAINER
             ));
         } else {
             liveUpdateStatus.setVisibility(View.GONE);
         }
 
         page.addView(spacer(28));
-        page.addView(sectionLabel("先試一次", "不用真的搭車或訂餐，也可以確認提醒操作是否順手。"));
+        page.addView(sectionLabel("App", "檢查安裝狀態，並分別測試各 App 的即時通知。"));
         page.addView(spacer(12));
-        page.addView(testCard());
+        page.addView(appTabs());
+        page.addView(spacer(12));
+        appTabContent = column();
+        appTabContent.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        page.addView(appTabContent);
+        showSelectedAppTab();
 
         ScrollView scrollView = new ScrollView(this);
         scrollView.setFillViewport(true);
@@ -151,24 +177,17 @@ public final class MainActivity extends Activity {
     }
 
     private View heroCard() {
-        LinearLayout card = card(PRIMARY_CONTAINER, 36);
+        LinearLayout card = card(COMMON_CONTAINER, 36);
         card.setPadding(dp(22), dp(22), dp(22), dp(24));
-        card.addView(labelPill("LIVE STATUS", PRIMARY, Color.WHITE));
+        card.addView(labelPill("LIVE STATUS", COMMON_PRIMARY, Color.WHITE));
         card.addView(spacer(34));
-        card.addView(text("重要狀態，\n留在最前面。", 34, Color.rgb(0, 72, 51), true));
+        card.addView(text("重要狀態，\n留在最前面。", 34, ON_SURFACE, true));
         card.addView(spacer(12));
         card.addView(text(
                 "進站後顯示乘車碼捷徑；foodpanda 外送中時顯示取餐狀態，點一下就能開啟對應 App。",
                 16,
-                Color.rgb(33, 91, 71),
+                ON_SURFACE_VARIANT,
                 false
-        ));
-        card.addView(spacer(20));
-        card.addView(actionButton(
-                "立即開啟 iPASS MONEY  →",
-                PRIMARY,
-                Color.WHITE,
-                view -> openIpass()
         ));
         return card;
     }
@@ -182,7 +201,7 @@ public final class MainActivity extends Activity {
             View.OnClickListener listener,
             int accentColor
     ) {
-        LinearLayout card = card(SURFACE_CONTAINER, 26);
+        LinearLayout card = card(COMMON_SURFACE, 26);
         card.setPadding(dp(18), dp(18), dp(18), dp(18));
 
         LinearLayout top = row();
@@ -196,52 +215,166 @@ public final class MainActivity extends Activity {
         card.addView(spacer(14));
         card.addView(status);
         card.addView(spacer(14));
-        card.addView(actionButton(action + "  →", accentColor, ON_SURFACE, listener));
+        card.addView(actionButton(action + "  →", COMMON_PRIMARY, Color.WHITE, listener));
         return card;
     }
 
-    private View testCard() {
-        LinearLayout card = card(Color.rgb(224, 242, 227), 30);
+    private View appTabs() {
+        LinearLayout tabs = row();
+        tabs.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        tabs.setPadding(dp(4), dp(4), dp(4), dp(4));
+        tabs.setBackground(roundRect(COMMON_SURFACE, 100));
+        ipassTabButton = appTabButton("iPASS MONEY", view -> showIpassTab());
+        foodpandaTabButton = appTabButton("foodpanda", view -> showFoodpandaTab());
+        tabs.addView(ipassTabButton);
+        tabs.addView(horizontalSpacer(4));
+        tabs.addView(foodpandaTabButton);
+        return tabs;
+    }
+
+    private TextView appTabButton(String label, View.OnClickListener listener) {
+        TextView button = text(label, 14, ON_SURFACE_VARIANT, true);
+        button.setGravity(Gravity.CENTER);
+        button.setPadding(dp(12), dp(11), dp(12), dp(11));
+        button.setOnClickListener(listener);
+        button.setLayoutParams(new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1
+        ));
+        return button;
+    }
+
+    private void showSelectedAppTab() {
+        if (selectedAppTab == TAB_FOODPANDA) {
+            showFoodpandaTab();
+        } else {
+            showIpassTab();
+        }
+    }
+
+    private void showIpassTab() {
+        selectedAppTab = TAB_IPASS;
+        if (appTabContent == null) {
+            return;
+        }
+        setTabSelected(ipassTabButton, true, IPASS_PRIMARY);
+        setTabSelected(foodpandaTabButton, false, FOODPANDA_PRIMARY);
+        appTabContent.removeAllViews();
+        ipassInstallStatus = statusPill();
+        appTabContent.addView(appCard(
+                "iPASS MONEY",
+                "乘車碼狀態",
+                "進站後顯示乘車碼捷徑，準備下車時快速開啟。",
+                ipassInstallStatus,
+                "開啟 iPASS MONEY",
+                view -> openIpass(),
+                IPASS_CONTAINER,
+                IPASS_SECONDARY_CONTAINER,
+                IPASS_PRIMARY,
+                ON_SURFACE,
+                new View[]{
+                        actionButton(
+                                "模擬上車，顯示提醒  ↑",
+                                IPASS_PRIMARY,
+                                Color.WHITE,
+                                view -> RideReminder.show(this)
+                        ),
+                        actionButton(
+                                "模擬下車，移除提醒  ✓",
+                                IPASS_TERTIARY_CONTAINER,
+                                ON_SURFACE,
+                                view -> RideReminder.clear(this)
+                        )
+                }
+        ));
+        refreshInstallStatus();
+    }
+
+    private void showFoodpandaTab() {
+        selectedAppTab = TAB_FOODPANDA;
+        if (appTabContent == null) {
+            return;
+        }
+        setTabSelected(ipassTabButton, false, IPASS_PRIMARY);
+        setTabSelected(foodpandaTabButton, true, FOODPANDA_PRIMARY);
+        appTabContent.removeAllViews();
+        foodpandaInstallStatus = statusPill();
+        appTabContent.addView(appCard(
+                "foodpanda",
+                "外送訂單狀態",
+                "外送夥伴出發或即將抵達時，顯示取餐提醒。",
+                foodpandaInstallStatus,
+                "開啟 foodpanda",
+                view -> openFoodpanda(),
+                FOODPANDA_CONTAINER,
+                FOODPANDA_SECONDARY_CONTAINER,
+                FOODPANDA_PRIMARY,
+                FOODPANDA_TEXT,
+                new View[]{
+                        actionButton(
+                                "模擬外送中",
+                                FOODPANDA_PRIMARY,
+                                Color.WHITE,
+                                view -> RideReminder.showFoodpanda(
+                                        this,
+                                        RideNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY
+                                )
+                        ),
+                        actionButton(
+                                "模擬即將抵達",
+                                FOODPANDA_SECONDARY_CONTAINER,
+                                FOODPANDA_TEXT,
+                                view -> RideReminder.showFoodpanda(
+                                        this,
+                                        RideNotificationParser.FoodpandaEvent.COURIER_ARRIVING
+                                )
+                        ),
+                        actionButton(
+                                "清除 foodpanda 狀態  ✓",
+                                FOODPANDA_SECONDARY_CONTAINER,
+                                FOODPANDA_TEXT,
+                                view -> RideReminder.clearFoodpanda(this)
+                        )
+                }
+        ));
+        refreshInstallStatus();
+    }
+
+    private View appCard(
+            String appName,
+            String title,
+            String description,
+            TextView installStatus,
+            String openAction,
+            View.OnClickListener openListener,
+            int cardColor,
+            int labelColor,
+            int primaryColor,
+            int foregroundColor,
+            View[] testActions
+    ) {
+        LinearLayout card = card(cardColor, 30);
         card.setPadding(dp(18), dp(18), dp(18), dp(18));
-        card.addView(text("測試即時通知", 20, ON_SURFACE, true));
+        card.addView(labelPill(appName, labelColor, foregroundColor));
+        card.addView(spacer(12));
+        card.addView(text(title, 20, ON_SURFACE, true));
         card.addView(spacer(6));
-        card.addView(text("依序測試乘車與 foodpanda 狀態，確認通知能出現、更新並消失。", 15, ON_SURFACE_VARIANT, false));
+        card.addView(text(description, 15, ON_SURFACE_VARIANT, false));
         card.addView(spacer(14));
-        card.addView(actionButton(
-                "模擬上車，顯示提醒  ↑",
-                PRIMARY,
-                Color.WHITE,
-                view -> RideReminder.show(this)
-        ));
-        card.addView(spacer(8));
-        card.addView(actionButton("模擬下車，移除提醒  ✓", TERTIARY_CONTAINER, ON_SURFACE, view -> RideReminder.clear(this)));
+        card.addView(installStatus);
         card.addView(spacer(14));
-        card.addView(actionButton(
-                "模擬 foodpanda 外送中",
-                PRIMARY,
-                Color.WHITE,
-                view -> RideReminder.showFoodpanda(
-                        this,
-                        RideNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY
-                )
-        ));
-        card.addView(spacer(8));
-        card.addView(actionButton(
-                "模擬 foodpanda 即將抵達",
-                SECONDARY_CONTAINER,
-                ON_SURFACE,
-                view -> RideReminder.showFoodpanda(
-                        this,
-                        RideNotificationParser.FoodpandaEvent.COURIER_ARRIVING
-                )
-        ));
-        card.addView(spacer(8));
-        card.addView(actionButton(
-                "清除 foodpanda 狀態  ✓",
-                TERTIARY_CONTAINER,
-                ON_SURFACE,
-                view -> RideReminder.clearFoodpanda(this)
-        ));
+        card.addView(actionButton(openAction + "  →", primaryColor, Color.WHITE, openListener));
+        card.addView(spacer(14));
+        for (int index = 0; index < testActions.length; index++) {
+            if (index > 0) {
+                card.addView(spacer(8));
+            }
+            card.addView(testActions[index]);
+        }
         return card;
     }
 
@@ -270,12 +403,40 @@ public final class MainActivity extends Activity {
                     "未允許，將使用一般通知"
             );
         }
+        refreshInstallStatus();
     }
 
     private void setStatus(TextView view, boolean enabled, String enabledText, String disabledText) {
         view.setText((enabled ? "✓  " : "•  ") + enabledText);
         view.setTextColor(enabled ? SUCCESS_TEXT : WARNING_TEXT);
         view.setBackground(roundRect(enabled ? SUCCESS_CONTAINER : WARNING_CONTAINER, 100));
+    }
+
+    private void refreshInstallStatus() {
+        if (ipassInstallStatus != null) {
+            setStatus(
+                    ipassInstallStatus,
+                    isPackageInstalled(IPASS_PACKAGE),
+                    "已安裝",
+                    "尚未安裝"
+            );
+        }
+        if (foodpandaInstallStatus != null) {
+            setStatus(
+                    foodpandaInstallStatus,
+                    isPackageInstalled(FOODPANDA_PACKAGE),
+                    "已安裝",
+                    "尚未安裝"
+            );
+        }
+    }
+
+    private void setTabSelected(TextView button, boolean selected, int selectedColor) {
+        if (button == null) {
+            return;
+        }
+        button.setTextColor(selected ? Color.WHITE : ON_SURFACE_VARIANT);
+        button.setBackground(selected ? roundRect(selectedColor, 100) : roundRect(Color.TRANSPARENT, 100));
     }
 
     private boolean isNotificationAccessEnabled() {
@@ -294,6 +455,10 @@ public final class MainActivity extends Activity {
             return false;
         }
         return getSystemService(NotificationManager.class).areNotificationsEnabled();
+    }
+
+    private boolean isPackageInstalled(String packageName) {
+        return getPackageManager().getLaunchIntentForPackage(packageName) != null;
     }
 
     private void openNotificationListenerSettings() {

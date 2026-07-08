@@ -99,12 +99,12 @@ public final class RideReminder {
         );
 
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.ic_food_delivery_notification)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setContentIntent(openFoodpanda)
                 .addAction(new Notification.Action.Builder(
-                        Icon.createWithResource(context, R.drawable.ic_notification),
+                        Icon.createWithResource(context, R.drawable.ic_food_delivery_notification),
                         "開啟 foodpanda",
                         openFoodpanda
                 ).build())
