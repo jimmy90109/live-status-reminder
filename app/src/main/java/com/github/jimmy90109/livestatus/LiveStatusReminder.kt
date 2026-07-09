@@ -9,7 +9,7 @@ import android.graphics.Color
 import android.graphics.drawable.Icon
 import com.github.jimmy90109.livestatus.ui.home.HomeScreenHostActivity
 
-object RideReminder {
+object LiveStatusReminder {
     private const val CHANNEL_ID = "live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
     private const val FOODPANDA_NOTIFICATION_ID = 1002
@@ -72,10 +72,10 @@ object RideReminder {
     @JvmStatic
     fun showFoodpanda(
         context: Context,
-        event: RideNotificationParser.FoodpandaEvent,
+        event: LiveStatusNotificationParser.FoodpandaEvent,
     ) {
         createChannel(context)
-        val arriving = event == RideNotificationParser.FoodpandaEvent.COURIER_ARRIVING
+        val arriving = event == LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING
         val title = if (arriving) "foodpanda 即將抵達" else "foodpanda 外送中"
         val text = if (arriving) {
             "外送夥伴即將抵達，準備取餐。"
@@ -120,7 +120,7 @@ object RideReminder {
     @JvmStatic
     fun showUberEats(
         context: Context,
-        event: RideNotificationParser.UberEatsEvent,
+        event: LiveStatusNotificationParser.UberEatsEvent,
         pin: String?,
     ) {
         createChannel(context)
@@ -178,7 +178,7 @@ object RideReminder {
 
     private fun applyUberEatsStyle(
         builder: Notification.Builder,
-        event: RideNotificationParser.UberEatsEvent,
+        event: LiveStatusNotificationParser.UberEatsEvent,
     ) {
         val style = Notification.ProgressStyle()
             .setStyledByProgress(true)
@@ -193,37 +193,37 @@ object RideReminder {
         builder.setStyle(style)
     }
 
-    private fun uberEatsProgress(event: RideNotificationParser.UberEatsEvent): Int = when (event) {
-        RideNotificationParser.UberEatsEvent.PREPARING -> 40
-        RideNotificationParser.UberEatsEvent.PICKING_UP -> 60
-        RideNotificationParser.UberEatsEvent.ON_THE_WAY -> 80
-        RideNotificationParser.UberEatsEvent.ARRIVING -> 100
+    private fun uberEatsProgress(event: LiveStatusNotificationParser.UberEatsEvent): Int = when (event) {
+        LiveStatusNotificationParser.UberEatsEvent.PREPARING -> 40
+        LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> 60
+        LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> 80
+        LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> 100
         else -> 20
     }
 
-    private fun uberEatsTitle(event: RideNotificationParser.UberEatsEvent): String = when (event) {
-        RideNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
-        RideNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
-        RideNotificationParser.UberEatsEvent.ON_THE_WAY -> "Uber Eats 配送中"
-        RideNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
+    private fun uberEatsTitle(event: LiveStatusNotificationParser.UberEatsEvent): String = when (event) {
+        LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
+        LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
+        LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "Uber Eats 配送中"
+        LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
         else -> "Uber Eats 訂單已收到"
     }
 
-    private fun uberEatsStatusText(event: RideNotificationParser.UberEatsEvent): String =
+    private fun uberEatsStatusText(event: LiveStatusNotificationParser.UberEatsEvent): String =
         when (event) {
-            RideNotificationParser.UberEatsEvent.PREPARING -> "店家正在準備您的餐點。"
-            RideNotificationParser.UberEatsEvent.PICKING_UP -> "外送夥伴正在取餐。"
-            RideNotificationParser.UberEatsEvent.ON_THE_WAY -> "外送夥伴正前往您所在位置。"
-            RideNotificationParser.UberEatsEvent.ARRIVING -> "外送夥伴即將抵達，請準備取餐。"
+            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "店家正在準備您的餐點。"
+            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "外送夥伴正在取餐。"
+            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "外送夥伴正前往您所在位置。"
+            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "外送夥伴即將抵達，請準備取餐。"
             else -> "店家已收到您的訂單。"
         }
 
-    private fun uberEatsShortText(event: RideNotificationParser.UberEatsEvent): String =
+    private fun uberEatsShortText(event: LiveStatusNotificationParser.UberEatsEvent): String =
         when (event) {
-            RideNotificationParser.UberEatsEvent.PREPARING -> "備餐中"
-            RideNotificationParser.UberEatsEvent.PICKING_UP -> "取餐中"
-            RideNotificationParser.UberEatsEvent.ON_THE_WAY -> "配送中"
-            RideNotificationParser.UberEatsEvent.ARRIVING -> "快到了"
+            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "備餐中"
+            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "取餐中"
+            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "配送中"
+            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "快到了"
             else -> "已接單"
         }
 

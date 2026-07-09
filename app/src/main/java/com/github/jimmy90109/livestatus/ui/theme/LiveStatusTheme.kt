@@ -8,7 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.isSystemInDarkTheme
 
 @Composable
-fun RideCodeTheme(content: @Composable () -> Unit) {
+fun LiveStatusTheme(content: @Composable () -> Unit) {
     val darkTheme = isSystemInDarkTheme()
     val appColors = if (darkTheme) DarkAppColors else LightAppColors
     val materialColors = if (darkTheme) {

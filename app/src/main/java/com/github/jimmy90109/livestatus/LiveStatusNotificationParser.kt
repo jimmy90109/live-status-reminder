@@ -2,7 +2,7 @@ package com.github.jimmy90109.livestatus
 
 import java.util.Locale
 
-object RideNotificationParser {
+object LiveStatusNotificationParser {
     private val fourDigitPin = Regex("""^\s*(\d{4})\s*$""")
     private val contextualPin =
         Regex("""(?:pin|驗證碼|取餐碼|交付碼)\s*[:：#-]?\s*(\d{4})(?!\d)""", RegexOption.IGNORE_CASE)

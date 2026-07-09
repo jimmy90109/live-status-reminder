@@ -4,8 +4,8 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 
-class RideNotificationListenerService : NotificationListenerService() {
-    private var lastUberEatsEvent = RideNotificationParser.UberEatsEvent.NONE
+class LiveStatusNotificationListenerService : NotificationListenerService() {
+    private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
     private var lastUberEatsPin: String? = null
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
@@ -21,22 +21,22 @@ class RideNotificationListenerService : NotificationListenerService() {
     }
 
     private fun handleRideNotification(notificationText: String) {
-        when (RideNotificationParser.parse(notificationText)) {
-            RideNotificationParser.RideEvent.ENTERED -> RideReminder.show(this)
-            RideNotificationParser.RideEvent.EXITED -> RideReminder.clear(this)
-            RideNotificationParser.RideEvent.NONE -> Unit
+        when (LiveStatusNotificationParser.parse(notificationText)) {
+            LiveStatusNotificationParser.RideEvent.ENTERED -> LiveStatusReminder.show(this)
+            LiveStatusNotificationParser.RideEvent.EXITED -> LiveStatusReminder.clear(this)
+            LiveStatusNotificationParser.RideEvent.NONE -> Unit
         }
     }
 
     private fun handleFoodpandaNotification(notificationText: String) {
-        when (val event = RideNotificationParser.parseFoodpanda(notificationText)) {
-            RideNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY,
-            RideNotificationParser.FoodpandaEvent.COURIER_ARRIVING,
-            -> RideReminder.showFoodpanda(this, event)
-            RideNotificationParser.FoodpandaEvent.ORDER_ENDED -> {
-                RideReminder.clearFoodpanda(this)
+        when (val event = LiveStatusNotificationParser.parseFoodpanda(notificationText)) {
+            LiveStatusNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY,
+            LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING,
+            -> LiveStatusReminder.showFoodpanda(this, event)
+            LiveStatusNotificationParser.FoodpandaEvent.ORDER_ENDED -> {
+                LiveStatusReminder.clearFoodpanda(this)
             }
-            RideNotificationParser.FoodpandaEvent.NONE -> Unit
+            LiveStatusNotificationParser.FoodpandaEvent.NONE -> Unit
         }
     }
 
@@ -44,23 +44,23 @@ class RideNotificationListenerService : NotificationListenerService() {
         notificationText: String,
         shortCriticalText: String?,
     ) {
-        val update = RideNotificationParser.parseUberEats(notificationText, shortCriticalText)
+        val update = LiveStatusNotificationParser.parseUberEats(notificationText, shortCriticalText)
         val event = update.event
 
-        if (event == RideNotificationParser.UberEatsEvent.ORDER_ENDED) {
-            lastUberEatsEvent = RideNotificationParser.UberEatsEvent.NONE
+        if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_ENDED) {
+            lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
             lastUberEatsPin = null
-            RideReminder.clearUberEats(this)
+            LiveStatusReminder.clearUberEats(this)
             return
         }
 
-        if (event == RideNotificationParser.UberEatsEvent.ORDER_RECEIVED) {
+        if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED) {
             lastUberEatsEvent = event
             lastUberEatsPin = update.pin
         } else {
             update.pin?.let { lastUberEatsPin = it }
             if (
-                event != RideNotificationParser.UberEatsEvent.NONE &&
+                event != LiveStatusNotificationParser.UberEatsEvent.NONE &&
                 eventRank(event) >= eventRank(lastUberEatsEvent)
             ) {
                 lastUberEatsEvent = event
@@ -68,19 +68,19 @@ class RideNotificationListenerService : NotificationListenerService() {
         }
 
         if (
-            lastUberEatsEvent != RideNotificationParser.UberEatsEvent.NONE &&
-            (event != RideNotificationParser.UberEatsEvent.NONE || update.pin != null)
+            lastUberEatsEvent != LiveStatusNotificationParser.UberEatsEvent.NONE &&
+            (event != LiveStatusNotificationParser.UberEatsEvent.NONE || update.pin != null)
         ) {
-            RideReminder.showUberEats(this, lastUberEatsEvent, lastUberEatsPin)
+            LiveStatusReminder.showUberEats(this, lastUberEatsEvent, lastUberEatsPin)
         }
     }
 
-    private fun eventRank(event: RideNotificationParser.UberEatsEvent): Int = when (event) {
-        RideNotificationParser.UberEatsEvent.ORDER_RECEIVED -> 1
-        RideNotificationParser.UberEatsEvent.PREPARING -> 2
-        RideNotificationParser.UberEatsEvent.PICKING_UP -> 3
-        RideNotificationParser.UberEatsEvent.ON_THE_WAY -> 4
-        RideNotificationParser.UberEatsEvent.ARRIVING -> 5
+    private fun eventRank(event: LiveStatusNotificationParser.UberEatsEvent): Int = when (event) {
+        LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED -> 1
+        LiveStatusNotificationParser.UberEatsEvent.PREPARING -> 2
+        LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> 3
+        LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> 4
+        LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> 5
         else -> 0
     }
 

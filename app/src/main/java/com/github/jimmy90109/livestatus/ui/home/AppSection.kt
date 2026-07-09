@@ -28,8 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.jimmy90109.livestatus.RideNotificationParser
-import com.github.jimmy90109.livestatus.RideReminder
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
+import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.launch
 
@@ -141,10 +141,10 @@ private fun IpassCard(installed: Boolean) {
         foregroundColor = colors.onSurface,
     ) {
         ActionButton("模擬上車，顯示提醒  ↑", colors.ipassPrimary, colors.commonOnPrimary) {
-            RideReminder.show(context)
+            LiveStatusReminder.show(context)
         }
         ActionButton("模擬下車，移除提醒  ✓", colors.ipassTertiaryContainer, colors.onSurface) {
-            RideReminder.clear(context)
+            LiveStatusReminder.clear(context)
         }
     }
 }
@@ -163,13 +163,13 @@ private fun FoodpandaCard(installed: Boolean) {
         foregroundColor = colors.foodpandaText,
     ) {
         ActionButton("模擬外送中", colors.foodpandaPrimary, colors.commonOnPrimary) {
-            RideReminder.showFoodpanda(context, RideNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY)
+            LiveStatusReminder.showFoodpanda(context, LiveStatusNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY)
         }
         ActionButton("模擬即將抵達", colors.foodpandaSecondaryContainer, colors.foodpandaText) {
-            RideReminder.showFoodpanda(context, RideNotificationParser.FoodpandaEvent.COURIER_ARRIVING)
+            LiveStatusReminder.showFoodpanda(context, LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING)
         }
         ActionButton("清除 foodpanda 狀態  ✓", colors.foodpandaSecondaryContainer, colors.foodpandaText) {
-            RideReminder.clearFoodpanda(context)
+            LiveStatusReminder.clearFoodpanda(context)
         }
     }
 }
@@ -187,13 +187,13 @@ private fun UberEatsCard(installed: Boolean) {
         labelColor = colors.uberEatsSecondaryContainer,
         foregroundColor = colors.uberEatsText,
     ) {
-        UberEatsTestButton("模擬訂單已收到", RideNotificationParser.UberEatsEvent.ORDER_RECEIVED)
-        UberEatsTestButton("模擬正在準備訂單", RideNotificationParser.UberEatsEvent.PREPARING)
-        UberEatsTestButton("模擬正在取餐", RideNotificationParser.UberEatsEvent.PICKING_UP)
-        UberEatsTestButton("模擬配送中", RideNotificationParser.UberEatsEvent.ON_THE_WAY)
-        UberEatsTestButton("模擬快到了（PIN 7616）", RideNotificationParser.UberEatsEvent.ARRIVING, "7616")
+        UberEatsTestButton("模擬訂單已收到", LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED)
+        UberEatsTestButton("模擬正在準備訂單", LiveStatusNotificationParser.UberEatsEvent.PREPARING)
+        UberEatsTestButton("模擬正在取餐", LiveStatusNotificationParser.UberEatsEvent.PICKING_UP)
+        UberEatsTestButton("模擬配送中", LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY)
+        UberEatsTestButton("模擬快到了（PIN 7616）", LiveStatusNotificationParser.UberEatsEvent.ARRIVING, "7616")
         ActionButton("模擬送達，清除狀態  ✓", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
-            RideReminder.clearUberEats(context)
+            LiveStatusReminder.clearUberEats(context)
         }
     }
 }
@@ -201,18 +201,18 @@ private fun UberEatsCard(installed: Boolean) {
 @Composable
 private fun UberEatsTestButton(
     label: String,
-    event: RideNotificationParser.UberEatsEvent,
+    event: LiveStatusNotificationParser.UberEatsEvent,
     pin: String? = null,
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
-    val primary = event == RideNotificationParser.UberEatsEvent.ORDER_RECEIVED
+    val primary = event == LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED
     ActionButton(
         label,
         if (primary) colors.uberEatsPrimary else colors.uberEatsSecondaryContainer,
         if (primary) colors.commonOnPrimary else colors.uberEatsText,
     ) {
-        RideReminder.showUberEats(context, event, pin)
+        LiveStatusReminder.showUberEats(context, event, pin)
     }
 }
 

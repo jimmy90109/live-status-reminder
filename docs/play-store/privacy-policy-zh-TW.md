@@ -39,4 +39,4 @@
 
 ## 聯絡方式
 
-若對本政策或資料處理有任何問題，請透過 [GitHub Issues](https://github.com/jimmy90109/ride-code-reminder/issues) 與開發者聯絡。
+若對本政策或資料處理有任何問題，請透過 [GitHub Issues](https://github.com/jimmy90109/live-status-reminder/issues) 與開發者聯絡。

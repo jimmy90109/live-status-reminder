@@ -16,7 +16,7 @@
 - [x] 準備隱私權政策內容。
 - [x] 準備資料安全與 App content 填寫建議。
 - [ ] 填入公開的隱私問題聯絡電子郵件。
-- [x] 隱私權政策發布位置：<https://jimmy90109.github.io/ride-code-reminder/>
+- [x] 隱私權政策發布位置：<https://jimmy90109.github.io/live-status-reminder/>
 - [ ] 準備至少 2 張手機螢幕截圖、512×512 PNG App 圖示及 1024×500 Feature Graphic。
 - [ ] 建立 Play Console App 並完成商店設定、內容分級、目標年齡、資料安全及 App 存取聲明。
 

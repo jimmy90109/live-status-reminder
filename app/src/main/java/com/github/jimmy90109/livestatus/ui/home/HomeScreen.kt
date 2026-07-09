@@ -60,11 +60,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.jimmy90109.livestatus.RideNotificationListenerService
-import com.github.jimmy90109.livestatus.RideNotificationParser
-import com.github.jimmy90109.livestatus.RideReminder
+import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
+import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
-import com.github.jimmy90109.livestatus.ui.theme.RideCodeTheme
+import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
 import kotlinx.coroutines.launch
 
 open class HomeScreenHostActivity : ComponentActivity() {
@@ -73,7 +73,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        RideReminder.createChannel(this)
+        LiveStatusReminder.createChannel(this)
 
         when (intent.action) {
             ACTION_OPEN_IPASS -> openIpass()
@@ -81,7 +81,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_UBER_EATS -> openUberEats()
             else -> {
                 setContent {
-                    RideCodeTheme {
+                    LiveStatusTheme {
                         MainScreen(
                             status = statusSnapshot,
                             onOpenNotificationAccess = ::openNotificationListenerSettings,
@@ -118,7 +118,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             contentResolver,
             "enabled_notification_listeners",
         )
-        val listener = ComponentName(this, RideNotificationListenerService::class.java)
+        val listener = ComponentName(this, LiveStatusNotificationListenerService::class.java)
         return enabledListeners?.contains(listener.flattenToString()) == true
     }
 
