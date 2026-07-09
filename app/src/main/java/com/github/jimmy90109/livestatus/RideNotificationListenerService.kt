@@ -1,4 +1,4 @@
-package com.example.ridecodereminder
+package com.github.jimmy90109.livestatus
 
 import android.app.Notification
 import android.service.notification.NotificationListenerService

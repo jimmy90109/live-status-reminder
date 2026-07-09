@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ridecodereminder"
+    namespace = "com.github.jimmy90109.livestatus"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.ridecodereminder"
+        applicationId = "com.github.jimmy90109.livestatus"
         minSdk = 36
         targetSdk = 36
         versionCode = 1

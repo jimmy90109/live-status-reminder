@@ -1,8 +1,8 @@
-package com.example.ridecodereminder
+package com.github.jimmy90109.livestatus
 
-import com.example.ridecodereminder.RideNotificationParser.FoodpandaEvent
-import com.example.ridecodereminder.RideNotificationParser.RideEvent
-import com.example.ridecodereminder.RideNotificationParser.UberEatsEvent
+import com.github.jimmy90109.livestatus.RideNotificationParser.FoodpandaEvent
+import com.github.jimmy90109.livestatus.RideNotificationParser.RideEvent
+import com.github.jimmy90109.livestatus.RideNotificationParser.UberEatsEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

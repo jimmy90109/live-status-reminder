@@ -1,4 +1,4 @@
-package com.example.ridecodereminder.ui.home
+package com.github.jimmy90109.livestatus.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,7 +21,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ridecodereminder.ui.theme.LocalAppColors
+import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 @Composable
 internal fun HeroCard() {

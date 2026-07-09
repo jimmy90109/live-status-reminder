@@ -1,4 +1,4 @@
-package com.example.ridecodereminder.ui.home
+package com.github.jimmy90109.livestatus.ui.home
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -28,9 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ridecodereminder.RideNotificationParser
-import com.example.ridecodereminder.RideReminder
-import com.example.ridecodereminder.ui.theme.LocalAppColors
+import com.github.jimmy90109.livestatus.RideNotificationParser
+import com.github.jimmy90109.livestatus.RideReminder
+import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.launch
 
 @Composable

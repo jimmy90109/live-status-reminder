@@ -1,4 +1,4 @@
-package com.example.ridecodereminder.ui.theme
+package com.github.jimmy90109.livestatus.ui.theme
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color

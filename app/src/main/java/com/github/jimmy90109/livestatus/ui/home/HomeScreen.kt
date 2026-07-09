@@ -1,4 +1,4 @@
-package com.example.ridecodereminder.ui.home
+package com.github.jimmy90109.livestatus.ui.home
 
 import android.Manifest
 import android.app.NotificationManager
@@ -60,11 +60,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ridecodereminder.RideNotificationListenerService
-import com.example.ridecodereminder.RideNotificationParser
-import com.example.ridecodereminder.RideReminder
-import com.example.ridecodereminder.ui.theme.LocalAppColors
-import com.example.ridecodereminder.ui.theme.RideCodeTheme
+import com.github.jimmy90109.livestatus.RideNotificationListenerService
+import com.github.jimmy90109.livestatus.RideNotificationParser
+import com.github.jimmy90109.livestatus.RideReminder
+import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
+import com.github.jimmy90109.livestatus.ui.theme.RideCodeTheme
 import kotlinx.coroutines.launch
 
 open class HomeScreenHostActivity : ComponentActivity() {
@@ -168,11 +168,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
     companion object {
         private const val REQUEST_NOTIFICATIONS = 7
         private const val ACTION_OPEN_IPASS =
-            "com.example.ridecodereminder.action.OPEN_IPASS"
+            "com.github.jimmy90109.livestatus.action.OPEN_IPASS"
         private const val ACTION_OPEN_FOODPANDA =
-            "com.example.ridecodereminder.action.OPEN_FOODPANDA"
+            "com.github.jimmy90109.livestatus.action.OPEN_FOODPANDA"
         private const val ACTION_OPEN_UBER_EATS =
-            "com.example.ridecodereminder.action.OPEN_UBER_EATS"
+            "com.github.jimmy90109.livestatus.action.OPEN_UBER_EATS"
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"

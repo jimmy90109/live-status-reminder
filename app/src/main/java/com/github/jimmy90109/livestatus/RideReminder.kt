@@ -1,4 +1,4 @@
-package com.example.ridecodereminder
+package com.github.jimmy90109.livestatus
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -7,7 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.Icon
-import com.example.ridecodereminder.ui.home.HomeScreenHostActivity
+import com.github.jimmy90109.livestatus.ui.home.HomeScreenHostActivity
 
 object RideReminder {
     private const val CHANNEL_ID = "live_status"
