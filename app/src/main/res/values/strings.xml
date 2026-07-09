@@ -3,5 +3,4 @@
     <string name="app_name">即時狀態提醒</string>
     <string name="notification_channel_name">即時狀態提醒</string>
     <string name="notification_channel_description">持續顯示乘車與外送訂單狀態</string>
-    <string name="status_format">%1$s  %2$s</string>
 </resources>

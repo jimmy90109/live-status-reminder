@@ -6,13 +6,13 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -161,7 +161,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         }
         Toast.makeText(this, "尚未安裝 $appName，將開啟 Google Play。", Toast.LENGTH_LONG).show()
         startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$targetPackageName")),
+            Intent(Intent.ACTION_VIEW, "market://details?id=$targetPackageName".toUri()),
         )
     }
 

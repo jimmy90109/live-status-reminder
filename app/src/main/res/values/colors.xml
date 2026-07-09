@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="green_700">#087F5B</color>
-    <color name="green_900">#07513D</color>
-    <color name="surface">#F6FAF8</color>
-    <color name="text_primary">#183029</color>
-    <color name="text_secondary">#526B63</color>
-    <color name="launcher_background">#2F343A</color>
     <color name="window_background">#F8F9FA</color>
 </resources>
