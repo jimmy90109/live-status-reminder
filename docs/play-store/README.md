@@ -8,6 +8,7 @@
 - [x] 停用 App 資料備份，避免未來意外備份敏感的本機資料。
 - [x] 使用永久且唯一的正式 application ID：`com.github.jimmy90109.livestatus`。
 - [ ] 確認 upload keystore 已安全備份，並修正本機 `keystore.properties`，讓 `./gradlew verifyReleaseSigning bundleRelease` 可重新產生正式簽署 AAB。
+- [x] 準備 upload keystore 排查筆記：[upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md)。
 - [ ] 在實體 Android 16 裝置完整驗證三種來源通知與權限撤銷流程。
 
 ## 商店與政策

@@ -69,7 +69,7 @@ Production release 前請確認：
 - [ ] 若 Alpha 後沒有程式碼變更，可沿用既有 AAB；若有任何變更，必須遞增 `versionCode`。
 - [ ] 若要正式發布為 `1.0.0`，將 `versionName` 從 `1.0.0-beta` 改為 `1.0.0`。
 - [ ] 若要先以 beta 名義公開，確認商店資訊與版本資訊仍標示為 beta。
-- [ ] 重新產生正式簽署 AAB。
+- [ ] 重新產生正式簽署 AAB；若簽署失敗，先依 [upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md) 排查。
 - [ ] 執行 `./gradlew test lintRelease bundleRelease`。
 - [ ] 確認 `app/build/outputs/bundle/release/app-release.aab` 是要上傳的最新檔案。
 
