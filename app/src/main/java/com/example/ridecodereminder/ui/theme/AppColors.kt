@@ -1,28 +1,84 @@
 package com.example.ridecodereminder.ui.theme
 
-import android.graphics.Color
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 
-object AppColors {
-    val BACKGROUND = Color.rgb(248, 249, 250)
-    val ON_SURFACE = Color.rgb(32, 37, 42)
-    val ON_SURFACE_VARIANT = Color.rgb(91, 99, 106)
-    val COMMON_PRIMARY = Color.rgb(96, 105, 114)
-    val COMMON_CONTAINER = Color.rgb(232, 235, 238)
-    val COMMON_SURFACE = Color.rgb(240, 242, 244)
-    val IPASS_PRIMARY = Color.rgb(0, 111, 79)
-    val IPASS_CONTAINER = Color.rgb(191, 239, 216)
-    val IPASS_SECONDARY_CONTAINER = Color.rgb(214, 238, 224)
-    val IPASS_TERTIARY_CONTAINER = Color.rgb(205, 236, 205)
-    val FOODPANDA_PRIMARY = Color.rgb(224, 0, 119)
-    val FOODPANDA_CONTAINER = Color.rgb(255, 214, 235)
-    val FOODPANDA_SECONDARY_CONTAINER = Color.rgb(255, 232, 244)
-    val FOODPANDA_TEXT = Color.rgb(105, 0, 56)
-    val UBER_EATS_PRIMARY = Color.rgb(6, 143, 77)
-    val UBER_EATS_CONTAINER = Color.rgb(207, 244, 221)
-    val UBER_EATS_SECONDARY_CONTAINER = Color.rgb(229, 247, 235)
-    val UBER_EATS_TEXT = Color.rgb(0, 80, 42)
-    val SUCCESS_CONTAINER = Color.rgb(206, 237, 217)
-    val SUCCESS_TEXT = Color.rgb(27, 82, 49)
-    val WARNING_CONTAINER = Color.rgb(255, 224, 170)
-    val WARNING_TEXT = Color.rgb(91, 55, 0)
-}
+data class AppColors(
+    val background: Color,
+    val onSurface: Color,
+    val onSurfaceVariant: Color,
+    val commonPrimary: Color,
+    val commonOnPrimary: Color,
+    val commonContainer: Color,
+    val commonSurface: Color,
+    val ipassPrimary: Color,
+    val ipassContainer: Color,
+    val ipassSecondaryContainer: Color,
+    val ipassTertiaryContainer: Color,
+    val foodpandaPrimary: Color,
+    val foodpandaContainer: Color,
+    val foodpandaSecondaryContainer: Color,
+    val foodpandaText: Color,
+    val uberEatsPrimary: Color,
+    val uberEatsContainer: Color,
+    val uberEatsSecondaryContainer: Color,
+    val uberEatsText: Color,
+    val successContainer: Color,
+    val successText: Color,
+    val warningContainer: Color,
+    val warningText: Color,
+)
+
+val LightAppColors = AppColors(
+    background = Color(0xFFF8F9FA),
+    onSurface = Color(0xFF20252A),
+    onSurfaceVariant = Color(0xFF5B636A),
+    commonPrimary = Color(0xFF606972),
+    commonOnPrimary = Color.White,
+    commonContainer = Color(0xFFE8EBEE),
+    commonSurface = Color(0xFFF0F2F4),
+    ipassPrimary = Color(0xFF006F4F),
+    ipassContainer = Color(0xFFBFEFD8),
+    ipassSecondaryContainer = Color(0xFFD6EEE0),
+    ipassTertiaryContainer = Color(0xFFCDECCD),
+    foodpandaPrimary = Color(0xFFE00077),
+    foodpandaContainer = Color(0xFFFFD6EB),
+    foodpandaSecondaryContainer = Color(0xFFFFE8F4),
+    foodpandaText = Color(0xFF690038),
+    uberEatsPrimary = Color(0xFF068F4D),
+    uberEatsContainer = Color(0xFFCFF4DD),
+    uberEatsSecondaryContainer = Color(0xFFE5F7EB),
+    uberEatsText = Color(0xFF00502A),
+    successContainer = Color(0xFFCEEDD9),
+    successText = Color(0xFF1B5231),
+    warningContainer = Color(0xFFFFE0AA),
+    warningText = Color(0xFF5B3700),
+)
+
+val DarkAppColors = AppColors(
+    background = Color(0xFF111416),
+    onSurface = Color(0xFFE7EAED),
+    onSurfaceVariant = Color(0xFFB8C0C7),
+    commonPrimary = Color(0xFFAEB7C0),
+    commonOnPrimary = Color(0xFF171B1E),
+    commonContainer = Color(0xFF30363B),
+    commonSurface = Color(0xFF22272B),
+    ipassPrimary = Color(0xFF58AD8C),
+    ipassContainer = Color(0xFF173D31),
+    ipassSecondaryContainer = Color(0xFF235044),
+    ipassTertiaryContainer = Color(0xFF28513A),
+    foodpandaPrimary = Color(0xFFC96594),
+    foodpandaContainer = Color(0xFF4A1732),
+    foodpandaSecondaryContainer = Color(0xFF602142),
+    foodpandaText = Color(0xFFFFC0DD),
+    uberEatsPrimary = Color(0xFF59AD79),
+    uberEatsContainer = Color(0xFF173D2A),
+    uberEatsSecondaryContainer = Color(0xFF235239),
+    uberEatsText = Color(0xFFB4F4CE),
+    successContainer = Color(0xFF234A34),
+    successText = Color(0xFFB5E8C7),
+    warningContainer = Color(0xFF58451F),
+    warningText = Color(0xFFFFD998),
+)
+
+val LocalAppColors = staticCompositionLocalOf { LightAppColors }

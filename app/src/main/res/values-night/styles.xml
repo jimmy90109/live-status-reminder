@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.RideCodeReminder" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="Theme.RideCodeReminder" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#006F4F</item>
+        <item name="android:colorAccent">#67D8AD</item>
         <item name="android:windowBackground">@color/window_background</item>
         <item name="android:navigationBarColor">@color/window_background</item>
         <item name="android:statusBarColor">@color/window_background</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
         <item name="android:windowActionModeOverlay">true</item>
     </style>
 </resources>

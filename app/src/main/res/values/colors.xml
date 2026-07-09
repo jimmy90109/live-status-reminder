@@ -6,4 +6,5 @@
     <color name="text_primary">#183029</color>
     <color name="text_secondary">#526B63</color>
     <color name="launcher_background">#2F343A</color>
+    <color name="window_background">#F8F9FA</color>
 </resources>
