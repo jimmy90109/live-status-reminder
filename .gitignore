@@ -1,10 +1,13 @@
 /.gradle/
 /.kotlin/
 /.idea/
+/.DS_Store
+**/.DS_Store
 /local.properties
 /keystore.properties
 *.jks
 *.keystore
 **/build/
+/app/release/
 *.iml
 /docs/ubereats-audit/

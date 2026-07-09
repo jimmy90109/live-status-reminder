@@ -40,13 +40,14 @@
 
 ## 發布版本名稱
 
-1.0
+1.0.0-beta
 
 ## 發布說明
 
-首個版本：
+1.0.0-beta 首個測試版本：
 
 - 支援 iPASS MONEY 乘車進出站提醒。
 - 支援 foodpanda 外送進度提醒。
-- 支援 Uber Eats 五階段訂單進度與交付 PIN 顯示。
+- 支援 Uber Eats 訂單進度與交付 PIN 顯示。
 - 支援 Android 16 Live Update。
+- 通知內容僅在裝置上處理，不上傳或分享。
