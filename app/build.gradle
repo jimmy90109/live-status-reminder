@@ -58,6 +58,37 @@ tasks.register("verifyReleaseSigning") {
         if (!rootProject.file(keystoreProperties["storeFile"]).exists()) {
             throw new GradleException("Upload keystore does not exist at the configured storeFile.")
         }
+        def uploadKeystore = rootProject.file(keystoreProperties["storeFile"])
+        def keyStore
+        try {
+            keyStore = java.security.KeyStore.getInstance(
+                uploadKeystore,
+                keystoreProperties["storePassword"].toCharArray()
+            )
+        } catch (Exception exception) {
+            throw new GradleException(
+                "Upload keystore could not be opened. Check storeFile and storePassword in keystore.properties.",
+                exception
+            )
+        }
+        if (!keyStore.containsAlias(keystoreProperties["keyAlias"])) {
+            throw new GradleException("Upload keystore does not contain the configured keyAlias.")
+        }
+        def uploadKey
+        try {
+            uploadKey = keyStore.getKey(
+                keystoreProperties["keyAlias"],
+                keystoreProperties["keyPassword"].toCharArray()
+            )
+        } catch (Exception exception) {
+            throw new GradleException(
+                "Upload key could not be opened. Check keyAlias and keyPassword in keystore.properties.",
+                exception
+            )
+        }
+        if (uploadKey == null) {
+            throw new GradleException("Upload key could not be loaded from the configured keystore.")
+        }
     }
 }
 
