@@ -1,6 +1,8 @@
 # 封閉測試 Alpha 驗證清單
 
-版本：`2607090 (1.0.0-beta)`
+已審查通過版本：`2607090 (1.0.0-beta)`
+
+本機最新 signed AAB：`2607100 (1.0.0-beta2)`
 
 Alpha 審查狀態：已通過（2026-07-10）
 
@@ -52,7 +54,7 @@ Alpha 審查狀態：已通過（2026-07-10）
 ## 正式版前最後檢查
 
 - [ ] 若有任何程式碼變更，遞增 `versionCode`。
-- [ ] 若已不再是測試版，將 `versionName` 從 `1.0.0-beta` 調整為正式版本名稱。
+- [ ] 若已不再是測試版，將 `versionName` 從目前測試版名稱調整為正式版本名稱。
 - [ ] 更新商店版本資訊。
 - [ ] 重新執行 `./gradlew test lintRelease bundleRelease`。
 - [ ] 使用正式簽署 AAB 建立 Production release。

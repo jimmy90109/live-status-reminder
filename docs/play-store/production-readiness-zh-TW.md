@@ -18,7 +18,8 @@
 | 項目 | 紀錄 |
 | --- | --- |
 | 測試群組 | `livestatus--app@googlegroups.com` |
-| 測試版本 | `2607090 (1.0.0-beta)` |
+| 已審查通過版本 | `2607090 (1.0.0-beta)` |
+| 本機最新 signed AAB | `2607100 (1.0.0-beta2)` |
 | 測試開始日期 | 待填 |
 | 測試結束日期 | 待填 |
 | 有效測試者數量 | 待填 |
@@ -68,7 +69,7 @@
 Production release 前請確認：
 
 - [ ] 若 Alpha 後沒有程式碼變更，可沿用既有 AAB；若有任何變更，必須遞增 `versionCode`。
-- [ ] 若要正式發布為 `1.0.0`，將 `versionName` 從 `1.0.0-beta` 改為 `1.0.0`。
+- [ ] 若要正式發布為 `1.0.0`，將 `versionName` 從目前測試版名稱改為 `1.0.0`。
 - [ ] 若要先以 beta 名義公開，確認商店資訊與版本資訊仍標示為 beta。
 - [ ] 重新產生正式簽署 AAB；若簽署失敗，先依 [upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md) 排查。
 - [ ] 執行 `./gradlew test lintRelease bundleRelease`。

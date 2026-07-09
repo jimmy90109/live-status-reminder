@@ -7,7 +7,7 @@
 - [x] App 內在前往通知存取設定前提供醒目揭露與使用者選擇。
 - [x] 停用 App 資料備份，避免未來意外備份敏感的本機資料。
 - [x] 使用永久且唯一的正式 application ID：`com.github.jimmy90109.livestatus`。
-- [ ] 確認 upload keystore 已安全備份，並修正本機 `keystore.properties`，讓 `./gradlew verifyReleaseSigning bundleRelease` 可重新產生正式簽署 AAB。
+- [x] 本機 upload keystore 設定已修正，`./gradlew verifyReleaseSigning bundleRelease` 可重新產生正式簽署 AAB。
 - [x] 準備 upload keystore 排查筆記：[upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md)。
 - [ ] 在實體 Android 16 裝置完整驗證三種來源通知與權限撤銷流程。
 
@@ -31,6 +31,7 @@
 - [x] 準備 Alpha 實測清單：[alpha-testing-checklist-zh-TW.md](alpha-testing-checklist-zh-TW.md)。
 - [x] 準備正式版上架準備清單：[production-readiness-zh-TW.md](production-readiness-zh-TW.md)。
 - [x] Alpha 審查通過（2026-07-10）。
+- [x] 本機已產生下一版 signed AAB：`2607100 (1.0.0-beta2)`（2026-07-10）。
 - [ ] 檢查並處理 Play Console Pre-launch report 問題。
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
@@ -47,6 +48,8 @@
 - 發布軌道：封閉測試 - Alpha。
 - 推出狀態：開始全面推出。
 - Alpha 審查狀態：已通過（2026-07-10）。
+- 已審查通過版本：`2607090 (1.0.0-beta)`。
+- 本機最新 signed AAB：`2607100 (1.0.0-beta2)`，路徑 `app/build/outputs/bundle/release/app-release.aab`。
 - 應用程式名稱：LiveStatus 即時狀態提醒。
 - Package name：`com.github.jimmy90109.livestatus`。
 - 目標年齡層：13 歲以上。
