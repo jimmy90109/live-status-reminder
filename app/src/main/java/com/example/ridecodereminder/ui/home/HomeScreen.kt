@@ -42,6 +42,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -214,6 +216,7 @@ private fun HomeScreenHostActivity.MainScreen(
     onOpenLiveUpdateSettings: () -> Unit,
 ) {
     var settingsExpanded by rememberSaveable { mutableStateOf(true) }
+    var showNotificationAccessDisclosure by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(status.requiredSettingsComplete) {
         settingsExpanded = !status.requiredSettingsComplete
@@ -253,7 +256,9 @@ private fun HomeScreenHostActivity.MainScreen(
                             status = status,
                             expanded = settingsExpanded,
                             onToggle = { settingsExpanded = !settingsExpanded },
-                            onOpenNotificationAccess = onOpenNotificationAccess,
+                            onOpenNotificationAccess = {
+                                showNotificationAccessDisclosure = true
+                            },
                             onRequestNotificationPermission = onRequestNotificationPermission,
                             onOpenLiveUpdateSettings = onOpenLiveUpdateSettings,
                         )
@@ -286,7 +291,9 @@ private fun HomeScreenHostActivity.MainScreen(
                             status = status,
                             expanded = settingsExpanded,
                             onToggle = { settingsExpanded = !settingsExpanded },
-                            onOpenNotificationAccess = onOpenNotificationAccess,
+                            onOpenNotificationAccess = {
+                                showNotificationAccessDisclosure = true
+                            },
                             onRequestNotificationPermission = onRequestNotificationPermission,
                             onOpenLiveUpdateSettings = onOpenLiveUpdateSettings,
                         )
@@ -300,6 +307,45 @@ private fun HomeScreenHostActivity.MainScreen(
             }
         }
     }
+
+    if (showNotificationAccessDisclosure) {
+        NotificationAccessDisclosureDialog(
+            onDismiss = { showNotificationAccessDisclosure = false },
+            onContinue = {
+                showNotificationAccessDisclosure = false
+                onOpenNotificationAccess()
+            },
+        )
+    }
+}
+
+@Composable
+private fun NotificationAccessDisclosureDialog(
+    onDismiss: () -> Unit,
+    onContinue: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("允許讀取通知前，請先了解") },
+        text = {
+            Text(
+                "即時狀態提醒會讀取 iPASS MONEY、foodpanda 與 Uber Eats 的通知內容，" +
+                    "用來辨識乘車、外送進度與 Uber Eats 交付 PIN，並在本機產生提醒。\n\n" +
+                    "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
+                    "也不會永久儲存通知內容或 PIN。您隨時可以在系統設定中關閉通知存取權限。",
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onContinue) {
+                Text("了解並前往設定")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("暫時不要")
+            }
+        },
+    )
 }
 
 @Composable
