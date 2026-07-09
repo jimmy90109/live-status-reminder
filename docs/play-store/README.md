@@ -7,7 +7,7 @@
 - [x] App 內在前往通知存取設定前提供醒目揭露與使用者選擇。
 - [x] 停用 App 資料備份，避免未來意外備份敏感的本機資料。
 - [x] 使用永久且唯一的正式 application ID：`com.github.jimmy90109.livestatus`。
-- [ ] 建立並安全保存 upload keystore；用正式 upload key 簽署 AAB。
+- [ ] 建立並安全備份 upload keystore；複製 `keystore.properties.example` 為不進 Git 的 `keystore.properties`，再用正式 upload key 簽署 AAB。
 - [ ] 在實體 Android 16 裝置完整驗證三種來源通知與權限撤銷流程。
 
 ## 商店與政策
