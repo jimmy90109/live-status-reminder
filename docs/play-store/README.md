@@ -30,7 +30,8 @@
 - [x] Alpha 測試群組：`livestatus--app@googlegroups.com`。
 - [x] 準備 Alpha 實測清單：[alpha-testing-checklist-zh-TW.md](alpha-testing-checklist-zh-TW.md)。
 - [x] 準備正式版上架準備清單：[production-readiness-zh-TW.md](production-readiness-zh-TW.md)。
-- [ ] 等待 Alpha 審查結果，處理 Play Console 回報與 Pre-launch report 問題。
+- [x] Alpha 審查通過（2026-07-10）。
+- [ ] 檢查並處理 Play Console Pre-launch report 問題。
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
 - [ ] 申請 Production access（若 Play Console 要求）。
@@ -45,6 +46,7 @@
 
 - 發布軌道：封閉測試 - Alpha。
 - 推出狀態：開始全面推出。
+- Alpha 審查狀態：已通過（2026-07-10）。
 - 應用程式名稱：LiveStatus 即時狀態提醒。
 - Package name：`com.github.jimmy90109.livestatus`。
 - 目標年齡層：13 歲以上。

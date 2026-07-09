@@ -2,8 +2,11 @@
 
 版本：`2607090 (1.0.0-beta)`
 
+Alpha 審查狀態：已通過（2026-07-10）
+
 ## 審查通過後立即確認
 
+- [x] Play Console Alpha 審查已通過。
 - [ ] Play Console 顯示 Alpha 版本已可供測試人員安裝。
 - [ ] 測試者 Google 帳號已加入 `livestatus--app@googlegroups.com`。
 - [ ] 測試者已開啟測試邀請連結並選擇加入測試。

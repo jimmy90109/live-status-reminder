@@ -4,6 +4,7 @@
 
 ## Alpha 審查通過後
 
+- [x] Alpha 審查已通過（2026-07-10）。
 - [ ] 確認 Play Console 顯示 `2607090 (1.0.0-beta)` 已可供 Alpha 測試人員安裝。
 - [ ] 使用測試者帳號從 Google Play 安裝，而不是使用本機 ADB 或 sideload。
 - [ ] 完成 [Alpha 驗證清單](alpha-testing-checklist-zh-TW.md)。
