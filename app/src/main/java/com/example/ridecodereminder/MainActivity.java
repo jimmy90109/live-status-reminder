@@ -27,12 +27,16 @@ public final class MainActivity extends Activity {
     private static final int REQUEST_NOTIFICATIONS = 7;
     private static final int TAB_IPASS = 0;
     private static final int TAB_FOODPANDA = 1;
+    private static final int TAB_UBER_EATS = 2;
     private static final String ACTION_OPEN_IPASS =
             "com.example.ridecodereminder.action.OPEN_IPASS";
     private static final String ACTION_OPEN_FOODPANDA =
             "com.example.ridecodereminder.action.OPEN_FOODPANDA";
+    private static final String ACTION_OPEN_UBER_EATS =
+            "com.example.ridecodereminder.action.OPEN_UBER_EATS";
     private static final String IPASS_PACKAGE = "com.ipass.ipassmoney";
     private static final String FOODPANDA_PACKAGE = "com.global.foodpanda.android";
+    private static final String UBER_EATS_PACKAGE = "com.ubercab.eats";
 
     private static final int BACKGROUND = Color.rgb(248, 249, 250);
     private static final int ON_SURFACE = Color.rgb(32, 37, 42);
@@ -48,6 +52,10 @@ public final class MainActivity extends Activity {
     private static final int FOODPANDA_CONTAINER = Color.rgb(255, 214, 235);
     private static final int FOODPANDA_SECONDARY_CONTAINER = Color.rgb(255, 232, 244);
     private static final int FOODPANDA_TEXT = Color.rgb(105, 0, 56);
+    private static final int UBER_EATS_PRIMARY = Color.rgb(6, 143, 77);
+    private static final int UBER_EATS_CONTAINER = Color.rgb(207, 244, 221);
+    private static final int UBER_EATS_SECONDARY_CONTAINER = Color.rgb(229, 247, 235);
+    private static final int UBER_EATS_TEXT = Color.rgb(0, 80, 42);
     private static final int SUCCESS_CONTAINER = Color.rgb(206, 237, 217);
     private static final int SUCCESS_TEXT = Color.rgb(27, 82, 49);
     private static final int WARNING_CONTAINER = Color.rgb(255, 224, 170);
@@ -59,9 +67,11 @@ public final class MainActivity extends Activity {
     private int selectedAppTab = TAB_IPASS;
     private TextView ipassTabButton;
     private TextView foodpandaTabButton;
+    private TextView uberEatsTabButton;
     private LinearLayout appTabContent;
     private TextView ipassInstallStatus;
     private TextView foodpandaInstallStatus;
+    private TextView uberEatsInstallStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +90,11 @@ public final class MainActivity extends Activity {
         }
         if (ACTION_OPEN_FOODPANDA.equals(getIntent().getAction())) {
             openFoodpanda();
+            finish();
+            return;
+        }
+        if (ACTION_OPEN_UBER_EATS.equals(getIntent().getAction())) {
+            openUberEats();
             finish();
             return;
         }
@@ -104,6 +119,12 @@ public final class MainActivity extends Activity {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
 
+    public static Intent createOpenUberEatsIntent(Context context) {
+        return new Intent(context, MainActivity.class)
+                .setAction(ACTION_OPEN_UBER_EATS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    }
+
     private View createContentView() {
         LinearLayout page = column();
         page.setLayoutParams(new ScrollView.LayoutParams(
@@ -122,7 +143,7 @@ public final class MainActivity extends Activity {
         page.addView(settingCard(
                 "01",
                 "讀取狀態通知",
-                "允許 App 辨識 iPASS MONEY 進出站與 foodpanda 訂單狀態。",
+                "允許 App 辨識 iPASS MONEY、foodpanda 與 Uber Eats 狀態。",
                 notificationAccessStatus,
                 "開啟通知存取權限",
                 view -> openNotificationListenerSettings(),
@@ -184,7 +205,7 @@ public final class MainActivity extends Activity {
         card.addView(text("重要狀態，\n留在最前面。", 34, ON_SURFACE, true));
         card.addView(spacer(12));
         card.addView(text(
-                "進站後顯示乘車碼捷徑；foodpanda 外送中時顯示取餐狀態，點一下就能開啟對應 App。",
+                "進站後顯示乘車碼捷徑；外送期間顯示 foodpanda 或 Uber Eats 訂單進度。",
                 16,
                 ON_SURFACE_VARIANT,
                 false
@@ -229,9 +250,12 @@ public final class MainActivity extends Activity {
         tabs.setBackground(roundRect(COMMON_SURFACE, 100));
         ipassTabButton = appTabButton("iPASS MONEY", view -> showIpassTab());
         foodpandaTabButton = appTabButton("foodpanda", view -> showFoodpandaTab());
+        uberEatsTabButton = appTabButton("Uber Eats", view -> showUberEatsTab());
         tabs.addView(ipassTabButton);
         tabs.addView(horizontalSpacer(4));
         tabs.addView(foodpandaTabButton);
+        tabs.addView(horizontalSpacer(4));
+        tabs.addView(uberEatsTabButton);
         return tabs;
     }
 
@@ -249,7 +273,9 @@ public final class MainActivity extends Activity {
     }
 
     private void showSelectedAppTab() {
-        if (selectedAppTab == TAB_FOODPANDA) {
+        if (selectedAppTab == TAB_UBER_EATS) {
+            showUberEatsTab();
+        } else if (selectedAppTab == TAB_FOODPANDA) {
             showFoodpandaTab();
         } else {
             showIpassTab();
@@ -263,6 +289,7 @@ public final class MainActivity extends Activity {
         }
         setTabSelected(ipassTabButton, true, IPASS_PRIMARY);
         setTabSelected(foodpandaTabButton, false, FOODPANDA_PRIMARY);
+        setTabSelected(uberEatsTabButton, false, UBER_EATS_PRIMARY);
         appTabContent.removeAllViews();
         ipassInstallStatus = statusPill();
         appTabContent.addView(appCard(
@@ -301,6 +328,7 @@ public final class MainActivity extends Activity {
         }
         setTabSelected(ipassTabButton, false, IPASS_PRIMARY);
         setTabSelected(foodpandaTabButton, true, FOODPANDA_PRIMARY);
+        setTabSelected(uberEatsTabButton, false, UBER_EATS_PRIMARY);
         appTabContent.removeAllViews();
         foodpandaInstallStatus = statusPill();
         appTabContent.addView(appCard(
@@ -342,6 +370,89 @@ public final class MainActivity extends Activity {
                 }
         ));
         refreshInstallStatus();
+    }
+
+    private void showUberEatsTab() {
+        selectedAppTab = TAB_UBER_EATS;
+        if (appTabContent == null) {
+            return;
+        }
+        setTabSelected(ipassTabButton, false, IPASS_PRIMARY);
+        setTabSelected(foodpandaTabButton, false, FOODPANDA_PRIMARY);
+        setTabSelected(uberEatsTabButton, true, UBER_EATS_PRIMARY);
+        appTabContent.removeAllViews();
+        uberEatsInstallStatus = statusPill();
+        appTabContent.addView(appCard(
+                "Uber Eats",
+                "五階段訂單進度",
+                "從接單到即將抵達持續更新；可辨識時也會顯示四位數 PIN。",
+                uberEatsInstallStatus,
+                "開啟 Uber Eats",
+                view -> openUberEats(),
+                UBER_EATS_CONTAINER,
+                UBER_EATS_SECONDARY_CONTAINER,
+                UBER_EATS_PRIMARY,
+                UBER_EATS_TEXT,
+                new View[]{
+                        uberEatsTestButton(
+                                "模擬訂單已收到",
+                                RideNotificationParser.UberEatsEvent.ORDER_RECEIVED,
+                                null,
+                                UBER_EATS_PRIMARY,
+                                Color.WHITE
+                        ),
+                        uberEatsTestButton(
+                                "模擬正在準備訂單",
+                                RideNotificationParser.UberEatsEvent.PREPARING,
+                                null,
+                                UBER_EATS_SECONDARY_CONTAINER,
+                                UBER_EATS_TEXT
+                        ),
+                        uberEatsTestButton(
+                                "模擬正在取餐",
+                                RideNotificationParser.UberEatsEvent.PICKING_UP,
+                                null,
+                                UBER_EATS_SECONDARY_CONTAINER,
+                                UBER_EATS_TEXT
+                        ),
+                        uberEatsTestButton(
+                                "模擬配送中",
+                                RideNotificationParser.UberEatsEvent.ON_THE_WAY,
+                                null,
+                                UBER_EATS_SECONDARY_CONTAINER,
+                                UBER_EATS_TEXT
+                        ),
+                        uberEatsTestButton(
+                                "模擬快到了（PIN 7616）",
+                                RideNotificationParser.UberEatsEvent.ARRIVING,
+                                "7616",
+                                UBER_EATS_SECONDARY_CONTAINER,
+                                UBER_EATS_TEXT
+                        ),
+                        actionButton(
+                                "模擬送達，清除狀態  ✓",
+                                UBER_EATS_SECONDARY_CONTAINER,
+                                UBER_EATS_TEXT,
+                                view -> RideReminder.clearUberEats(this)
+                        )
+                }
+        ));
+        refreshInstallStatus();
+    }
+
+    private TextView uberEatsTestButton(
+            String label,
+            RideNotificationParser.UberEatsEvent event,
+            String pin,
+            int background,
+            int foreground
+    ) {
+        return actionButton(
+                label,
+                background,
+                foreground,
+                view -> RideReminder.showUberEats(this, event, pin)
+        );
     }
 
     private View appCard(
@@ -429,6 +540,14 @@ public final class MainActivity extends Activity {
                     "尚未安裝"
             );
         }
+        if (uberEatsInstallStatus != null) {
+            setStatus(
+                    uberEatsInstallStatus,
+                    isPackageInstalled(UBER_EATS_PACKAGE),
+                    "已安裝",
+                    "尚未安裝"
+            );
+        }
     }
 
     private void setTabSelected(TextView button, boolean selected, int selectedColor) {
@@ -490,6 +609,10 @@ public final class MainActivity extends Activity {
 
     private void openFoodpanda() {
         openPackage(FOODPANDA_PACKAGE, "foodpanda");
+    }
+
+    private void openUberEats() {
+        openPackage(UBER_EATS_PACKAGE, "Uber Eats");
     }
 
     private void openPackage(String packageName, String appName) {

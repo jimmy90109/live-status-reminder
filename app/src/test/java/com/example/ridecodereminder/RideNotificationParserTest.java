@@ -1,6 +1,7 @@
 package com.example.ridecodereminder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -78,6 +79,108 @@ public final class RideNotificationParserTest {
         assertEquals(
                 RideNotificationParser.FoodpandaEvent.NONE,
                 RideNotificationParser.parseFoodpanda("foodpanda\n優惠快訊")
+        );
+    }
+
+    @Test
+    public void uberEatsParsesAllFiveProgressStages() {
+        assertUberEatsEvent(
+                RideNotificationParser.UberEatsEvent.ORDER_RECEIVED,
+                "Uber Eats\n訂單已收到"
+        );
+        assertUberEatsEvent(
+                RideNotificationParser.UberEatsEvent.PREPARING,
+                "Uber Eats\n正在準備訂單"
+        );
+        assertUberEatsEvent(
+                RideNotificationParser.UberEatsEvent.PICKING_UP,
+                "Uber Eats\n正在取餐"
+        );
+        assertUberEatsEvent(
+                RideNotificationParser.UberEatsEvent.ON_THE_WAY,
+                "Uber Eats\n正前往您所在位置"
+        );
+        assertUberEatsEvent(
+                RideNotificationParser.UberEatsEvent.ARRIVING,
+                "Uber Eats\n快到了！"
+        );
+    }
+
+    @Test
+    public void uberEatsEndedNotificationsEndTheJourney() {
+        assertUberEatsEvent(
+                RideNotificationParser.UberEatsEvent.ORDER_ENDED,
+                "Uber Eats\n訂單已送達"
+        );
+        assertUberEatsEvent(
+                RideNotificationParser.UberEatsEvent.ORDER_ENDED,
+                "Uber Eats\n您的訂單已取消"
+        );
+    }
+
+    @Test
+    public void uberEatsReadsExactShortCriticalPin() {
+        RideNotificationParser.UberEatsUpdate update =
+                RideNotificationParser.parseUberEats("Uber Eats\n快到了！", "7616");
+
+        assertEquals("7616", update.getPin());
+    }
+
+    @Test
+    public void uberEatsReadsContextualPinFromNotificationText() {
+        RideNotificationParser.UberEatsUpdate update =
+                RideNotificationParser.parseUberEats(
+                        "Uber Eats\n正前往您所在位置\n取餐碼：7616",
+                        null
+                );
+
+        assertEquals("7616", update.getPin());
+    }
+
+    @Test
+    public void uberEatsDoesNotTreatTimesYearsOrOrderNumbersAsPin() {
+        RideNotificationParser.UberEatsUpdate update =
+                RideNotificationParser.parseUberEats(
+                        "抵達時間 1:58 PM\n2026-07-09\n訂單 #7616",
+                        null
+                );
+
+        assertNull(update.getPin());
+    }
+
+    @Test
+    public void uberEatsRejectsAmbiguousContextualPins() {
+        RideNotificationParser.UberEatsUpdate update =
+                RideNotificationParser.parseUberEats(
+                        "PIN 7616\n交付碼 4821",
+                        null
+                );
+
+        assertNull(update.getPin());
+    }
+
+    @Test
+    public void uberEatsKeepsUpdatingWithoutPin() {
+        RideNotificationParser.UberEatsUpdate update =
+                RideNotificationParser.parseUberEats(
+                        "Uber Eats\n正在取餐\n抵達時間 1:58 PM",
+                        null
+                );
+
+        assertEquals(
+                RideNotificationParser.UberEatsEvent.PICKING_UP,
+                update.getEvent()
+        );
+        assertNull(update.getPin());
+    }
+
+    private static void assertUberEatsEvent(
+            RideNotificationParser.UberEatsEvent expected,
+            String text
+    ) {
+        assertEquals(
+                expected,
+                RideNotificationParser.parseUberEats(text, null).getEvent()
         );
     }
 }

@@ -1,25 +1,66 @@
-# 乘車碼下車提醒
+# 即時狀態提醒
 
-這個 Android App 會監聽 iPASS MONEY 的交易通知：
+這是一個 Android 16 App，會監聽 iPASS MONEY、foodpanda 與 Uber Eats 的通知，將重要狀態轉成持續顯示的 Live Update。
 
-- 偵測到 `乘車碼交易` 與 `尚未出站` 後，顯示持續性的下車提醒。
-- 點擊提醒通知後，開啟 iPASS MONEY App。
-- 偵測到 `出站交易已完成` 後，自動移除提醒。
-- Android 16 以上會要求顯示為 Live Update；舊版 Android 會顯示一般持續通知。
+## 功能
+
+### iPASS MONEY
+
+- 偵測到 `乘車碼交易` 與 `尚未出站` 後顯示下車提醒。
+- 點擊提醒可開啟 iPASS MONEY。
+- 偵測到 `出站交易已完成` 後自動移除提醒。
+
+### foodpanda
+
+- 外送夥伴出發時顯示「外送中」。
+- 外送夥伴接近時更新為「即將抵達」。
+- 訂單送達或取消後自動移除提醒。
+
+### Uber Eats
+
+- 從訂單成立到外送員即將抵達，顯示五階段進度：
+  1. 訂單已收到
+  2. 正在準備訂單
+  3. 正在取餐
+  4. 正前往您所在位置
+  5. 快到了
+- 優先從 Android 16 `shortCriticalText` 解析四位數 PIN；也支援通知文字中明確標示的 PIN、驗證碼、取餐碼或交付碼。
+- 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
+- 訂單送達或取消後自動移除提醒。
+
+## 系統需求
+
+- Android 16（API 36）以上。
+- 需授予通知存取權限與通知顯示權限。
+- 若要顯示為系統 Live Update，需另外允許 promoted notifications。
 
 ## 使用方式
 
 1. 安裝並開啟 App。
-2. 開啟通知存取權限，允許「乘車碼下車提醒」讀取通知。
-3. Android 13 以上裝置需另外允許 App 顯示通知。
-4. Android 16 以上可從首頁開啟 Live Update 設定。
-5. 可先用首頁的模擬按鈕驗證提醒通知。
+2. 開啟「通知存取權限」，允許「即時狀態提醒」讀取來源 App 的通知。
+3. 允許 App 顯示通知。
+4. 從首頁開啟 Live Update 設定並允許 promoted notifications。
+5. 在各 App 分頁使用模擬按鈕驗證狀態與進度。
 
-目前 iPASS MONEY 沒有公開乘車碼頁面的 deep link，因此點擊提醒會開啟
-iPASS MONEY App 首頁。若未安裝 iPASS MONEY，會改為開啟 Google Play。
+點擊提醒會開啟對應 App。若尚未安裝，則前往 Google Play。iPASS MONEY 目前沒有公開乘車碼頁面的 deep link，因此只能開啟 App 首頁。
 
-## 建置
+## PIN 隱私
+
+- PIN 只保留在記憶體中，不會寫入檔案、偏好設定或正式日誌。
+- 完整 PIN 僅在解鎖後顯示。
+- 鎖定畫面使用不含 PIN 的公開版通知。
+- 第一版只追蹤一筆 Uber Eats 訂單；新訂單會取代上一筆狀態。
+
+## 建置與驗證
 
 ```bash
-./gradlew test assembleDebug
+./gradlew test assembleDebug lintDebug
 ```
+
+Debug APK 會輸出至：
+
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
+
+Uber Eats 截圖評估與實機待驗證項目位於 [`docs/ubereats-audit/`](docs/ubereats-audit/README.md)。
