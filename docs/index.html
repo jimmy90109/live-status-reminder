@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="即時狀態提醒 App 隱私權政策">
+  <title>即時狀態提醒｜隱私權政策</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f3f8f5;
+      --surface: #ffffff;
+      --text: #17352b;
+      --muted: #526b63;
+      --accent: #087f5b;
+      --border: #d9e6df;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101815;
+        --surface: #17221e;
+        --text: #e3f1eb;
+        --muted: #abc0b7;
+        --accent: #55d6a4;
+        --border: #30443c;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.75 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      width: min(760px, calc(100% - 32px));
+      margin: 48px auto;
+      padding: clamp(28px, 6vw, 56px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: 0 18px 60px rgb(0 0 0 / 8%);
+    }
+    .eyebrow {
+      display: inline-block;
+      padding: 5px 12px;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    h1 { margin: 22px 0 6px; font-size: clamp(32px, 7vw, 48px); line-height: 1.15; }
+    h2 { margin: 38px 0 8px; font-size: 22px; }
+    p, li { color: var(--muted); }
+    ul { padding-left: 22px; }
+    a { color: var(--accent); }
+    .updated { margin: 0 0 32px; font-size: 14px; }
+    footer { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+<main>
+  <span class="eyebrow">PRIVACY POLICY</span>
+  <h1>即時狀態提醒</h1>
+  <p class="updated">隱私權政策 · 最後更新：2026 年 7 月 9 日</p>
+
+  <p>「即時狀態提醒」（以下稱「本 App」）尊重並保護您的隱私。本政策說明本 App 如何存取及處理資料。</p>
+
+  <h2>本 App 存取的資料</h2>
+  <p>經您主動授權 Android 的通知存取權限後，本 App 會讀取下列 App 的通知內容：</p>
+  <ul>
+    <li>iPASS MONEY：辨識乘車進站與出站狀態。</li>
+    <li>foodpanda：辨識外送進度、送達或取消狀態。</li>
+    <li>Uber Eats：辨識訂單與外送進度，以及通知中明確提供的交付 PIN。</li>
+  </ul>
+  <p>本 App 也會檢查上述 App 是否已安裝，以便顯示對應功能，並在您點擊提醒時開啟該 App。</p>
+
+  <h2>資料的使用與保存</h2>
+  <p>通知內容只會在您的裝置上即時處理，用來產生乘車或外送狀態提醒。本 App：</p>
+  <ul>
+    <li>不會將通知內容或交付 PIN 傳送到開發者或第三方伺服器。</li>
+    <li>不會出售或分享通知內容、交付 PIN 或其他個人資料。</li>
+    <li>不會將通知原文或交付 PIN 寫入檔案、偏好設定或正式日誌。</li>
+    <li>只在記憶體中暫時保留目前 Uber Eats 訂單的進度及 PIN；App 程序結束或新訂單取代舊訂單後即不再保留。</li>
+  </ul>
+  <p>本 App 不包含廣告、分析或第三方追蹤 SDK。</p>
+
+  <h2>權限與您的選擇</h2>
+  <p>通知存取、通知顯示與 Live Update 權限都由您決定是否開啟。您可以隨時前往 Android 系統設定撤銷這些權限。撤銷通知存取後，本 App 將無法辨識來源 App 的狀態；其他裝置功能不受影響。</p>
+
+  <h2>兒童隱私</h2>
+  <p>本 App 並非專為兒童設計，也不會刻意蒐集兒童的個人資料。</p>
+
+  <h2>政策變更</h2>
+  <p>若資料處理方式有重大變更，本政策會更新最後修改日期，並在適當情況下於 App 內提供通知。</p>
+
+  <footer>
+    <h2>聯絡方式</h2>
+    <p>若對本政策或資料處理有任何問題，請透過
+      <a href="https://github.com/jimmy90109/ride-code-reminder/issues">GitHub Issues</a>
+      與開發者聯絡。
+    </p>
+  </footer>
+</main>
+</body>
+</html>

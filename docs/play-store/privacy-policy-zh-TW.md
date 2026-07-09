@@ -39,4 +39,4 @@
 
 ## 聯絡方式
 
-正式發布前，開發者將在此處及 Google Play 商店頁面提供隱私問題聯絡電子郵件。
+若對本政策或資料處理有任何問題，請透過 [GitHub Issues](https://github.com/jimmy90109/ride-code-reminder/issues) 與開發者聯絡。
