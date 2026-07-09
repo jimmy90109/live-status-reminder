@@ -57,10 +57,10 @@
 ./gradlew test assembleDebug lintDebug
 ```
 
-Debug APK 會輸出至：
+為避免 Documents 同步服務複製 Gradle 中間產物，建置輸出會放在 Gradle 使用者目錄：
 
 ```text
-app/build/outputs/apk/debug/app-debug.apk
+~/.gradle/project-builds/RideCodeReminder/app/outputs/apk/debug/app-debug.apk
 ```
 
 Uber Eats 截圖評估與實機待驗證項目位於 [`docs/ubereats-audit/`](docs/ubereats-audit/README.md)。
