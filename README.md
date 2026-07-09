@@ -24,7 +24,7 @@
   3. 正在取餐
   4. 正前往您所在位置
   5. 快到了
-- 優先從 Android 16 `shortCriticalText` 解析四位數 PIN；也支援通知文字中明確標示的 PIN、驗證碼、取餐碼或交付碼。
+- 只從 Android 16 `shortCriticalText` 解析剛好四位數的 PIN。
 - 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
 - 訂單送達或取消後自動移除提醒。
 

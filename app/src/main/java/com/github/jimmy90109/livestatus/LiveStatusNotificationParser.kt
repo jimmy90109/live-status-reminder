@@ -4,8 +4,6 @@ import java.util.Locale
 
 object LiveStatusNotificationParser {
     private val fourDigitPin = Regex("""^\s*(\d{4})\s*$""")
-    private val contextualPin =
-        Regex("""(?:pin|驗證碼|取餐碼|交付碼)\s*[:：#-]?\s*(\d{4})(?!\d)""", RegexOption.IGNORE_CASE)
 
     enum class RideEvent {
         NONE,
@@ -88,18 +86,10 @@ object LiveStatusNotificationParser {
 
         return UberEatsUpdate(
             event = event,
-            pin = exactPin(shortCriticalText) ?: contextualPin(notificationText),
+            pin = exactPin(shortCriticalText),
         )
     }
 
     private fun exactPin(value: String?): String? =
         value?.let { fourDigitPin.matchEntire(it)?.groupValues?.get(1) }
-
-    private fun contextualPin(value: String?): String? {
-        if (value == null) return null
-        val candidates = contextualPin.findAll(value)
-            .map { it.groupValues[1] }
-            .toSet()
-        return candidates.singleOrNull()
-    }
 }

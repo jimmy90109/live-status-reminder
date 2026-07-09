@@ -96,18 +96,57 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
-    fun uberEatsReadsContextualPinFromNotificationText() {
+    fun uberEatsIgnoresPinLikeTextOutsideShortCriticalText() {
         val update = LiveStatusNotificationParser.parseUberEats(
             "Uber Eats\n正前往您所在位置\n取餐碼：7616",
             null,
         )
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberEatsIgnoresNonExactShortCriticalPin() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "Uber Eats\n快到了！",
+            "PIN 7616",
+        )
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberEatsReadsOfficialEstimatedArrivalRange() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "Uber Eats\n訂單已收到\n抵達時間：1:58-2:08 PM",
+            "7616",
+        )
+        assertEquals(UberEatsEvent.ORDER_RECEIVED, update.event)
+        assertEquals("7616", update.pin)
+    }
+
+    @Test
+    fun uberEatsParsesOfficialCourierTextWithExactArrivalTime() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "Uber Eats · 現在\n正前往您所在位置\n健宇 · PAR-2688 · 抵達時間為 1:56 PM",
+            "7616",
+        )
+        assertEquals(UberEatsEvent.ON_THE_WAY, update.event)
+        assertEquals("7616", update.pin)
+    }
+
+    @Test
+    fun uberEatsParsesOfficialCourierTextWhenArrivingSoon() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "Uber Eats · 現在\n快到了！\n健宇 · PAR-2688 · 即將抵達",
+            "7616",
+        )
+        assertEquals(UberEatsEvent.ARRIVING, update.event)
         assertEquals("7616", update.pin)
     }
 
     @Test
     fun uberEatsDoesNotTreatTimesYearsOrOrderNumbersAsPin() {
         val update = LiveStatusNotificationParser.parseUberEats(
-            "抵達時間 1:58 PM\n2026-07-09\n訂單 #7616",
+            "抵達時間 1:58 PM\n2026-07-09\n訂單 #7616\nPAR-2688",
             null,
         )
         assertNull(update.pin)

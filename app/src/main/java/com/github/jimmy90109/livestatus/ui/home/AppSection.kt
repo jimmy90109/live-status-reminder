@@ -187,11 +187,36 @@ private fun UberEatsCard(installed: Boolean) {
         labelColor = colors.uberEatsSecondaryContainer,
         foregroundColor = colors.uberEatsText,
     ) {
-        UberEatsTestButton("模擬訂單已收到", LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED)
-        UberEatsTestButton("模擬正在準備訂單", LiveStatusNotificationParser.UberEatsEvent.PREPARING)
-        UberEatsTestButton("模擬正在取餐", LiveStatusNotificationParser.UberEatsEvent.PICKING_UP)
-        UberEatsTestButton("模擬配送中", LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY)
-        UberEatsTestButton("模擬快到了（PIN 7616）", LiveStatusNotificationParser.UberEatsEvent.ARRIVING, "7616")
+        UberEatsTestButton(
+            label = "模擬訂單已收到",
+            event = LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED,
+            officialTitle = "訂單已收到",
+            officialText = "抵達時間：12:00-12:10 PM",
+        )
+        UberEatsTestButton(
+            label = "模擬正在準備訂單",
+            event = LiveStatusNotificationParser.UberEatsEvent.PREPARING,
+            officialTitle = "正在準備訂單",
+            officialText = "抵達時間：12:00-12:10 PM",
+        )
+        UberEatsTestButton(
+            label = "模擬正在取餐",
+            event = LiveStatusNotificationParser.UberEatsEvent.PICKING_UP,
+            officialTitle = "正在取餐",
+            officialText = "小明 · ABC-1234 · 抵達時間：12:00-12:10 PM",
+        )
+        UberEatsTestButton(
+            label = "模擬配送中",
+            event = LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY,
+            officialTitle = "正前往您所在位置",
+            officialText = "小明 · ABC-1234 · 抵達時間為 12:00 PM",
+        )
+        UberEatsTestButton(
+            label = "模擬快到了",
+            event = LiveStatusNotificationParser.UberEatsEvent.ARRIVING,
+            officialTitle = "快到了！",
+            officialText = "小明 · ABC-1234 · 即將抵達",
+        )
         ActionButton("模擬送達，清除狀態  ✓", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
             LiveStatusReminder.clearUberEats(context)
         }
@@ -202,7 +227,8 @@ private fun UberEatsCard(installed: Boolean) {
 private fun UberEatsTestButton(
     label: String,
     event: LiveStatusNotificationParser.UberEatsEvent,
-    pin: String? = null,
+    officialTitle: String,
+    officialText: String,
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
@@ -212,7 +238,7 @@ private fun UberEatsTestButton(
         if (primary) colors.uberEatsPrimary else colors.uberEatsSecondaryContainer,
         if (primary) colors.commonOnPrimary else colors.uberEatsText,
     ) {
-        LiveStatusReminder.showUberEats(context, event, pin)
+        LiveStatusReminder.showUberEats(context, event, null, officialTitle, officialText)
     }
 }
 

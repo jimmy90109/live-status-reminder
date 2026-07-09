@@ -122,10 +122,12 @@ object LiveStatusReminder {
         context: Context,
         event: LiveStatusNotificationParser.UberEatsEvent,
         pin: String?,
+        officialTitle: String? = null,
+        officialText: String? = null,
     ) {
         createChannel(context)
-        val title = uberEatsTitle(event)
-        val statusText = uberEatsStatusText(event)
+        val title = uberEatsTitle(event, officialTitle)
+        val statusText = officialText ?: uberEatsStatusText(event)
         val privateText = pin?.let { "$statusText · PIN $it" } ?: statusText
         val openUberEats = PendingIntent.getActivity(
             context,
@@ -201,21 +203,34 @@ object LiveStatusReminder {
         else -> 20
     }
 
-    private fun uberEatsTitle(event: LiveStatusNotificationParser.UberEatsEvent): String = when (event) {
-        LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
-        LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
-        LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "Uber Eats 配送中"
-        LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
-        else -> "Uber Eats 訂單已收到"
+    private fun uberEatsTitle(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        officialTitle: String?,
+    ): String {
+        val cleanOfficialTitle = officialTitle
+            ?.takeUnless { it.contains("Uber Eats", ignoreCase = true) && it.contains("·") }
+            ?.takeUnless { it.equals("Uber Eats", ignoreCase = true) }
+        return cleanOfficialTitle?.let { title ->
+            if (title.startsWith("Uber Eats", ignoreCase = true)) title else "Uber Eats $title"
+        } ?: uberEatsFallbackTitle(event)
     }
+
+    private fun uberEatsFallbackTitle(event: LiveStatusNotificationParser.UberEatsEvent): String =
+        when (event) {
+            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
+            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
+            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "Uber Eats 正前往您所在位置"
+            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
+            else -> "Uber Eats 訂單已收到"
+        }
 
     private fun uberEatsStatusText(event: LiveStatusNotificationParser.UberEatsEvent): String =
         when (event) {
-            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "店家正在準備您的餐點。"
+            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "抵達時間更新中"
             LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "外送夥伴正在取餐。"
             LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "外送夥伴正前往您所在位置。"
             LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "外送夥伴即將抵達，請準備取餐。"
-            else -> "店家已收到您的訂單。"
+            else -> "抵達時間更新中"
         }
 
     private fun uberEatsShortText(event: LiveStatusNotificationParser.UberEatsEvent): String =

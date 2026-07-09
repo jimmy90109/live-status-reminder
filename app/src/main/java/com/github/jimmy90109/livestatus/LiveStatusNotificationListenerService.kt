@@ -7,6 +7,8 @@ import android.service.notification.StatusBarNotification
 class LiveStatusNotificationListenerService : NotificationListenerService() {
     private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
     private var lastUberEatsPin: String? = null
+    private var lastUberEatsTitle: String? = null
+    private var lastUberEatsText: String? = null
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
         val notification = statusBarNotification.notification
@@ -15,7 +17,12 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             IPASS_PACKAGE -> handleRideNotification(notificationText)
             FOODPANDA_PACKAGE -> handleFoodpandaNotification(notificationText)
             UBER_EATS_PACKAGE -> {
-                handleUberEatsNotification(notificationText, readShortCriticalText(notification))
+                handleUberEatsNotification(
+                    notificationText,
+                    readShortCriticalText(notification),
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                )
             }
         }
     }
@@ -43,6 +50,8 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private fun handleUberEatsNotification(
         notificationText: String,
         shortCriticalText: String?,
+        notificationTitle: String?,
+        notificationContentText: String?,
     ) {
         val update = LiveStatusNotificationParser.parseUberEats(notificationText, shortCriticalText)
         val event = update.event
@@ -50,6 +59,8 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_ENDED) {
             lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
             lastUberEatsPin = null
+            lastUberEatsTitle = null
+            lastUberEatsText = null
             LiveStatusReminder.clearUberEats(this)
             return
         }
@@ -57,8 +68,12 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED) {
             lastUberEatsEvent = event
             lastUberEatsPin = update.pin
+            lastUberEatsTitle = notificationTitle
+            lastUberEatsText = notificationContentText
         } else {
             update.pin?.let { lastUberEatsPin = it }
+            notificationTitle?.let { lastUberEatsTitle = it }
+            notificationContentText?.let { lastUberEatsText = it }
             if (
                 event != LiveStatusNotificationParser.UberEatsEvent.NONE &&
                 eventRank(event) >= eventRank(lastUberEatsEvent)
@@ -69,9 +84,20 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
         if (
             lastUberEatsEvent != LiveStatusNotificationParser.UberEatsEvent.NONE &&
-            (event != LiveStatusNotificationParser.UberEatsEvent.NONE || update.pin != null)
+            (
+                event != LiveStatusNotificationParser.UberEatsEvent.NONE ||
+                    update.pin != null ||
+                    notificationTitle != null ||
+                    notificationContentText != null
+                )
         ) {
-            LiveStatusReminder.showUberEats(this, lastUberEatsEvent, lastUberEatsPin)
+            LiveStatusReminder.showUberEats(
+                this,
+                lastUberEatsEvent,
+                lastUberEatsPin,
+                lastUberEatsTitle,
+                lastUberEatsText,
+            )
         }
     }
 
@@ -107,10 +133,28 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         fun readShortCriticalText(notification: Notification): String? =
             notification.shortCriticalText?.toString()
 
+        @JvmStatic
+        fun readNotificationTitle(notification: Notification): String? =
+            notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toCleanString()
+
+        @JvmStatic
+        fun readNotificationContentText(notification: Notification): String? {
+            val extras = notification.extras
+            return extras.getCharSequence(Notification.EXTRA_TEXT)?.toCleanString()
+                ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toCleanString()
+                ?: extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+                    ?.mapNotNull { it.toCleanString() }
+                    ?.joinToString(" · ")
+                    ?.takeIf { it.isNotBlank() }
+        }
+
         private fun join(vararg values: CharSequence?): String = buildString {
             values.forEach { value ->
                 if (value != null) append(value).append('\n')
             }
         }
+
+        private fun CharSequence.toCleanString(): String? =
+            toString().replace(Regex("""\s+"""), " ").trim().takeIf { it.isNotEmpty() }
     }
 }
