@@ -14,15 +14,23 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         val notification = statusBarNotification.notification
         val notificationText = readNotificationText(notification)
         when (statusBarNotification.packageName) {
-            IPASS_PACKAGE -> handleRideNotification(notificationText)
-            FOODPANDA_PACKAGE -> handleFoodpandaNotification(notificationText)
+            IPASS_PACKAGE -> if (AppReminderPreferences.App.IPASS.isEnabled(this)) {
+                handleRideNotification(notificationText)
+            }
+            FOODPANDA_PACKAGE -> if (AppReminderPreferences.App.FOODPANDA.isEnabled(this)) {
+                handleFoodpandaNotification(notificationText)
+            }
             UBER_EATS_PACKAGE -> {
-                handleUberEatsNotification(
-                    notificationText,
-                    readShortCriticalText(notification),
-                    readNotificationTitle(notification),
-                    readNotificationContentText(notification),
-                )
+                if (AppReminderPreferences.App.UBER_EATS.isEnabled(this)) {
+                    handleUberEatsNotification(
+                        notificationText,
+                        readShortCriticalText(notification),
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                    )
+                } else {
+                    resetUberEatsState()
+                }
             }
         }
     }
@@ -57,10 +65,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         val event = update.event
 
         if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_ENDED) {
-            lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
-            lastUberEatsPin = null
-            lastUberEatsTitle = null
-            lastUberEatsText = null
+            resetUberEatsState()
             LiveStatusReminder.clearUberEats(this)
             return
         }
@@ -99,6 +104,13 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 lastUberEatsText,
             )
         }
+    }
+
+    private fun resetUberEatsState() {
+        lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
+        lastUberEatsPin = null
+        lastUberEatsTitle = null
+        lastUberEatsText = null
     }
 
     private fun eventRank(event: LiveStatusNotificationParser.UberEatsEvent): Int = when (event) {

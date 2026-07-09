@@ -11,10 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
@@ -51,15 +57,6 @@ internal fun SectionHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .then(
-                if (collapsible) {
-                    Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable(role = Role.Button, onClick = onToggle)
-                } else {
-                    Modifier
-                },
-            )
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -69,13 +66,20 @@ internal fun SectionHeader(
             AppText(subtitle, 15, colors.onSurfaceVariant)
         }
         if (collapsible) {
-            Text(
-                text = if (expanded) "⌃" else "⌄",
-                color = colors.onSurfaceVariant,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
+            IconButton(
+                onClick = onToggle,
                 modifier = Modifier.padding(start = 12.dp),
-            )
+            ) {
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Rounded.KeyboardArrowUp
+                    } else {
+                        Icons.Rounded.KeyboardArrowDown
+                    },
+                    contentDescription = if (expanded) "收合" else "展開",
+                    tint = colors.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -103,7 +107,7 @@ internal fun SettingCard(
         Spacer(Modifier.height(14.dp))
         StatusPill(enabled, enabledText, disabledText)
         Spacer(Modifier.height(14.dp))
-        ActionButton("$action  →", colors.commonPrimary, colors.commonOnPrimary, onClick)
+        ActionButton("$action  →", colors.commonPrimary, colors.commonOnPrimary, onClick = onClick)
     }
 }
 
@@ -154,14 +158,21 @@ internal fun StatusPill(enabled: Boolean, enabledText: String, disabledText: Str
 }
 
 @Composable
-internal fun ActionButton(label: String, background: Color, foreground: Color, onClick: () -> Unit) {
+internal fun ActionButton(
+    label: String,
+    background: Color,
+    foreground: Color,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
     val shape = RoundedCornerShape(100.dp)
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .alpha(if (enabled) 1f else 0.46f)
             .background(background, shape)
             .clip(shape)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         contentAlignment = Alignment.CenterStart,
     ) {

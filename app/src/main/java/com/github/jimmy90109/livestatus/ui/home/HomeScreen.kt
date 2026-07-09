@@ -60,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
@@ -87,6 +88,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
                             onOpenNotificationAccess = ::openNotificationListenerSettings,
                             onRequestNotificationPermission = ::requestNotificationPermission,
                             onOpenLiveUpdateSettings = ::openLiveUpdateSettings,
+                            onAppEnabledChange = ::setAppEnabled,
                         )
                     }
                 }
@@ -102,14 +104,20 @@ open class HomeScreenHostActivity : ComponentActivity() {
     }
 
     private fun refreshStatus() {
+        val ipassInstalled = isPackageInstalled(IPASS_PACKAGE)
+        val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
+        val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
             notificationPermission = canPostNotifications(),
             liveUpdates = getSystemService(NotificationManager::class.java)
                 .canPostPromotedNotifications(),
-            ipassInstalled = isPackageInstalled(IPASS_PACKAGE),
-            foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE),
-            uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE),
+            ipassInstalled = ipassInstalled,
+            foodpandaInstalled = foodpandaInstalled,
+            uberEatsInstalled = uberEatsInstalled,
+            ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
+            foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
+            uberEatsEnabled = AppReminderPreferences.App.UBER_EATS.isEnabled(this, uberEatsInstalled),
         )
     }
 
@@ -165,6 +173,20 @@ open class HomeScreenHostActivity : ComponentActivity() {
         )
     }
 
+    private fun setAppEnabled(app: AppReminderPreferences.App, enabled: Boolean) {
+        app.setEnabled(this, enabled)
+        if (!enabled) clearReminder(app)
+        refreshStatus()
+    }
+
+    private fun clearReminder(app: AppReminderPreferences.App) {
+        when (app) {
+            AppReminderPreferences.App.IPASS -> LiveStatusReminder.clear(this)
+            AppReminderPreferences.App.FOODPANDA -> LiveStatusReminder.clearFoodpanda(this)
+            AppReminderPreferences.App.UBER_EATS -> LiveStatusReminder.clearUberEats(this)
+        }
+    }
+
     companion object {
         private const val REQUEST_NOTIFICATIONS = 7
         private const val ACTION_OPEN_IPASS =
@@ -203,6 +225,9 @@ internal data class StatusSnapshot(
     val ipassInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
+    val ipassEnabled: Boolean = false,
+    val foodpandaEnabled: Boolean = false,
+    val uberEatsEnabled: Boolean = false,
 ) {
     val requiredSettingsComplete: Boolean
         get() = notificationAccess && notificationPermission && liveUpdates
@@ -214,6 +239,7 @@ private fun HomeScreenHostActivity.MainScreen(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenLiveUpdateSettings: () -> Unit,
+    onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
 ) {
     var settingsExpanded by rememberSaveable { mutableStateOf(true) }
     var showNotificationAccessDisclosure by rememberSaveable { mutableStateOf(false) }
@@ -273,6 +299,7 @@ private fun HomeScreenHostActivity.MainScreen(
                         AppsSection(
                             status = status,
                             horizontalContentPadding = 0.dp,
+                            onAppEnabledChange = onAppEnabledChange,
                         )
                     }
                 }
@@ -302,6 +329,7 @@ private fun HomeScreenHostActivity.MainScreen(
                     AppsSection(
                         status = status,
                         horizontalContentPadding = 20.dp,
+                        onAppEnabledChange = onAppEnabledChange,
                     )
                 }
             }
@@ -366,7 +394,10 @@ private fun RequiredSettingsSection(
             onToggle = onToggle,
         )
         Spacer(Modifier.height(12.dp))
-        AnimatedVisibility(visible = expanded) {
+        AnimatedVisibility(
+            visible = expanded,
+            modifier = Modifier.clip(RoundedCornerShape(26.dp)),
+        ) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 SettingCard(
                     number = "01",
