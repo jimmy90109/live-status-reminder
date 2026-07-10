@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
@@ -124,6 +125,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ipassInstalled = ipassInstalled,
             foodpandaInstalled = foodpandaInstalled,
             uberEatsInstalled = uberEatsInstalled,
+            isSamsungDevice = isSamsungDevice(),
             nowBarTroubleshootingDismissed =
                 AppReminderPreferences.isNowBarTroubleshootingDismissed(this),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
@@ -171,6 +173,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             .build()
             .launchUrl(this, url.toUri())
     }
+
+    private fun isSamsungDevice(): Boolean =
+        Build.MANUFACTURER.equals("samsung", ignoreCase = true) ||
+            Build.BRAND.equals("samsung", ignoreCase = true)
 
     private fun openIpass() = openPackage(IPASS_PACKAGE, "iPASS MONEY")
 
@@ -249,6 +255,7 @@ internal data class StatusSnapshot(
     val ipassInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
+    val isSamsungDevice: Boolean = false,
     val nowBarTroubleshootingDismissed: Boolean = false,
     val ipassEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,
@@ -549,7 +556,7 @@ private fun HomeIntroColumn(
         }
     }
     AnimatedVisibility(
-        visible = !status.nowBarTroubleshootingDismissed,
+        visible = status.isSamsungDevice && !status.nowBarTroubleshootingDismissed,
         modifier = Modifier.clip(RoundedCornerShape(26.dp)),
     ) {
         Column {

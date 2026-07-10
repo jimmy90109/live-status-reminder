@@ -66,8 +66,10 @@ internal fun SettingsPage(
             onOpenNotificationAccess = onOpenNotificationAccess,
             onRequestNotificationPermission = onRequestNotificationPermission,
         )
-        Spacer(Modifier.height(10.dp))
-        SamsungNowBarTroubleshootingCard(onClick = onOpenSamsungNowBarGuide)
+        if (status.isSamsungDevice) {
+            Spacer(Modifier.height(10.dp))
+            SamsungNowBarTroubleshootingCard(onClick = onOpenSamsungNowBarGuide)
+        }
         Spacer(Modifier.height(14.dp))
         ActionButton(
             "隱私權政策  →",
