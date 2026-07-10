@@ -4,15 +4,16 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +53,7 @@ internal fun AppsSection(
     val pagerState = rememberPagerState(initialPage = TAB_IPASS) { APP_PAGE_COUNT }
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
+    var selectedTab by remember { mutableIntStateOf(TAB_IPASS) }
     var maxPageHeightPx by remember(
         status.ipassInstalled,
         status.foodpandaInstalled,
@@ -72,8 +75,9 @@ internal fun AppsSection(
             )
             Spacer(Modifier.height(12.dp))
             AppTabs(
-                selectedTab = pagerState.currentPage,
+                selectedTab = selectedTab,
                 onSelect = { page ->
+                    selectedTab = page
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(
                             page = page,
@@ -140,9 +144,8 @@ private fun AppTabs(selectedTab: Int, onSelect: (Int) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colors.commonSurface, RoundedCornerShape(100.dp))
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         AppTab("iPASS MONEY", TAB_IPASS, selectedTab, colors.ipassPrimary, colors.commonOnPrimary, onSelect)
         AppTab("foodpanda", TAB_FOODPANDA, selectedTab, colors.foodpandaPrimary, colors.commonOnPrimary, onSelect)
@@ -151,7 +154,7 @@ private fun AppTabs(selectedTab: Int, onSelect: (Int) -> Unit) {
 }
 
 @Composable
-private fun RowScope.AppTab(
+private fun AppTab(
     label: String,
     tab: Int,
     selectedTab: Int,
@@ -164,11 +167,11 @@ private fun RowScope.AppTab(
     val shape = RoundedCornerShape(100.dp)
     Box(
         modifier = Modifier
-            .weight(1f)
-            .background(if (selected) selectedColor else Color.Transparent, shape)
+            .heightIn(min = 44.dp)
+            .background(if (selected) selectedColor else colors.commonSurface, shape)
             .clip(shape)
             .clickable(role = Role.Tab) { onSelect(tab) }
-            .padding(horizontal = 8.dp, vertical = 11.dp),
+            .padding(horizontal = 16.dp, vertical = 11.dp),
         contentAlignment = Alignment.Center,
     ) {
         androidx.compose.material3.Text(
@@ -176,6 +179,7 @@ private fun RowScope.AppTab(
             color = if (selected) selectedContentColor else colors.onSurfaceVariant,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
+            maxLines = 1,
         )
     }
 }
