@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -30,10 +31,20 @@ import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 @Composable
-internal fun HeroCard() {
+internal fun HeroCard(onOpenSettings: () -> Unit) {
     val colors = LocalAppColors.current
     CardSurface(colors.commonContainer, 36) {
-        LabelPill("LIVE STATUS", colors.commonPrimary, colors.commonOnPrimary)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            LabelPill("LIVE STATUS", colors.commonPrimary, colors.commonOnPrimary)
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = onOpenSettings) {
+                Icon(
+                    imageVector = Icons.Rounded.Settings,
+                    contentDescription = "設定",
+                    tint = colors.onSurfaceVariant,
+                )
+            }
+        }
         Spacer(Modifier.height(34.dp))
         AppText("重要狀態，\n留在最前面。", 34, colors.onSurface, true)
         Spacer(Modifier.height(12.dp))

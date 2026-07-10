@@ -32,15 +32,17 @@
 
 - Android 16（API 36）以上。
 - 需授予通知存取權限與通知顯示權限。
-- 若要顯示為系統 Live Update，需另外允許 promoted notifications。
+- 若要顯示為系統 Live Update，裝置系統也需允許第三方 App 顯示 promoted notifications。
 
 ## 使用方式
 
 1. 安裝並開啟 App。
 2. 開啟「通知存取權限」，允許「即時狀態提醒」讀取來源 App 的通知。
 3. 允許 App 顯示通知。
-4. 從首頁開啟 Live Update 設定並允許 promoted notifications。
-5. 在各 App 分頁使用模擬按鈕驗證狀態與進度。
+4. 在各 App 分頁使用模擬按鈕驗證狀態與進度。
+
+Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
+[Samsung Now Bar 疑難排解](https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html)。
 
 點擊提醒會開啟對應 App。若尚未安裝，則前往 Google Play。iPASS MONEY 目前沒有公開乘車碼頁面的 deep link，因此只能開啟 App 首頁。
 

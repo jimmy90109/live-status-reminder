@@ -3,6 +3,8 @@ package com.github.jimmy90109.livestatus
 import android.content.Context
 
 object AppReminderPreferences {
+    private const val NOW_BAR_TROUBLESHOOTING_DISMISSED = "now_bar_troubleshooting_dismissed"
+
     enum class App(private val preferenceKey: String) {
         IPASS("ipass_enabled"),
         FOODPANDA("foodpanda_enabled"),
@@ -15,6 +17,16 @@ object AppReminderPreferences {
         fun setEnabled(context: Context, enabled: Boolean) {
             preferences(context).edit().putBoolean(preferenceKey, enabled).apply()
         }
+    }
+
+    fun isNowBarTroubleshootingDismissed(context: Context): Boolean =
+        preferences(context).getBoolean(NOW_BAR_TROUBLESHOOTING_DISMISSED, false)
+
+    fun setNowBarTroubleshootingDismissed(context: Context, dismissed: Boolean) {
+        preferences(context)
+            .edit()
+            .putBoolean(NOW_BAR_TROUBLESHOOTING_DISMISSED, dismissed)
+            .apply()
     }
 
     private fun preferences(context: Context) =

@@ -10,12 +10,17 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.ExperimentalActivityApi
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -48,12 +53,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +73,8 @@ import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 open class HomeScreenHostActivity : ComponentActivity() {
@@ -87,7 +96,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
                             status = statusSnapshot,
                             onOpenNotificationAccess = ::openNotificationListenerSettings,
                             onRequestNotificationPermission = ::requestNotificationPermission,
-                            onOpenLiveUpdateSettings = ::openLiveUpdateSettings,
+                            onOpenSamsungNowBarGuide = ::openSamsungNowBarGuide,
+                            onOpenPrivacyPolicy = ::openPrivacyPolicy,
+                            onDismissNowBarTroubleshooting = ::dismissNowBarTroubleshooting,
                             onAppEnabledChange = ::setAppEnabled,
                         )
                     }
@@ -110,11 +121,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
             notificationPermission = canPostNotifications(),
-            liveUpdates = getSystemService(NotificationManager::class.java)
-                .canPostPromotedNotifications(),
             ipassInstalled = ipassInstalled,
             foodpandaInstalled = foodpandaInstalled,
             uberEatsInstalled = uberEatsInstalled,
+            nowBarTroubleshootingDismissed =
+                AppReminderPreferences.isNowBarTroubleshootingDismissed(this),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
             uberEatsEnabled = AppReminderPreferences.App.UBER_EATS.isEnabled(this, uberEatsInstalled),
@@ -146,14 +157,19 @@ open class HomeScreenHostActivity : ComponentActivity() {
         requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
     }
 
-    private fun openLiveUpdateSettings() {
-        val settingsIntent = Intent(Settings.ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS)
-            .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-        if (settingsIntent.resolveActivity(packageManager) != null) {
-            startActivity(settingsIntent)
-        } else {
-            Toast.makeText(this, "這台裝置沒有提供 Live Update 設定頁。", Toast.LENGTH_LONG).show()
-        }
+    private fun openSamsungNowBarGuide() {
+        openWebPage(SAMSUNG_NOW_BAR_GUIDE_URL)
+    }
+
+    private fun openPrivacyPolicy() {
+        openWebPage(PRIVACY_POLICY_URL)
+    }
+
+    private fun openWebPage(url: String) {
+        CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .build()
+            .launchUrl(this, url.toUri())
     }
 
     private fun openIpass() = openPackage(IPASS_PACKAGE, "iPASS MONEY")
@@ -187,6 +203,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
         }
     }
 
+    private fun dismissNowBarTroubleshooting() {
+        AppReminderPreferences.setNowBarTroubleshootingDismissed(this, true)
+        refreshStatus()
+    }
+
     companion object {
         private const val REQUEST_NOTIFICATIONS = 7
         private const val ACTION_OPEN_IPASS =
@@ -198,6 +219,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
+        private const val SAMSUNG_NOW_BAR_GUIDE_URL =
+            "https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html"
+        private const val PRIVACY_POLICY_URL =
+            "https://jimmy90109.github.io/live-status-reminder/"
 
         @JvmStatic
         fun createOpenIpassIntent(context: Context): Intent =
@@ -221,16 +246,16 @@ open class HomeScreenHostActivity : ComponentActivity() {
 internal data class StatusSnapshot(
     val notificationAccess: Boolean = false,
     val notificationPermission: Boolean = false,
-    val liveUpdates: Boolean = false,
     val ipassInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
+    val nowBarTroubleshootingDismissed: Boolean = false,
     val ipassEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,
     val uberEatsEnabled: Boolean = false,
 ) {
     val requiredSettingsComplete: Boolean
-        get() = notificationAccess && notificationPermission && liveUpdates
+        get() = notificationAccess && notificationPermission
 }
 
 @Composable
@@ -238,15 +263,62 @@ private fun HomeScreenHostActivity.MainScreen(
     status: StatusSnapshot,
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
-    onOpenLiveUpdateSettings: () -> Unit,
+    onOpenSamsungNowBarGuide: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
+    onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
 ) {
     var settingsExpanded by rememberSaveable { mutableStateOf(true) }
     var showNotificationAccessDisclosure by rememberSaveable { mutableStateOf(false) }
+    var settingsLayerVisible by rememberSaveable { mutableStateOf(false) }
+    val settingsProgress = remember {
+        Animatable(SETTINGS_CLOSED_PROGRESS)
+    }
+    val coroutineScope = rememberCoroutineScope()
+
+    fun openSettingsPage() {
+        coroutineScope.launch {
+            settingsLayerVisible = true
+            settingsProgress.snapTo(SETTINGS_CLOSED_PROGRESS)
+            settingsProgress.animateTo(
+                SETTINGS_OPEN_PROGRESS,
+                settingsPageSpring(),
+            )
+        }
+    }
+
+    fun closeSettingsPage() {
+        coroutineScope.launch {
+            settingsProgress.animateTo(
+                SETTINGS_CLOSED_PROGRESS,
+                settingsPageSpring(),
+            )
+            settingsLayerVisible = false
+        }
+    }
 
     LaunchedEffect(status.requiredSettingsComplete) {
         settingsExpanded = !status.requiredSettingsComplete
     }
+    PredictiveSettingsBackHandler(
+        enabled = settingsLayerVisible,
+        onProgress = { progress ->
+            settingsProgress.snapTo(progress)
+        },
+        onCancel = {
+            settingsProgress.animateTo(
+                SETTINGS_OPEN_PROGRESS,
+                settingsPageSpring(),
+            )
+        },
+        onBack = {
+            settingsProgress.animateTo(
+                SETTINGS_CLOSED_PROGRESS,
+                settingsPageSpring(),
+            )
+            settingsLayerVisible = false
+        },
+    )
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
     val scrollTopPadding = safeDrawingPadding.calculateTopPadding() + 20.dp
     val scrollBottomPadding = safeDrawingPadding.calculateBottomPadding() + 32.dp
@@ -262,74 +334,61 @@ private fun HomeScreenHostActivity.MainScreen(
             contentAlignment = Alignment.TopStart,
         ) {
             if (maxWidth > maxHeight) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState())
-                            .padding(top = scrollTopPadding, bottom = scrollBottomPadding),
-                        verticalArrangement = Arrangement.Top,
-                    ) {
-                        HeroCard()
-                        Spacer(Modifier.height(28.dp))
-                        RequiredSettingsSection(
-                            status = status,
-                            expanded = settingsExpanded,
-                            onToggle = { settingsExpanded = !settingsExpanded },
-                            onOpenNotificationAccess = {
-                                showNotificationAccessDisclosure = true
-                            },
-                            onRequestNotificationPermission = onRequestNotificationPermission,
-                            onOpenLiveUpdateSettings = onOpenLiveUpdateSettings,
-                        )
-                    }
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState())
-                            .padding(top = scrollTopPadding, bottom = scrollBottomPadding),
-                        verticalArrangement = Arrangement.Top,
-                    ) {
-                        AppsSection(
-                            status = status,
-                            horizontalContentPadding = 0.dp,
-                            onAppEnabledChange = onAppEnabledChange,
-                        )
-                    }
+                HomeBackgroundLayer(progress = settingsProgress.value) {
+                    HomeContentWide(
+                        status = status,
+                        settingsExpanded = settingsExpanded,
+                        scrollTopPadding = scrollTopPadding,
+                        scrollBottomPadding = scrollBottomPadding,
+                        onOpenSettings = { openSettingsPage() },
+                        onToggleSettings = { settingsExpanded = !settingsExpanded },
+                        onOpenNotificationAccess = {
+                            showNotificationAccessDisclosure = true
+                        },
+                        onRequestNotificationPermission = onRequestNotificationPermission,
+                        onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                        onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
+                        onAppEnabledChange = onAppEnabledChange,
+                    )
                 }
             } else {
-                Column(
+                HomeBackgroundLayer(progress = settingsProgress.value) {
+                    HomeContentNarrow(
+                        status = status,
+                        settingsExpanded = settingsExpanded,
+                        scrollTopPadding = scrollTopPadding,
+                        scrollBottomPadding = scrollBottomPadding,
+                        onOpenSettings = { openSettingsPage() },
+                        onToggleSettings = { settingsExpanded = !settingsExpanded },
+                        onOpenNotificationAccess = {
+                            showNotificationAccessDisclosure = true
+                        },
+                        onRequestNotificationPermission = onRequestNotificationPermission,
+                        onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                        onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
+                        onAppEnabledChange = onAppEnabledChange,
+                    )
+                }
+            }
+            if (settingsLayerVisible) {
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(top = scrollTopPadding, bottom = scrollBottomPadding),
-                    verticalArrangement = Arrangement.Top,
+                        .graphicsLayer {
+                            translationX = size.width * settingsProgress.value
+                        },
                 ) {
-                    Column(Modifier.padding(horizontal = 20.dp)) {
-                        HeroCard()
-                        Spacer(Modifier.height(28.dp))
-                        RequiredSettingsSection(
-                            status = status,
-                            expanded = settingsExpanded,
-                            onToggle = { settingsExpanded = !settingsExpanded },
-                            onOpenNotificationAccess = {
-                                showNotificationAccessDisclosure = true
-                            },
-                            onRequestNotificationPermission = onRequestNotificationPermission,
-                            onOpenLiveUpdateSettings = onOpenLiveUpdateSettings,
-                        )
-                    }
-                    Spacer(Modifier.height(28.dp))
-                    AppsSection(
+                    SettingsPage(
                         status = status,
-                        horizontalContentPadding = 20.dp,
-                        onAppEnabledChange = onAppEnabledChange,
+                        topPadding = scrollTopPadding,
+                        bottomPadding = scrollBottomPadding,
+                        onBack = { closeSettingsPage() },
+                        onOpenNotificationAccess = {
+                            showNotificationAccessDisclosure = true
+                        },
+                        onRequestNotificationPermission = onRequestNotificationPermission,
+                        onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                        onOpenPrivacyPolicy = onOpenPrivacyPolicy,
                     )
                 }
             }
@@ -344,6 +403,183 @@ private fun HomeScreenHostActivity.MainScreen(
                 onOpenNotificationAccess()
             },
         )
+    }
+}
+
+@Composable
+private fun HomeBackgroundLayer(
+    progress: Float,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                val openAmount = 1f - progress
+                translationX = -size.width * HOME_BACKGROUND_SHIFT_FRACTION * openAmount
+                alpha = 1f - (HOME_BACKGROUND_DIM_FRACTION * openAmount)
+            },
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun HomeContentWide(
+    status: StatusSnapshot,
+    settingsExpanded: Boolean,
+    scrollTopPadding: Dp,
+    scrollBottomPadding: Dp,
+    onOpenSettings: () -> Unit,
+    onToggleSettings: () -> Unit,
+    onOpenNotificationAccess: () -> Unit,
+    onRequestNotificationPermission: () -> Unit,
+    onOpenSamsungNowBarGuide: () -> Unit,
+    onDismissNowBarTroubleshooting: () -> Unit,
+    onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(top = scrollTopPadding, bottom = scrollBottomPadding),
+            verticalArrangement = Arrangement.Top,
+        ) {
+            HomeIntroColumn(
+                status = status,
+                settingsExpanded = settingsExpanded,
+                onOpenSettings = onOpenSettings,
+                onToggleSettings = onToggleSettings,
+                onOpenNotificationAccess = onOpenNotificationAccess,
+                onRequestNotificationPermission = onRequestNotificationPermission,
+                onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(top = scrollTopPadding, bottom = scrollBottomPadding),
+            verticalArrangement = Arrangement.Top,
+        ) {
+            AppsSection(
+                status = status,
+                horizontalContentPadding = 0.dp,
+                onAppEnabledChange = onAppEnabledChange,
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeContentNarrow(
+    status: StatusSnapshot,
+    settingsExpanded: Boolean,
+    scrollTopPadding: Dp,
+    scrollBottomPadding: Dp,
+    onOpenSettings: () -> Unit,
+    onToggleSettings: () -> Unit,
+    onOpenNotificationAccess: () -> Unit,
+    onRequestNotificationPermission: () -> Unit,
+    onOpenSamsungNowBarGuide: () -> Unit,
+    onDismissNowBarTroubleshooting: () -> Unit,
+    onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(top = scrollTopPadding, bottom = scrollBottomPadding),
+        verticalArrangement = Arrangement.Top,
+    ) {
+        Column(Modifier.padding(horizontal = 20.dp)) {
+            HomeIntroColumn(
+                status = status,
+                settingsExpanded = settingsExpanded,
+                onOpenSettings = onOpenSettings,
+                onToggleSettings = onToggleSettings,
+                onOpenNotificationAccess = onOpenNotificationAccess,
+                onRequestNotificationPermission = onRequestNotificationPermission,
+                onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
+            )
+        }
+        Spacer(Modifier.height(28.dp))
+        AppsSection(
+            status = status,
+            horizontalContentPadding = 20.dp,
+            onAppEnabledChange = onAppEnabledChange,
+        )
+    }
+}
+
+@Composable
+private fun HomeIntroColumn(
+    status: StatusSnapshot,
+    settingsExpanded: Boolean,
+    onOpenSettings: () -> Unit,
+    onToggleSettings: () -> Unit,
+    onOpenNotificationAccess: () -> Unit,
+    onRequestNotificationPermission: () -> Unit,
+    onOpenSamsungNowBarGuide: () -> Unit,
+    onDismissNowBarTroubleshooting: () -> Unit,
+) {
+    HeroCard(onOpenSettings = onOpenSettings)
+    AnimatedVisibility(
+        visible = !status.requiredSettingsComplete,
+        modifier = Modifier.clip(RoundedCornerShape(26.dp)),
+    ) {
+        Column {
+            Spacer(Modifier.height(28.dp))
+            RequiredSettingsSection(
+                status = status,
+                expanded = settingsExpanded,
+                onToggle = onToggleSettings,
+                onOpenNotificationAccess = onOpenNotificationAccess,
+                onRequestNotificationPermission = onRequestNotificationPermission,
+            )
+        }
+    }
+    AnimatedVisibility(
+        visible = !status.nowBarTroubleshootingDismissed,
+        modifier = Modifier.clip(RoundedCornerShape(26.dp)),
+    ) {
+        Column {
+            Spacer(Modifier.height(10.dp))
+            SamsungNowBarTroubleshootingCard(
+                onClick = onOpenSamsungNowBarGuide,
+                onDismiss = onDismissNowBarTroubleshooting,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalActivityApi::class)
+@Composable
+private fun PredictiveSettingsBackHandler(
+    enabled: Boolean,
+    onProgress: suspend (Float) -> Unit,
+    onCancel: suspend () -> Unit,
+    onBack: suspend () -> Unit,
+) {
+    PredictiveBackHandler(enabled = enabled) { progress ->
+        try {
+            progress.collect { backEvent ->
+                onProgress(backEvent.progress)
+            }
+            onBack()
+        } catch (exception: CancellationException) {
+            onCancel()
+            throw exception
+        }
     }
 }
 
@@ -376,60 +612,12 @@ private fun NotificationAccessDisclosureDialog(
     )
 }
 
-@Composable
-private fun RequiredSettingsSection(
-    status: StatusSnapshot,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    onOpenNotificationAccess: () -> Unit,
-    onRequestNotificationPermission: () -> Unit,
-    onOpenLiveUpdateSettings: () -> Unit,
-) {
-    Column {
-        SectionHeader(
-            title = "必要設定",
-            subtitle = "完成設定後，App 就能把乘車與外送狀態變成即時通知。",
-            expanded = expanded,
-            collapsible = status.requiredSettingsComplete,
-            onToggle = onToggle,
-        )
-        Spacer(Modifier.height(12.dp))
-        AnimatedVisibility(
-            visible = expanded,
-            modifier = Modifier.clip(RoundedCornerShape(26.dp)),
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SettingCard(
-                    number = "01",
-                    title = "讀取狀態通知",
-                    description = "允許 App 辨識 iPASS MONEY、foodpanda 與 Uber Eats 狀態。",
-                    enabled = status.notificationAccess,
-                    enabledText = "已開啟",
-                    disabledText = "尚未開啟",
-                    action = "開啟通知存取權限",
-                    onClick = onOpenNotificationAccess,
-                )
-                SettingCard(
-                    number = "02",
-                    title = "顯示即時通知",
-                    description = "讓提醒固定顯示在通知列，點一下就能開啟對應 App。",
-                    enabled = status.notificationPermission,
-                    enabledText = "已允許",
-                    disabledText = "尚未允許",
-                    action = "允許提醒通知",
-                    onClick = onRequestNotificationPermission,
-                )
-                SettingCard(
-                    number = "03",
-                    title = "Live Update",
-                    description = "允許乘車與外送狀態顯示為 Android 16 即時通知與狀態列 chip。",
-                    enabled = status.liveUpdates,
-                    enabledText = "系統允許顯示",
-                    disabledText = "未允許，將使用一般通知",
-                    action = "開啟 Live Update 設定",
-                    onClick = onOpenLiveUpdateSettings,
-                )
-            }
-        }
-    }
-}
+private const val SETTINGS_OPEN_PROGRESS = 0f
+private const val SETTINGS_CLOSED_PROGRESS = 1f
+private const val HOME_BACKGROUND_SHIFT_FRACTION = 0.05f
+private const val HOME_BACKGROUND_DIM_FRACTION = 0.34f
+
+private fun settingsPageSpring() = spring<Float>(
+    dampingRatio = Spring.DampingRatioNoBouncy,
+    stiffness = Spring.StiffnessMediumLow,
+)
