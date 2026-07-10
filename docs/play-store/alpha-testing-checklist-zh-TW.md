@@ -2,14 +2,15 @@
 
 已審查通過版本：`2607090 (1.0.0-beta)`
 
-本機最新 signed AAB：`2607100 (1.0.0-beta2)`
+最新 Alpha 上傳版本：`2607101 (1.0.0-beta3)`
 
 Alpha 審查狀態：已通過（2026-07-10）
 
 ## 審查通過後立即確認
 
 - [x] Play Console Alpha 審查已通過。
-- [ ] Play Console 顯示 Alpha 版本已可供測試人員安裝。
+- [x] Play Console 已上傳 `2607101 (1.0.0-beta3)` 至 Alpha。
+- [ ] Play Console 顯示最新 Alpha 版本已可供測試人員安裝。
 - [ ] 測試者 Google 帳號已加入 `livestatus--app@googlegroups.com`。
 - [ ] 測試者已開啟測試邀請連結並選擇加入測試。
 - [ ] 測試裝置可從 Google Play 安裝「LiveStatus 即時狀態提醒」。
