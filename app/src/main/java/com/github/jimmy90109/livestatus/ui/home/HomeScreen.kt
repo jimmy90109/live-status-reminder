@@ -126,6 +126,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             foodpandaInstalled = foodpandaInstalled,
             uberEatsInstalled = uberEatsInstalled,
             isSamsungDevice = isSamsungDevice(),
+            isXiaomiDevice = isXiaomiDevice(),
             nowBarTroubleshootingDismissed =
                 AppReminderPreferences.isNowBarTroubleshootingDismissed(this),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
@@ -177,6 +178,14 @@ open class HomeScreenHostActivity : ComponentActivity() {
     private fun isSamsungDevice(): Boolean =
         Build.MANUFACTURER.equals("samsung", ignoreCase = true) ||
             Build.BRAND.equals("samsung", ignoreCase = true)
+
+    private fun isXiaomiDevice(): Boolean =
+        isXiaomiFamily(Build.MANUFACTURER) || isXiaomiFamily(Build.BRAND)
+
+    private fun isXiaomiFamily(value: String?): Boolean {
+        val normalized = value?.lowercase()?.trim().orEmpty()
+        return normalized == "xiaomi" || normalized == "redmi" || normalized == "poco"
+    }
 
     private fun openIpass() = openPackage(IPASS_PACKAGE, "iPASS MONEY")
 
@@ -256,6 +265,7 @@ internal data class StatusSnapshot(
     val foodpandaInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val isSamsungDevice: Boolean = false,
+    val isXiaomiDevice: Boolean = false,
     val nowBarTroubleshootingDismissed: Boolean = false,
     val ipassEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,
@@ -565,6 +575,15 @@ private fun HomeIntroColumn(
                 onClick = onOpenSamsungNowBarGuide,
                 onDismiss = onDismissNowBarTroubleshooting,
             )
+        }
+    }
+    AnimatedVisibility(
+        visible = status.isXiaomiDevice,
+        modifier = Modifier.clip(RoundedCornerShape(26.dp)),
+    ) {
+        Column {
+            Spacer(Modifier.height(10.dp))
+            XiaomiHyperIslandInfoCard()
         }
     }
 }

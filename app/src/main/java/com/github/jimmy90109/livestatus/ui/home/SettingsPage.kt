@@ -70,6 +70,10 @@ internal fun SettingsPage(
             Spacer(Modifier.height(10.dp))
             SamsungNowBarTroubleshootingCard(onClick = onOpenSamsungNowBarGuide)
         }
+        if (status.isXiaomiDevice) {
+            Spacer(Modifier.height(10.dp))
+            XiaomiHyperIslandInfoCard()
+        }
         Spacer(Modifier.height(14.dp))
         ActionButton(
             "隱私權政策  →",
@@ -162,5 +166,25 @@ internal fun SamsungNowBarTroubleshootingCard(
         )
         Spacer(Modifier.height(14.dp))
         ActionButton("查看解決方法  →", colors.warningText, colors.warningContainer, onClick = onClick)
+    }
+}
+
+@Composable
+internal fun XiaomiHyperIslandInfoCard() {
+    val colors = LocalAppColors.current
+    CardSurface(colors.warningContainer, 26, 18) {
+        AppText(
+            "小米 HyperOS 膠囊支援",
+            18,
+            colors.warningText,
+            true,
+        )
+        Spacer(Modifier.height(10.dp))
+        AppText(
+            "如果膠囊沒有出現，請在 HyperOS 系統設定中允許浮動或焦點通知；" +
+                "若系統不接受第三方膠囊，App 仍會顯示一般即時通知。",
+            15,
+            colors.warningText,
+        )
     }
 }

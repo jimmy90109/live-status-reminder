@@ -38,14 +38,15 @@ object LiveStatusReminder {
             HomeScreenHostActivity.createOpenIpassIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val payload = ridePayload(openIpass)
         val builder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("乘車中：準備下車時開啟乘車碼")
-            .setContentText("點一下立即開啟 iPASS MONEY")
-            .setContentIntent(openIpass)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
             .addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(context, R.drawable.ic_notification),
+                    Icon.createWithResource(context, payload.leftIconRes),
                     "開啟乘車碼",
                     openIpass,
                 ).build(),
@@ -58,8 +59,9 @@ object LiveStatusReminder {
                 Notification.BigTextStyle()
                     .bigText("抵達目的地前，點一下立即開啟 iPASS MONEY，準備出示乘車碼。"),
             )
-            .setShortCriticalText("乘車中")
+            .setShortCriticalText(payload.criticalText)
             .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
 
         notificationManager(context).notify(RIDE_NOTIFICATION_ID, builder.build())
     }
@@ -75,28 +77,21 @@ object LiveStatusReminder {
         event: LiveStatusNotificationParser.FoodpandaEvent,
     ) {
         createChannel(context)
-        val arriving = event == LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING
-        val title = if (arriving) "foodpanda 即將抵達" else "foodpanda 外送中"
-        val text = if (arriving) {
-            "外送夥伴即將抵達，準備取餐。"
-        } else {
-            "外送夥伴在路上，請留意手機來電或訊息。"
-        }
-        val shortText = if (arriving) "即將抵達" else "外送中"
         val openFoodpanda = PendingIntent.getActivity(
             context,
             1,
             HomeScreenHostActivity.createOpenFoodpandaIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val payload = foodpandaPayload(event, openFoodpanda)
         val builder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_food_delivery_notification)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setContentIntent(openFoodpanda)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
             .addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(context, R.drawable.ic_food_delivery_notification),
+                    Icon.createWithResource(context, payload.leftIconRes),
                     "開啟 foodpanda",
                     openFoodpanda,
                 ).build(),
@@ -105,9 +100,10 @@ object LiveStatusReminder {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
-            .setStyle(Notification.BigTextStyle().bigText(text))
-            .setShortCriticalText(shortText)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
             .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
 
         notificationManager(context).notify(FOODPANDA_NOTIFICATION_ID, builder.build())
     }
@@ -126,37 +122,37 @@ object LiveStatusReminder {
         officialText: String? = null,
     ) {
         createChannel(context)
-        val title = uberEatsTitle(event, officialTitle)
-        val statusText = officialText ?: uberEatsStatusText(event)
-        val privateText = pin?.let { "$statusText · PIN $it" } ?: statusText
         val openUberEats = PendingIntent.getActivity(
             context,
             2,
             HomeScreenHostActivity.createOpenUberEatsIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val payload = uberEatsPayload(event, officialTitle, officialText, openUberEats)
+        val privateText = pin?.let { "${payload.contentText} · PIN $it" } ?: payload.contentText
         val publicNotification = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_food_delivery_notification)
-            .setContentTitle(title)
-            .setContentText(statusText)
-            .setContentIntent(openUberEats)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
             .setCategory(Notification.CATEGORY_PROGRESS)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .also { applyUberEatsStyle(it, event) }
-            .setShortCriticalText(uberEatsShortText(event))
+            .setShortCriticalText(payload.criticalText)
             .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
             .build()
 
         val builder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_food_delivery_notification)
-            .setContentTitle(title)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
             .setContentText(privateText)
-            .setContentIntent(openUberEats)
+            .setContentIntent(payload.contentIntent)
             .addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(context, R.drawable.ic_food_delivery_notification),
+                    Icon.createWithResource(context, payload.leftIconRes),
                     "開啟 Uber Eats",
                     openUberEats,
                 ).build(),
@@ -169,6 +165,7 @@ object LiveStatusReminder {
             .also { applyUberEatsStyle(it, event) }
             .setShortCriticalText(pin ?: uberEatsShortText(event))
             .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
 
         notificationManager(context).notify(UBER_EATS_NOTIFICATION_ID, builder.build())
     }
@@ -241,6 +238,57 @@ object LiveStatusReminder {
             LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "快到了"
             else -> "已接單"
         }
+
+    internal fun ridePayload(contentIntent: PendingIntent? = null): LiveStatusPayload =
+        LiveStatusPayload(
+            id = RIDE_NOTIFICATION_ID,
+            appName = "iPASS MONEY",
+            smallIconRes = R.drawable.ic_notification,
+            leftIconRes = R.drawable.ic_notification,
+            criticalText = "乘車中",
+            title = "乘車中：準備下車時開啟乘車碼",
+            contentText = "點一下立即開啟 iPASS MONEY",
+            contentIntent = contentIntent,
+        )
+
+    internal fun foodpandaPayload(
+        event: LiveStatusNotificationParser.FoodpandaEvent,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val arriving = event == LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING
+        return LiveStatusPayload(
+            id = FOODPANDA_NOTIFICATION_ID,
+            appName = "foodpanda",
+            smallIconRes = R.drawable.ic_food_delivery_notification,
+            leftIconRes = R.drawable.ic_food_delivery_notification,
+            criticalText = if (arriving) "即將抵達" else "外送中",
+            title = if (arriving) "foodpanda 即將抵達" else "foodpanda 外送中",
+            contentText = if (arriving) {
+                "外送夥伴即將抵達，準備取餐。"
+            } else {
+                "外送夥伴在路上，請留意手機來電或訊息。"
+            },
+            contentIntent = contentIntent,
+        )
+    }
+
+    internal fun uberEatsPayload(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        officialTitle: String? = null,
+        officialText: String? = null,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload =
+        LiveStatusPayload(
+            id = UBER_EATS_NOTIFICATION_ID,
+            appName = "Uber Eats",
+            smallIconRes = R.drawable.ic_food_delivery_notification,
+            leftIconRes = R.drawable.ic_food_delivery_notification,
+            criticalText = uberEatsShortText(event),
+            title = uberEatsTitle(event, officialTitle),
+            contentText = officialText ?: uberEatsStatusText(event),
+            progress = uberEatsProgress(event),
+            contentIntent = contentIntent,
+        )
 
     private fun requestPromotedOngoing(builder: Notification.Builder) {
         builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
