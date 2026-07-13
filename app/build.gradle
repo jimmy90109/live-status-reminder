@@ -30,22 +30,23 @@ android {
         targetSdk = 37
         versionCode = 2607130
         versionName = "1.0.0-beta4"
+
+        ndk {
+            debugSymbolLevel = "SYMBOL_TABLE"
+        }
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.release
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt")
         }
     }
 
     buildFeatures {
         compose = true
-    }
-
-    packaging {
-        jniLibs {
-            keepDebugSymbols += ["**/libandroidx.graphics.path.so"]
-        }
     }
 
     lint {
@@ -102,9 +103,19 @@ tasks.register("verifyReleaseSigning") {
     }
 }
 
+tasks.register("packageReleaseNativeDebugSymbols", Zip) {
+    dependsOn("mergeReleaseNativeLibs")
+    archiveFileName = "native-debug-symbols.zip"
+    destinationDirectory = layout.buildDirectory.dir("outputs/native-debug-symbols/release")
+    from(layout.buildDirectory.dir("intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out"))
+}
+
 tasks.configureEach {
     if (name == "packageReleaseBundle") {
         dependsOn("verifyReleaseSigning")
+    }
+    if (name == "bundleRelease") {
+        finalizedBy("packageReleaseNativeDebugSymbols")
     }
 }
 
