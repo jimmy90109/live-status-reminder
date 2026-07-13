@@ -1,7 +1,12 @@
 package com.github.jimmy90109.livestatus.ui.home
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -15,9 +20,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,9 +38,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -41,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
+import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.launch
 
@@ -58,6 +70,7 @@ internal fun AppsSection(
         status.ipassInstalled,
         status.foodpandaInstalled,
         status.uberEatsInstalled,
+        status.pikminBloomInstalled,
     ) {
         mutableIntStateOf(0)
     }
@@ -73,23 +86,24 @@ internal fun AppsSection(
                 title = "App",
                 subtitle = "檢查安裝狀態，並分別測試各 App 的即時通知。",
             )
-            Spacer(Modifier.height(12.dp))
-            AppTabs(
-                selectedTab = selectedTab,
-                onSelect = { page ->
-                    selectedTab = page
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(
-                            page = page,
-                            animationSpec = tween(
-                                durationMillis = APP_PAGE_ANIMATION_MILLIS,
-                                easing = FastOutSlowInEasing,
-                            ),
-                        )
-                    }
-                },
-            )
         }
+        Spacer(Modifier.height(12.dp))
+        AppTabs(
+            selectedTab = selectedTab,
+            horizontalContentPadding = horizontalContentPadding,
+            onSelect = { page ->
+                selectedTab = page
+                coroutineScope.launch {
+                    pagerState.animateScrollToPage(
+                        page = page,
+                        animationSpec = tween(
+                            durationMillis = APP_PAGE_ANIMATION_MILLIS,
+                            easing = FastOutSlowInEasing,
+                        ),
+                    )
+                }
+            },
+        )
         Spacer(Modifier.height(12.dp))
         HorizontalPager(
             state = pagerState,
@@ -125,6 +139,13 @@ internal fun AppsSection(
                             onAppEnabledChange(AppReminderPreferences.App.UBER_EATS, it)
                         },
                     )
+                    TAB_PIKMIN_BLOOM -> PikminBloomCard(
+                        installed = status.pikminBloomInstalled,
+                        enabled = status.pikminBloomEnabled,
+                        onEnabledChange = {
+                            onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
+                        },
+                    )
                     else -> IpassCard(
                         installed = status.ipassInstalled,
                         enabled = status.ipassEnabled,
@@ -139,7 +160,11 @@ internal fun AppsSection(
 }
 
 @Composable
-private fun AppTabs(selectedTab: Int, onSelect: (Int) -> Unit) {
+private fun AppTabs(
+    selectedTab: Int,
+    horizontalContentPadding: Dp,
+    onSelect: (Int) -> Unit,
+) {
     val colors = LocalAppColors.current
     Row(
         modifier = Modifier
@@ -147,9 +172,12 @@ private fun AppTabs(selectedTab: Int, onSelect: (Int) -> Unit) {
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        Spacer(Modifier.width(horizontalContentPadding))
         AppTab("iPASS MONEY", TAB_IPASS, selectedTab, colors.ipassPrimary, colors.commonOnPrimary, onSelect)
         AppTab("foodpanda", TAB_FOODPANDA, selectedTab, colors.foodpandaPrimary, colors.commonOnPrimary, onSelect)
         AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
+        AppTab("Pikmin Bloom", TAB_PIKMIN_BLOOM, selectedTab, colors.pikminPrimary, colors.commonOnPrimary, onSelect)
+        Spacer(Modifier.width(horizontalContentPadding))
     }
 }
 
@@ -194,6 +222,8 @@ private fun IpassCard(
     val context = LocalContext.current
     AppCard(
         appName = "iPASS MONEY",
+        appPackageName = IPASS_PACKAGE,
+        fallbackIconRes = R.drawable.ic_notification,
         title = "乘車碼狀態",
         description = "進站後顯示乘車碼捷徑，準備下車時快速開啟。",
         installed = installed,
@@ -227,6 +257,8 @@ private fun FoodpandaCard(
     val context = LocalContext.current
     AppCard(
         appName = "foodpanda",
+        appPackageName = FOODPANDA_PACKAGE,
+        fallbackIconRes = R.drawable.ic_food_delivery_notification,
         title = "外送訂單狀態",
         description = "外送夥伴出發或即將抵達時，顯示取餐提醒。",
         installed = installed,
@@ -258,6 +290,8 @@ private fun UberEatsCard(
     val context = LocalContext.current
     AppCard(
         appName = "Uber Eats",
+        appPackageName = UBER_EATS_PACKAGE,
+        fallbackIconRes = R.drawable.ic_food_delivery_notification,
         title = "五階段訂單進度",
         description = "從接單到即將抵達持續更新；可辨識時也會顯示四位數 PIN。",
         installed = installed,
@@ -330,8 +364,40 @@ private fun UberEatsTestButton(
 }
 
 @Composable
+private fun PikminBloomCard(
+    installed: Boolean,
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "Pikmin Bloom",
+        appPackageName = PIKMIN_BLOOM_PACKAGE,
+        fallbackIconRes = R.drawable.ic_pikmin_flower_notification,
+        title = "種花背景提醒",
+        description = "偵測到背景種花通知時，立刻升級成即時提醒。",
+        installed = installed,
+        enabled = enabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.pikminContainer,
+        labelColor = colors.pikminSecondaryContainer,
+        foregroundColor = colors.pikminText,
+    ) {
+        ActionButton("模擬種花中", colors.pikminPrimary, colors.commonOnPrimary, enabled = enabled) {
+            LiveStatusReminder.showPikminBloom(context)
+        }
+        ActionButton("清除 Pikmin Bloom 狀態  ✓", colors.pikminSecondaryContainer, colors.pikminText) {
+            LiveStatusReminder.clearPikminBloom(context)
+        }
+    }
+}
+
+@Composable
 private fun AppCard(
     appName: String,
+    appPackageName: String,
+    @DrawableRes fallbackIconRes: Int,
     title: String,
     description: String,
     installed: Boolean,
@@ -348,7 +414,14 @@ private fun AppCard(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top,
         ) {
-            LabelPill(appName, labelColor, foregroundColor)
+            AppLabelPill(
+                label = appName,
+                packageName = appPackageName,
+                installed = installed,
+                fallbackIconRes = fallbackIconRes,
+                background = labelColor,
+                foreground = foregroundColor,
+            )
             Spacer(Modifier.weight(1f))
             if (installed) {
                 Switch(
@@ -369,8 +442,76 @@ private fun AppCard(
     }
 }
 
+@Composable
+private fun AppLabelPill(
+    label: String,
+    packageName: String,
+    installed: Boolean,
+    @DrawableRes fallbackIconRes: Int,
+    background: Color,
+    foreground: Color,
+) {
+    val context = LocalContext.current
+    val appIcon = remember(packageName, installed) {
+        if (!installed) {
+            null
+        } else {
+            runCatching {
+                context.packageManager.getApplicationIcon(packageName).toBitmap()
+            }.getOrNull()
+        }
+    }
+    Row(
+        modifier = Modifier
+            .background(background, RoundedCornerShape(100.dp))
+            .padding(start = 8.dp, top = 6.dp, end = 12.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (appIcon != null) {
+            Image(
+                painter = BitmapPainter(appIcon.asImageBitmap()),
+                contentDescription = "$label icon",
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(RoundedCornerShape(6.dp)),
+            )
+        } else {
+            Icon(
+                painter = painterResource(fallbackIconRes),
+                contentDescription = "$label icon",
+                tint = foreground,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        Spacer(Modifier.width(7.dp))
+        androidx.compose.material3.Text(
+            text = label,
+            color = foreground,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+        )
+    }
+}
+
+private fun Drawable.toBitmap(): Bitmap {
+    val bitmapWidth = intrinsicWidth.takeIf { it > 0 } ?: DEFAULT_ICON_BITMAP_SIZE
+    val bitmapHeight = intrinsicHeight.takeIf { it > 0 } ?: DEFAULT_ICON_BITMAP_SIZE
+    val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    setBounds(0, 0, canvas.width, canvas.height)
+    draw(canvas)
+    return bitmap
+}
+
 private const val TAB_IPASS = 0
 private const val TAB_FOODPANDA = 1
 private const val TAB_UBER_EATS = 2
-private const val APP_PAGE_COUNT = 3
+private const val TAB_PIKMIN_BLOOM = 3
+private const val APP_PAGE_COUNT = 4
 private const val APP_PAGE_ANIMATION_MILLIS = 300
+private const val DEFAULT_ICON_BITMAP_SIZE = 48
+private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
+private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
+private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"

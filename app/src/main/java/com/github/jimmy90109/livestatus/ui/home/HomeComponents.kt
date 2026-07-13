@@ -49,7 +49,7 @@ internal fun HeroCard(onOpenSettings: () -> Unit) {
         AppText("重要狀態，\n留在最前面。", 34, colors.onSurface, true)
         Spacer(Modifier.height(12.dp))
         AppText(
-            "進站後顯示乘車碼捷徑；外送期間顯示 foodpanda 或 Uber Eats 訂單進度。",
+            "進站後顯示乘車碼捷徑；外送期間顯示訂單進度；Pikmin Bloom 種花時提醒你記得結束。",
             16,
             colors.onSurfaceVariant,
         )

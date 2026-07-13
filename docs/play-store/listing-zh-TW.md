@@ -6,17 +6,18 @@
 
 ## 簡短說明
 
-將乘車與外送通知轉成清楚、持續顯示的 Android 即時狀態提醒。
+將乘車、外送與種花通知轉成清楚、持續顯示的 Android 即時狀態提醒。
 
 ## 完整說明
 
 不再反覆打開 App 確認狀態。
 
-即時狀態提醒會在您的裝置上辨識 iPASS MONEY、foodpanda 與 Uber Eats 通知，將重要進度整理成持續顯示的 Android Live Update：
+即時狀態提醒會在您的裝置上辨識 iPASS MONEY、foodpanda、Uber Eats 與 Pikmin Bloom 通知，將重要進度整理成持續顯示的 Android Live Update：
 
 - iPASS MONEY：進站後提醒您在下車前準備開啟乘車碼，出站後自動結束提醒。
 - foodpanda：顯示外送中與即將抵達狀態，送達或取消後自動結束提醒。
 - Uber Eats：顯示從接單、備餐、取餐、配送到即將抵達的進度；通知有提供交付 PIN 時，也能在解鎖後快速查看。
+- Pikmin Bloom：背景種花時提醒您記得結束種花，避免花瓣在原地耗盡。
 - 點一下提醒即可開啟對應 App。
 
 隱私優先：
@@ -28,7 +29,7 @@
 
 系統需求：Android 16 或更新版本。Live Update 顯示方式依裝置支援情況而定。
 
-本 App 與 iPASS MONEY、foodpanda、Uber Eats 及其所屬公司沒有隸屬、授權或合作關係；相關商標均屬各自權利人所有。
+本 App 與 iPASS MONEY、foodpanda、Uber Eats、Pikmin Bloom 及其所屬公司沒有隸屬、授權或合作關係；相關商標均屬各自權利人所有。
 
 ## 分類建議
 

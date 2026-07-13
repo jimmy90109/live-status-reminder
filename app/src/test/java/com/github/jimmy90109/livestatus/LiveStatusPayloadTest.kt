@@ -51,6 +51,19 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun pikminBloomPayloadUsesFlowerIconAppNameAndNoProgress() {
+        val payload = LiveStatusReminder.pikminBloomPayload()
+
+        assertEquals(R.drawable.ic_pikmin_flower_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_pikmin_flower_notification, payload.leftIconRes)
+        assertEquals("Pikmin Bloom", payload.appName)
+        assertEquals("種花中", payload.criticalText)
+        assertEquals("Pikmin Bloom 正在種花", payload.title)
+        assertEquals("記得結束種花，避免花瓣在原地耗盡。", payload.contentText)
+        assertEquals(null, payload.progress)
+    }
+
+    @Test
     fun xiaomiRendererOnlyTargetsXiaomiFamilyBrands() {
         assertTrue(XiaomiHyperIslandRenderer.shouldRender("Xiaomi", "Xiaomi"))
         assertTrue(XiaomiHyperIslandRenderer.shouldRender("Xiaomi", "Redmi"))

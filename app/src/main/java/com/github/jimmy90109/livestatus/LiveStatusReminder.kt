@@ -14,6 +14,7 @@ object LiveStatusReminder {
     private const val RIDE_NOTIFICATION_ID = 1001
     private const val FOODPANDA_NOTIFICATION_ID = 1002
     private const val UBER_EATS_NOTIFICATION_ID = 1003
+    private const val PIKMIN_BLOOM_NOTIFICATION_ID = 1004
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
 
     @JvmStatic
@@ -175,6 +176,45 @@ object LiveStatusReminder {
         notificationManager(context).cancel(UBER_EATS_NOTIFICATION_ID)
     }
 
+    @JvmStatic
+    fun showPikminBloom(context: Context) {
+        createChannel(context)
+        val openPikminBloom = PendingIntent.getActivity(
+            context,
+            3,
+            HomeScreenHostActivity.createOpenPikminBloomIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = pikminBloomPayload(openPikminBloom)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    "開啟 Pikmin Bloom",
+                    openPikminBloom,
+                ).build(),
+            )
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(PIKMIN_BLOOM_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearPikminBloom(context: Context) {
+        notificationManager(context).cancel(PIKMIN_BLOOM_NOTIFICATION_ID)
+    }
+
     private fun applyUberEatsStyle(
         builder: Notification.Builder,
         event: LiveStatusNotificationParser.UberEatsEvent,
@@ -287,6 +327,18 @@ object LiveStatusReminder {
             title = uberEatsTitle(event, officialTitle),
             contentText = officialText ?: uberEatsStatusText(event),
             progress = uberEatsProgress(event),
+            contentIntent = contentIntent,
+        )
+
+    internal fun pikminBloomPayload(contentIntent: PendingIntent? = null): LiveStatusPayload =
+        LiveStatusPayload(
+            id = PIKMIN_BLOOM_NOTIFICATION_ID,
+            appName = "Pikmin Bloom",
+            smallIconRes = R.drawable.ic_pikmin_flower_notification,
+            leftIconRes = R.drawable.ic_pikmin_flower_notification,
+            criticalText = "種花中",
+            title = "Pikmin Bloom 正在種花",
+            contentText = "記得結束種花，避免花瓣在原地耗盡。",
             contentIntent = contentIntent,
         )
 

@@ -1,6 +1,7 @@
 package com.github.jimmy90109.livestatus
 
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.RideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
 import org.junit.Assert.assertEquals
@@ -166,6 +167,24 @@ class LiveStatusNotificationParserTest {
         )
         assertEquals(UberEatsEvent.PICKING_UP, update.event)
         assertNull(update.pin)
+    }
+
+    @Test
+    fun pikminBloomFlowerPlantingNotificationStartsReminder() {
+        assertEquals(
+            PikminEvent.FLOWER_PLANTING,
+            LiveStatusNotificationParser.parsePikminBloom(
+                "Pikmin Bloom\n正在背景執行時種花。。 · 1m",
+            ),
+        )
+    }
+
+    @Test
+    fun unrelatedPikminBloomNotificationsAreIgnored() {
+        assertEquals(
+            PikminEvent.NONE,
+            LiveStatusNotificationParser.parsePikminBloom("Pikmin Bloom\n探險完成了！"),
+        )
     }
 
     private fun assertUberEatsEvent(expected: UberEatsEvent, text: String) {

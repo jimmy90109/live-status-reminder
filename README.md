@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽 iPASS MONEY、foodpanda 與 Uber Eats 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽 iPASS MONEY、foodpanda、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -27,6 +27,12 @@
 - 只從 Android 16 `shortCriticalText` 解析剛好四位數的 PIN。
 - 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
 - 訂單送達或取消後自動移除提醒。
+
+### Pikmin Bloom
+
+- 偵測到「正在背景執行時種花」後，立即顯示種花提醒。
+- 點擊提醒可開啟 Pikmin Bloom。
+- 原始種花通知移除或不再符合種花狀態後，自動移除提醒。
 
 ## 系統需求
 

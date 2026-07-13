@@ -9,6 +9,7 @@ object AppReminderPreferences {
         IPASS("ipass_enabled"),
         FOODPANDA("foodpanda_enabled"),
         UBER_EATS("uber_eats_enabled"),
+        PIKMIN_BLOOM("pikmin_bloom_enabled"),
         ;
 
         fun isEnabled(context: Context, installed: Boolean = true): Boolean =

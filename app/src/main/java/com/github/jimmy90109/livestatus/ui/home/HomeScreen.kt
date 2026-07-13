@@ -90,6 +90,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_IPASS -> openIpass()
             ACTION_OPEN_FOODPANDA -> openFoodpanda()
             ACTION_OPEN_UBER_EATS -> openUberEats()
+            ACTION_OPEN_PIKMIN_BLOOM -> openPikminBloom()
             else -> {
                 setContent {
                     LiveStatusTheme {
@@ -119,12 +120,14 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val ipassInstalled = isPackageInstalled(IPASS_PACKAGE)
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
+        val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
             notificationPermission = canPostNotifications(),
             ipassInstalled = ipassInstalled,
             foodpandaInstalled = foodpandaInstalled,
             uberEatsInstalled = uberEatsInstalled,
+            pikminBloomInstalled = pikminBloomInstalled,
             isSamsungDevice = isSamsungDevice(),
             isXiaomiDevice = isXiaomiDevice(),
             nowBarTroubleshootingDismissed =
@@ -132,6 +135,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
             uberEatsEnabled = AppReminderPreferences.App.UBER_EATS.isEnabled(this, uberEatsInstalled),
+            pikminBloomEnabled =
+                AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this, pikminBloomInstalled),
         )
     }
 
@@ -193,6 +198,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openUberEats() = openPackage(UBER_EATS_PACKAGE, "Uber Eats")
 
+    private fun openPikminBloom() = openPackage(PIKMIN_BLOOM_PACKAGE, "Pikmin Bloom")
+
     private fun openPackage(targetPackageName: String, appName: String) {
         packageManager.getLaunchIntentForPackage(targetPackageName)?.let {
             startActivity(it)
@@ -215,6 +222,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.IPASS -> LiveStatusReminder.clear(this)
             AppReminderPreferences.App.FOODPANDA -> LiveStatusReminder.clearFoodpanda(this)
             AppReminderPreferences.App.UBER_EATS -> LiveStatusReminder.clearUberEats(this)
+            AppReminderPreferences.App.PIKMIN_BLOOM -> LiveStatusReminder.clearPikminBloom(this)
         }
     }
 
@@ -231,9 +239,12 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_FOODPANDA"
         private const val ACTION_OPEN_UBER_EATS =
             "com.github.jimmy90109.livestatus.action.OPEN_UBER_EATS"
+        private const val ACTION_OPEN_PIKMIN_BLOOM =
+            "com.github.jimmy90109.livestatus.action.OPEN_PIKMIN_BLOOM"
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
+        private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val SAMSUNG_NOW_BAR_GUIDE_URL =
             "https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html"
         private const val PRIVACY_POLICY_URL =
@@ -251,6 +262,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
         fun createOpenUberEatsIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_UBER_EATS)
 
+        @JvmStatic
+        fun createOpenPikminBloomIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_PIKMIN_BLOOM)
+
         private fun openAppIntent(context: Context, action: String): Intent =
             Intent(context, MainActivity::class.java)
                 .setAction(action)
@@ -264,12 +279,14 @@ internal data class StatusSnapshot(
     val ipassInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
+    val pikminBloomInstalled: Boolean = false,
     val isSamsungDevice: Boolean = false,
     val isXiaomiDevice: Boolean = false,
     val nowBarTroubleshootingDismissed: Boolean = false,
     val ipassEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,
     val uberEatsEnabled: Boolean = false,
+    val pikminBloomEnabled: Boolean = false,
 ) {
     val requiredSettingsComplete: Boolean
         get() = notificationAccess && notificationPermission
@@ -619,8 +636,8 @@ private fun NotificationAccessDisclosureDialog(
         title = { Text("允許讀取通知前，請先了解") },
         text = {
             Text(
-                "即時狀態提醒會讀取 iPASS MONEY、foodpanda 與 Uber Eats 的通知內容，" +
-                    "用來辨識乘車、外送進度與 Uber Eats 交付 PIN，並在本機產生提醒。\n\n" +
+                "即時狀態提醒會讀取 iPASS MONEY、foodpanda、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                    "用來辨識乘車、外送進度、Uber Eats 交付 PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
                     "也不會永久儲存通知內容或 PIN。您隨時可以在系統設定中關閉通知存取權限。",
             )

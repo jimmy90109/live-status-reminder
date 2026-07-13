@@ -28,6 +28,11 @@ object LiveStatusNotificationParser {
         ORDER_ENDED,
     }
 
+    enum class PikminEvent {
+        NONE,
+        FLOWER_PLANTING,
+    }
+
     data class UberEatsUpdate(
         val event: UberEatsEvent,
         val pin: String?,
@@ -88,6 +93,21 @@ object LiveStatusNotificationParser {
             event = event,
             pin = exactPin(shortCriticalText),
         )
+    }
+
+    @JvmStatic
+    fun parsePikminBloom(notificationText: String?): PikminEvent {
+        if (notificationText == null) return PikminEvent.NONE
+
+        val normalized = notificationText.lowercase(Locale.ROOT)
+        return if (
+            normalized.contains("正在背景執行時種花") ||
+            normalized.contains("正在背景执行时种花")
+        ) {
+            PikminEvent.FLOWER_PLANTING
+        } else {
+            PikminEvent.NONE
+        }
     }
 
     private fun exactPin(value: String?): String? =

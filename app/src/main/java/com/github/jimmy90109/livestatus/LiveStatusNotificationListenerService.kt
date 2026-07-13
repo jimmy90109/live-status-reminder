@@ -32,6 +32,21 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     resetUberEatsState()
                 }
             }
+            PIKMIN_BLOOM_PACKAGE -> if (AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this)) {
+                handlePikminBloomNotification(notificationText)
+            }
+        }
+    }
+
+    override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
+        if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
+
+        val notificationText = readNotificationText(statusBarNotification.notification)
+        if (
+            LiveStatusNotificationParser.parsePikminBloom(notificationText) ==
+            LiveStatusNotificationParser.PikminEvent.FLOWER_PLANTING
+        ) {
+            LiveStatusReminder.clearPikminBloom(this)
         }
     }
 
@@ -106,6 +121,15 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    private fun handlePikminBloomNotification(notificationText: String) {
+        when (LiveStatusNotificationParser.parsePikminBloom(notificationText)) {
+            LiveStatusNotificationParser.PikminEvent.FLOWER_PLANTING ->
+                LiveStatusReminder.showPikminBloom(this)
+            LiveStatusNotificationParser.PikminEvent.NONE ->
+                LiveStatusReminder.clearPikminBloom(this)
+        }
+    }
+
     private fun resetUberEatsState() {
         lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
         lastUberEatsPin = null
@@ -126,6 +150,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
+        private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
 
         @JvmStatic
         fun readNotificationText(notification: Notification): String {
