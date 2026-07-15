@@ -1,8 +1,13 @@
 package com.github.jimmy90109.livestatus
 
 import android.app.Notification
+import android.content.Context
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import android.view.View
+import android.view.ViewGroup
+import android.widget.RemoteViews
+import android.widget.TextView
 
 class LiveStatusNotificationListenerService : NotificationListenerService() {
     private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
@@ -12,7 +17,11 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
         val notification = statusBarNotification.notification
-        val notificationText = readNotificationText(notification)
+        val notificationText = readNotificationText(
+            this,
+            statusBarNotification.packageName,
+            notification,
+        )
         when (statusBarNotification.packageName) {
             IPASS_PACKAGE -> if (AppReminderPreferences.App.IPASS.isEnabled(this)) {
                 handleRideNotification(notificationText)
@@ -21,12 +30,28 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 handleFoodpandaNotification(notificationText)
             }
             UBER_EATS_PACKAGE -> {
+                val shortCriticalText = readShortCriticalText(notification)
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = LiveStatusNotificationParser.parseUberEats(
+                    notificationText,
+                    shortCriticalText,
+                )
+                UberEatsDebugPayloadStore.record(
+                    this,
+                    statusBarNotification,
+                    notificationText,
+                    shortCriticalText,
+                    notificationTitle,
+                    notificationContentText,
+                    update,
+                )
                 if (AppReminderPreferences.App.UBER_EATS.isEnabled(this)) {
                     handleUberEatsNotification(
+                        update,
                         notificationText,
-                        readShortCriticalText(notification),
-                        readNotificationTitle(notification),
-                        readNotificationContentText(notification),
+                        notificationTitle,
+                        notificationContentText,
                     )
                 } else {
                     resetUberEatsState()
@@ -71,12 +96,11 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     private fun handleUberEatsNotification(
+        update: LiveStatusNotificationParser.UberEatsUpdate,
         notificationText: String,
-        shortCriticalText: String?,
         notificationTitle: String?,
         notificationContentText: String?,
     ) {
-        val update = LiveStatusNotificationParser.parseUberEats(notificationText, shortCriticalText)
         val event = update.event
 
         if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_ENDED) {
@@ -89,11 +113,13 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             lastUberEatsEvent = event
             lastUberEatsPin = update.pin
             lastUberEatsTitle = notificationTitle
-            lastUberEatsText = notificationContentText
+            lastUberEatsText = notificationContentText ?: notificationText
         } else {
             update.pin?.let { lastUberEatsPin = it }
             notificationTitle?.let { lastUberEatsTitle = it }
-            notificationContentText?.let { lastUberEatsText = it }
+            (notificationContentText ?: notificationText).takeIf { it.isNotBlank() }?.let {
+                lastUberEatsText = it
+            }
             if (
                 event != LiveStatusNotificationParser.UberEatsEvent.NONE &&
                 eventRank(event) >= eventRank(lastUberEatsEvent)
@@ -156,6 +182,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         fun readNotificationText(notification: Notification): String {
             val extras = notification.extras
             val text = join(
+                notification.tickerText,
                 extras.getCharSequence(Notification.EXTRA_TITLE),
                 extras.getCharSequence(Notification.EXTRA_TEXT),
                 extras.getCharSequence(Notification.EXTRA_BIG_TEXT),
@@ -165,6 +192,18 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             val lines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
             return if (lines == null) text else text + join(*lines)
         }
+
+        @JvmStatic
+        fun readNotificationText(context: Context, notification: Notification): String =
+            readNotificationText(context, null, notification)
+
+        @JvmStatic
+        fun readNotificationText(
+            context: Context,
+            packageName: String?,
+            notification: Notification,
+        ): String =
+            readNotificationText(notification) + readRemoteViewsText(context, packageName, notification)
 
         @JvmStatic
         fun readShortCriticalText(notification: Notification): String? =
@@ -189,6 +228,51 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             values.forEach { value ->
                 if (value != null) append(value).append('\n')
             }
+        }
+
+        private fun readRemoteViewsText(
+            context: Context,
+            packageName: String?,
+            notification: Notification,
+        ): String {
+            val packageContext = packageName?.let {
+                runCatching { context.createPackageContext(it, 0) }.getOrNull()
+            }
+            val contexts = listOfNotNull(packageContext, context).distinct()
+            return contexts
+                .flatMap { remoteViewContext ->
+                    notification.remoteViews().flatMap { remoteViews ->
+                        remoteViews.readTextViews(remoteViewContext)
+                    }
+                }
+                .distinct()
+                .joinToString(separator = "\n", postfix = "\n")
+        }
+
+        private fun Notification.remoteViews(): List<RemoteViews> =
+            listOfNotNull(
+                contentView,
+                bigContentView,
+                headsUpContentView,
+                publicVersion?.contentView,
+                publicVersion?.bigContentView,
+                publicVersion?.headsUpContentView,
+            )
+
+        private fun RemoteViews.readTextViews(context: Context): List<String> =
+            runCatching {
+                val view = apply(context, null)
+                view.collectTextViews()
+            }.getOrDefault(emptyList())
+
+        private fun View.collectTextViews(): List<String> = when (this) {
+            is TextView -> listOfNotNull(text.toCleanString())
+            is ViewGroup -> buildList {
+                repeat(childCount) { index ->
+                    addAll(getChildAt(index).collectTextViews())
+                }
+            }
+            else -> emptyList()
         }
 
         private fun CharSequence.toCleanString(): String? =

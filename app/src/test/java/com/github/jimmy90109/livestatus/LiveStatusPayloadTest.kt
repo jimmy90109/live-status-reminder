@@ -51,6 +51,28 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun uberEatsOnTheWayPrivateTextKeepsOfficialDetailsWithoutDuplicateStatus() {
+        val text = LiveStatusReminder.uberEatsPrivateText(
+            UberEatsEvent.ON_THE_WAY,
+            "正前往您所在位置\n0\n1\n5\n2\n秋發 · PAQ-8928 · 抵達時間：1:58-2:11 PM\n秋發 · PAQ-8928\nMidnightblue Uber Motorbike",
+            "0152",
+        )
+
+        assertEquals("秋發 · PAQ-8928 · 抵達時間：1:58-2:11 PM · PIN 0152", text)
+    }
+
+    @Test
+    fun uberEatsOtherPrivateTextKeepsStatusAndPin() {
+        val text = LiveStatusReminder.uberEatsPrivateText(
+            UberEatsEvent.PICKING_UP,
+            "外送夥伴正在取餐。",
+            "0152",
+        )
+
+        assertEquals("外送夥伴正在取餐。 · PIN 0152", text)
+    }
+
+    @Test
     fun pikminBloomPayloadUsesFlowerIconAppNameAndNoProgress() {
         val payload = LiveStatusReminder.pikminBloomPayload()
 

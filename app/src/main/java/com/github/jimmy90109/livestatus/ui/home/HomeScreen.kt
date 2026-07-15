@@ -305,6 +305,7 @@ private fun HomeScreenHostActivity.MainScreen(
     var settingsExpanded by rememberSaveable { mutableStateOf(true) }
     var showNotificationAccessDisclosure by rememberSaveable { mutableStateOf(false) }
     var settingsLayerVisible by rememberSaveable { mutableStateOf(false) }
+    var uberEatsDebugVisible by rememberSaveable { mutableStateOf(false) }
     val settingsProgress = remember {
         Animatable(SETTINGS_CLOSED_PROGRESS)
     }
@@ -361,6 +362,14 @@ private fun HomeScreenHostActivity.MainScreen(
         modifier = Modifier.fillMaxSize(),
         color = LocalAppColors.current.background,
     ) {
+        if (uberEatsDebugVisible) {
+            UberEatsDebugPage(
+                topPadding = scrollTopPadding,
+                bottomPadding = scrollBottomPadding,
+                onBack = { uberEatsDebugVisible = false },
+            )
+            return@Surface
+        }
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -383,6 +392,7 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenUberEatsDebug = { uberEatsDebugVisible = true },
                     )
                 }
             } else {
@@ -401,6 +411,7 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenUberEatsDebug = { uberEatsDebugVisible = true },
                     )
                 }
             }
@@ -471,6 +482,7 @@ private fun HomeContentWide(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenUberEatsDebug: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -508,6 +520,7 @@ private fun HomeContentWide(
                 status = status,
                 horizontalContentPadding = 0.dp,
                 onAppEnabledChange = onAppEnabledChange,
+                onOpenUberEatsDebug = onOpenUberEatsDebug,
             )
         }
     }
@@ -526,6 +539,7 @@ private fun HomeContentNarrow(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenUberEatsDebug: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -551,6 +565,7 @@ private fun HomeContentNarrow(
             status = status,
             horizontalContentPadding = 20.dp,
             onAppEnabledChange = onAppEnabledChange,
+            onOpenUberEatsDebug = onOpenUberEatsDebug,
         )
     }
 }

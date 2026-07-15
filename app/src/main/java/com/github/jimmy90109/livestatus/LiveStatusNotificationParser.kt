@@ -4,6 +4,9 @@ import java.util.Locale
 
 object LiveStatusNotificationParser {
     private val fourDigitPin = Regex("""^\s*(\d{4})\s*$""")
+    private val separatedPinDigits = Regex(
+        """(?m)(?:^|\n)\s*(\d)\s*\n\s*(\d)\s*\n\s*(\d)\s*\n\s*(\d)\s*(?:\n|$)""",
+    )
 
     enum class RideEvent {
         NONE,
@@ -91,7 +94,7 @@ object LiveStatusNotificationParser {
 
         return UberEatsUpdate(
             event = event,
-            pin = exactPin(shortCriticalText),
+            pin = exactPin(shortCriticalText) ?: separatedPin(notificationText),
         )
     }
 
@@ -112,4 +115,11 @@ object LiveStatusNotificationParser {
 
     private fun exactPin(value: String?): String? =
         value?.let { fourDigitPin.matchEntire(it)?.groupValues?.get(1) }
+
+    private fun separatedPin(value: String?): String? =
+        value?.let { text ->
+            separatedPinDigits.find(text)?.destructured?.let { (first, second, third, fourth) ->
+                first + second + third + fourth
+            }
+        }
 }

@@ -97,6 +97,16 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun uberEatsReadsPinDigitsSplitAcrossNotificationViewText() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "Uber Eats · 現在\n正在取餐\n家承 · MCU-6563 · 抵達時間：1:47-2:10 PM\n0\n1\n5\n2",
+            null,
+        )
+        assertEquals(UberEatsEvent.PICKING_UP, update.event)
+        assertEquals("0152", update.pin)
+    }
+
+    @Test
     fun uberEatsIgnoresPinLikeTextOutsideShortCriticalText() {
         val update = LiveStatusNotificationParser.parseUberEats(
             "Uber Eats\n正前往您所在位置\n取餐碼：7616",

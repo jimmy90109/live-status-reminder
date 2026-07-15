@@ -61,6 +61,7 @@ internal fun AppsSection(
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenUberEatsDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = TAB_IPASS) { APP_PAGE_COUNT }
     val coroutineScope = rememberCoroutineScope()
@@ -138,6 +139,7 @@ internal fun AppsSection(
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.UBER_EATS, it)
                         },
+                        onOpenDebug = onOpenUberEatsDebug,
                     )
                     TAB_PIKMIN_BLOOM -> PikminBloomCard(
                         installed = status.pikminBloomInstalled,
@@ -285,6 +287,7 @@ private fun UberEatsCard(
     installed: Boolean,
     enabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
@@ -338,6 +341,9 @@ private fun UberEatsCard(
         )
         ActionButton("模擬送達，清除狀態  ✓", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
             LiveStatusReminder.clearUberEats(context)
+        }
+        ActionButton("查看通知 payload", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
+            onOpenDebug()
         }
     }
 }

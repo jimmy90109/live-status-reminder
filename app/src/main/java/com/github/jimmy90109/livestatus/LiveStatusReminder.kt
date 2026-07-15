@@ -16,6 +16,10 @@ object LiveStatusReminder {
     private const val UBER_EATS_NOTIFICATION_ID = 1003
     private const val PIKMIN_BLOOM_NOTIFICATION_ID = 1004
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
+    private val uberEatsArrivalEstimate = Regex(
+        """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
+        RegexOption.IGNORE_CASE,
+    )
 
     @JvmStatic
     fun createChannel(context: Context) {
@@ -130,30 +134,17 @@ object LiveStatusReminder {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val payload = uberEatsPayload(event, officialTitle, officialText, openUberEats)
-        val privateText = pin?.let { "${payload.contentText} · PIN $it" } ?: payload.contentText
-        val publicNotification = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(payload.smallIconRes)
-            .setContentTitle(payload.title)
-            .setContentText(payload.contentText)
-            .setContentIntent(payload.contentIntent)
-            .setCategory(Notification.CATEGORY_PROGRESS)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setVisibility(Notification.VISIBILITY_PUBLIC)
-            .also { applyUberEatsStyle(it, event) }
-            .setShortCriticalText(payload.criticalText)
-            .also(::requestPromotedOngoing)
-            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
-            .build()
+        val privateText = uberEatsPrivateText(event, payload.contentText, pin)
+        val privatePayload = payload.copy(contentText = privateText)
 
         val builder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(payload.smallIconRes)
-            .setContentTitle(payload.title)
-            .setContentText(privateText)
-            .setContentIntent(payload.contentIntent)
+            .setSmallIcon(privatePayload.smallIconRes)
+            .setContentTitle(privatePayload.title)
+            .setContentText(privatePayload.contentText)
+            .setContentIntent(privatePayload.contentIntent)
             .addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(context, payload.leftIconRes),
+                    Icon.createWithResource(context, privatePayload.leftIconRes),
                     "開啟 Uber Eats",
                     openUberEats,
                 ).build(),
@@ -161,12 +152,11 @@ object LiveStatusReminder {
             .setCategory(Notification.CATEGORY_PROGRESS)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setVisibility(Notification.VISIBILITY_PRIVATE)
-            .setPublicVersion(publicNotification)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
             .also { applyUberEatsStyle(it, event) }
             .setShortCriticalText(pin ?: uberEatsShortText(event))
             .also(::requestPromotedOngoing)
-            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+            .also { XiaomiHyperIslandRenderer.apply(context, it, privatePayload) }
 
         notificationManager(context).notify(UBER_EATS_NOTIFICATION_ID, builder.build())
     }
@@ -269,6 +259,39 @@ object LiveStatusReminder {
             LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "外送夥伴即將抵達，請準備取餐。"
             else -> "抵達時間更新中"
         }
+
+    internal fun uberEatsPrivateText(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        contentText: String,
+        pin: String?,
+    ): String {
+        val officialDetails = uberEatsOfficialDetails(event, contentText)
+        return pin?.let { "$officialDetails · PIN $it" } ?: officialDetails
+    }
+
+    private fun uberEatsOfficialDetails(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        contentText: String,
+    ): String {
+        val lines = contentText
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .filterNot { it == "Uber Eats" || it.startsWith("Uber Eats ·") }
+            .filterNot { it == "正前往您所在位置" || it == "正在前往您所在位置" }
+            .filterNot { it.length == 1 && it[0].isDigit() }
+
+        val arrivalLine = lines.firstOrNull { it.contains("抵達時間") }
+        val details = (arrivalLine ?: lines.joinToString(" · "))
+            .replace(Regex("""\s+"""), " ")
+            .trim()
+
+        return details.takeIf { it.isNotEmpty() }
+            ?: uberEatsArrivalEstimate.find(contentText)?.groupValues?.getOrNull(1)?.let {
+                "預估 $it"
+            }
+            ?: uberEatsStatusText(event)
+    }
 
     private fun uberEatsShortText(event: LiveStatusNotificationParser.UberEatsEvent): String =
         when (event) {
