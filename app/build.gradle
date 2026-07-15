@@ -37,6 +37,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            resValue "string", "app_name", "即時狀態提醒 Debug"
+        }
         release {
             signingConfig = signingConfigs.release
             minifyEnabled = true
@@ -46,7 +50,9 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
+        resValues = true
     }
 
     lint {

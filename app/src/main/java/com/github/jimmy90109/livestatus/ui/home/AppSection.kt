@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
+import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.R
@@ -342,8 +343,10 @@ private fun UberEatsCard(
         ActionButton("模擬送達，清除狀態  ✓", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
             LiveStatusReminder.clearUberEats(context)
         }
-        ActionButton("查看通知 payload", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
-            onOpenDebug()
+        if (BuildConfig.DEBUG) {
+            ActionButton("查看通知 payload", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
+                onOpenDebug()
+            }
         }
     }
 }
