@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -173,10 +174,11 @@ internal fun ActionButton(
     label: String,
     background: Color,
     foreground: Color,
+    supportingText: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(100.dp)
+    val shape = RoundedCornerShape(12.dp)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,15 +186,27 @@ internal fun ActionButton(
             .background(background, shape)
             .clip(shape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) {}
             .padding(horizontal = 16.dp, vertical = 14.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
-        Text(
-            text = label,
-            color = foreground,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-        )
+        Column {
+            Text(
+                text = label,
+                color = foreground,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            supportingText?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = it,
+                    color = foreground,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                )
+            }
+        }
     }
 }
 

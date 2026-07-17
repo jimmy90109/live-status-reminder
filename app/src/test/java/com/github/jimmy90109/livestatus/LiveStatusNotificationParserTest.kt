@@ -33,6 +33,9 @@ class LiveStatusNotificationParserTest {
     @Test
     fun unrelatedNotificationsAreIgnored() {
         assertEquals(RideEvent.NONE, LiveStatusNotificationParser.parse("付款完成"))
+        assertEquals(RideEvent.NONE, LiveStatusNotificationParser.parse("乘車碼交易"))
+        assertEquals(RideEvent.NONE, LiveStatusNotificationParser.parse("尚未出站"))
+        assertEquals(RideEvent.NONE, LiveStatusNotificationParser.parse(null))
     }
 
     @Test
@@ -78,17 +81,34 @@ class LiveStatusNotificationParserTest {
 
     @Test
     fun uberEatsParsesAllFiveProgressStages() {
-        assertUberEatsEvent(UberEatsEvent.ORDER_RECEIVED, "Uber Eats\n訂單已收到")
-        assertUberEatsEvent(UberEatsEvent.PREPARING, "Uber Eats\n正在準備訂單")
-        assertUberEatsEvent(UberEatsEvent.PICKING_UP, "Uber Eats\n正在取餐")
-        assertUberEatsEvent(UberEatsEvent.ON_THE_WAY, "Uber Eats\n正前往您所在位置")
-        assertUberEatsEvent(UberEatsEvent.ARRIVING, "Uber Eats\n快到了！")
+        mapOf(
+            UberEatsEvent.ORDER_RECEIVED to listOf("訂單已收到", "已收到您的訂單"),
+            UberEatsEvent.PREPARING to listOf("正在準備訂單", "準備訂單"),
+            UberEatsEvent.PICKING_UP to listOf("正在取餐"),
+            UberEatsEvent.ON_THE_WAY to listOf(
+                "正前往您所在位置",
+                "正在前往您所在位置",
+                "即將抵達",
+            ),
+            UberEatsEvent.ARRIVING to listOf("快到了"),
+        ).forEach { (event, alternatives) ->
+            alternatives.forEach { alternative ->
+                assertUberEatsEvent(event, "Uber Eats\n$alternative")
+            }
+        }
     }
 
     @Test
     fun uberEatsEndedNotificationsEndTheJourney() {
-        assertUberEatsEvent(UberEatsEvent.ORDER_ENDED, "Uber Eats\n訂單已送達")
-        assertUberEatsEvent(UberEatsEvent.ORDER_ENDED, "Uber Eats\n您的訂單已取消")
+        listOf(
+            "訂單已送達",
+            "已送達",
+            "訂單已取消",
+            "已取消",
+            "訂單取消",
+        ).forEach { alternative ->
+            assertUberEatsEvent(UberEatsEvent.ORDER_ENDED, "Uber Eats\n$alternative")
+        }
     }
 
     @Test
@@ -215,6 +235,37 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun uberRideMeetAtTextStartsPickupStageWithoutEta() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Uber\nMeet at Demo Transit Center",
+            null,
+        )
+
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
+        assertEquals("Demo Transit Center", update.pickupPoint)
+    }
+
+    @Test
+    fun uberRidePatternKeywordsAreCaseInsensitiveWhereAdvertised() {
+        assertEquals(
+            UberRideEvent.PICKUP_EN_ROUTE,
+            LiveStatusNotificationParser.parseUberRide("PICK UP IN 8 MIN", null).event,
+        )
+        assertEquals(
+            UberRideEvent.ARRIVED,
+            LiveStatusNotificationParser.parseUberRide("DRIVER ARRIVED", null).event,
+        )
+        assertEquals(
+            UberRideEvent.ON_TRIP,
+            LiveStatusNotificationParser.parseUberRide("DROPOFF AT 4:30 pm", null).event,
+        )
+        assertEquals(
+            UberRideEvent.TRIP_ENDED,
+            LiveStatusNotificationParser.parseUberRide("RATE YOUR TRIP", null).event,
+        )
+    }
+
+    @Test
     fun uberRideKeepsLongPickupEtaInPickupStageEvenWithVehicleAndPin() {
         val update = LiveStatusNotificationParser.parseUberRide(
             "Pick up in 14 min\nMeet at Demo Transit Center\nABC1234 · Blue Toyota Prius\n1\n2\n3\n4",
@@ -238,6 +289,53 @@ class LiveStatusNotificationParserTest {
         assertEquals("ABC1234", update.plate)
         assertEquals("Blue Toyota Prius", update.vehicle)
         assertEquals("1234", update.pin)
+    }
+
+    @Test
+    fun uberRideThreeMinuteBoundaryIsNearbyWithVehicleDetails() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 3 min\nABC1234 · Blue Toyota Prius",
+            null,
+        )
+
+        assertEquals(UberRideEvent.PICKUP_NEARBY, update.event)
+    }
+
+    @Test
+    fun uberRideThreeMinuteBoundaryIsNearbyWithValidPin() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 3 min",
+            "1234",
+        )
+
+        assertEquals(UberRideEvent.PICKUP_NEARBY, update.event)
+        assertEquals("1234", update.pin)
+    }
+
+    @Test
+    fun uberRideThreeMinuteBoundaryNeedsVehicleDetailsOrValidPin() {
+        val withoutDetails = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 3 min",
+            null,
+        )
+        val invalidPin = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 3 min",
+            "PIN 1234",
+        )
+
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, withoutDetails.event)
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, invalidPin.event)
+        assertNull(invalidPin.pin)
+    }
+
+    @Test
+    fun uberRideFourMinutesIsNotNearbyEvenWithVehicleDetailsAndPin() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 4 min\nABC1234 · Blue Toyota Prius",
+            "1234",
+        )
+
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
     }
 
     @Test
@@ -267,6 +365,17 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun uberRideHeadingToTextStartsOnTripStageWithoutDropoffTime() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Uber\nHeading to Demo Office Tower",
+            null,
+        )
+
+        assertEquals(UberRideEvent.ON_TRIP, update.event)
+        assertEquals("Demo Office Tower", update.dropoffPoint)
+    }
+
+    @Test
     fun uberRideRateYourTripEndsTrip() {
         val update = LiveStatusNotificationParser.parseUberRide(
             "Uber\nRate your trip\nThanks for riding with Driver. Please rate your trip.",
@@ -282,6 +391,16 @@ class LiveStatusNotificationParserTest {
             PikminEvent.FLOWER_PLANTING,
             LiveStatusNotificationParser.parsePikminBloom(
                 "Pikmin Bloom\n正在背景執行時種花。。 · 1m",
+            ),
+        )
+    }
+
+    @Test
+    fun pikminBloomSimplifiedChineseFlowerPlantingNotificationStartsReminder() {
+        assertEquals(
+            PikminEvent.FLOWER_PLANTING,
+            LiveStatusNotificationParser.parsePikminBloom(
+                "Pikmin Bloom\n正在背景执行时种花。。 · 1m",
             ),
         )
     }

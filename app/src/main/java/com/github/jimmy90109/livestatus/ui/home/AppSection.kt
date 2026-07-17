@@ -44,6 +44,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -250,11 +251,17 @@ private fun IpassCard(
             "模擬上車，顯示提醒  ↑",
             colors.ipassPrimary,
             colors.commonOnPrimary,
+            supportingText = stringResource(R.string.monitoring_ipass_entered),
             enabled = enabled,
         ) {
             LiveStatusReminder.show(context)
         }
-        ActionButton("模擬下車，移除提醒  ✓", colors.ipassTertiaryContainer, colors.onSurface) {
+        ActionButton(
+            "模擬下車，移除提醒  ✓",
+            colors.ipassTertiaryContainer,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_ipass_exited),
+        ) {
             LiveStatusReminder.clear(context)
         }
     }
@@ -282,13 +289,30 @@ private fun FoodpandaCard(
         labelColor = colors.foodpandaSecondaryContainer,
         foregroundColor = colors.foodpandaText,
     ) {
-        ActionButton("模擬外送中", colors.foodpandaPrimary, colors.commonOnPrimary, enabled = enabled) {
+        ActionButton(
+            "模擬外送中",
+            colors.foodpandaPrimary,
+            colors.commonOnPrimary,
+            supportingText = stringResource(R.string.monitoring_foodpanda_on_the_way),
+            enabled = enabled,
+        ) {
             LiveStatusReminder.showFoodpanda(context, LiveStatusNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY)
         }
-        ActionButton("模擬即將抵達", colors.foodpandaSecondaryContainer, colors.foodpandaText, enabled = enabled) {
+        ActionButton(
+            "模擬即將抵達",
+            colors.foodpandaSecondaryContainer,
+            colors.foodpandaText,
+            supportingText = stringResource(R.string.monitoring_foodpanda_arriving),
+            enabled = enabled,
+        ) {
             LiveStatusReminder.showFoodpanda(context, LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING)
         }
-        ActionButton("清除 foodpanda 狀態  ✓", colors.foodpandaSecondaryContainer, colors.foodpandaText) {
+        ActionButton(
+            "清除 foodpanda 狀態  ✓",
+            colors.foodpandaSecondaryContainer,
+            colors.foodpandaText,
+            supportingText = stringResource(R.string.monitoring_foodpanda_ended),
+        ) {
             LiveStatusReminder.clearFoodpanda(context)
         }
     }
@@ -318,6 +342,7 @@ private fun UberRideCard(
     ) {
         UberRideTestButton(
             label = "模擬前往上車點",
+            supportingText = stringResource(R.string.monitoring_uber_pickup_en_route),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE,
                 title = "Pick up in 14 min",
@@ -327,6 +352,7 @@ private fun UberRideCard(
         )
         UberRideTestButton(
             label = "模擬快抵達",
+            supportingText = stringResource(R.string.monitoring_uber_pickup_nearby),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY,
                 title = "Pick up in 2 min",
@@ -338,6 +364,7 @@ private fun UberRideCard(
         )
         UberRideTestButton(
             label = "模擬已抵達",
+            supportingText = stringResource(R.string.monitoring_uber_arrived),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.ARRIVED,
                 title = "Driver arrived",
@@ -349,6 +376,7 @@ private fun UberRideCard(
         )
         UberRideTestButton(
             label = "模擬前往目的地",
+            supportingText = stringResource(R.string.monitoring_uber_on_trip),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.ON_TRIP,
                 title = "Dropoff at 4:30 PM",
@@ -356,7 +384,12 @@ private fun UberRideCard(
             ),
             enabled = enabled,
         )
-        ActionButton("模擬完成，清除狀態  ✓", colors.commonSurface, colors.onSurface) {
+        ActionButton(
+            "模擬完成，清除狀態  ✓",
+            colors.commonSurface,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_uber_ended),
+        ) {
             LiveStatusReminder.clearUberRide(context)
         }
     }
@@ -365,6 +398,7 @@ private fun UberRideCard(
 @Composable
 private fun UberRideTestButton(
     label: String,
+    supportingText: String,
     update: LiveStatusNotificationParser.UberRideUpdate,
     enabled: Boolean,
 ) {
@@ -375,6 +409,7 @@ private fun UberRideTestButton(
         label,
         if (primary) colors.commonPrimary else colors.commonSurface,
         if (primary) colors.commonOnPrimary else colors.onSurface,
+        supportingText = supportingText,
         enabled = enabled,
     ) {
         LiveStatusReminder.showUberRide(context, update)
@@ -406,6 +441,7 @@ private fun UberEatsCard(
     ) {
         UberEatsTestButton(
             label = "模擬訂單已收到",
+            supportingText = stringResource(R.string.monitoring_uber_eats_received),
             event = LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED,
             officialTitle = "訂單已收到",
             officialText = "抵達時間：12:00-12:10 PM",
@@ -413,6 +449,7 @@ private fun UberEatsCard(
         )
         UberEatsTestButton(
             label = "模擬正在準備訂單",
+            supportingText = stringResource(R.string.monitoring_uber_eats_preparing),
             event = LiveStatusNotificationParser.UberEatsEvent.PREPARING,
             officialTitle = "正在準備訂單",
             officialText = "抵達時間：12:00-12:10 PM",
@@ -420,6 +457,7 @@ private fun UberEatsCard(
         )
         UberEatsTestButton(
             label = "模擬正在取餐",
+            supportingText = stringResource(R.string.monitoring_uber_eats_picking_up),
             event = LiveStatusNotificationParser.UberEatsEvent.PICKING_UP,
             officialTitle = "正在取餐",
             officialText = "小明 · ABC-1234 · 抵達時間：12:00-12:10 PM",
@@ -427,6 +465,7 @@ private fun UberEatsCard(
         )
         UberEatsTestButton(
             label = "模擬配送中",
+            supportingText = stringResource(R.string.monitoring_uber_eats_on_the_way),
             event = LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY,
             officialTitle = "正前往您所在位置",
             officialText = "小明 · ABC-1234 · 抵達時間為 12:00 PM",
@@ -434,12 +473,18 @@ private fun UberEatsCard(
         )
         UberEatsTestButton(
             label = "模擬快到了",
+            supportingText = stringResource(R.string.monitoring_uber_eats_arriving),
             event = LiveStatusNotificationParser.UberEatsEvent.ARRIVING,
             officialTitle = "快到了！",
             officialText = "小明 · ABC-1234 · 即將抵達",
             enabled = enabled,
         )
-        ActionButton("模擬送達，清除狀態  ✓", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
+        ActionButton(
+            "模擬送達，清除狀態  ✓",
+            colors.uberEatsSecondaryContainer,
+            colors.uberEatsText,
+            supportingText = stringResource(R.string.monitoring_uber_eats_ended),
+        ) {
             LiveStatusReminder.clearUberEats(context)
         }
         if (BuildConfig.DEBUG) {
@@ -453,6 +498,7 @@ private fun UberEatsCard(
 @Composable
 private fun UberEatsTestButton(
     label: String,
+    supportingText: String,
     event: LiveStatusNotificationParser.UberEatsEvent,
     officialTitle: String,
     officialText: String,
@@ -465,6 +511,7 @@ private fun UberEatsTestButton(
         label,
         if (primary) colors.uberEatsPrimary else colors.uberEatsSecondaryContainer,
         if (primary) colors.commonOnPrimary else colors.uberEatsText,
+        supportingText = supportingText,
         enabled = enabled,
     ) {
         LiveStatusReminder.showUberEats(context, event, null, officialTitle, officialText)
@@ -493,10 +540,21 @@ private fun PikminBloomCard(
         labelColor = colors.pikminSecondaryContainer,
         foregroundColor = colors.pikminText,
     ) {
-        ActionButton("模擬種花中", colors.pikminPrimary, colors.commonOnPrimary, enabled = enabled) {
+        ActionButton(
+            "模擬種花中",
+            colors.pikminPrimary,
+            colors.commonOnPrimary,
+            supportingText = stringResource(R.string.monitoring_pikmin_started),
+            enabled = enabled,
+        ) {
             LiveStatusReminder.showPikminBloom(context)
         }
-        ActionButton("清除 Pikmin Bloom 狀態  ✓", colors.pikminSecondaryContainer, colors.pikminText) {
+        ActionButton(
+            "清除 Pikmin Bloom 狀態  ✓",
+            colors.pikminSecondaryContainer,
+            colors.pikminText,
+            supportingText = stringResource(R.string.monitoring_pikmin_stopped),
+        ) {
             LiveStatusReminder.clearPikminBloom(context)
         }
     }

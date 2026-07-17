@@ -3,4 +3,26 @@
     <string name="app_name">即時狀態提醒</string>
     <string name="notification_channel_name">即時狀態提醒</string>
     <string name="notification_channel_description">持續顯示乘車、外送訂單與種花狀態</string>
+
+    <string name="monitoring_ipass_entered">同一則通知同時包含「乘車碼交易」與「尚未出站」。</string>
+    <string name="monitoring_ipass_exited">同一則通知同時包含「乘車碼交易」與「出站交易已完成」。</string>
+
+    <string name="monitoring_foodpanda_on_the_way">包含「外送夥伴在路上」。</string>
+    <string name="monitoring_foodpanda_arriving">包含「外送夥伴即將抵達」。</string>
+    <string name="monitoring_foodpanda_ended">包含「已送達」、「訂單完成」、「已取消」或「訂單取消」。</string>
+
+    <string name="monitoring_uber_pickup_en_route">包含「Pick up in [分鐘] min」（英文大小寫皆可），或「Meet at [地點]」。</string>
+    <string name="monitoring_uber_pickup_nearby">「Pick up in [分鐘] min」為 3 分鐘內，且同時取得可辨識的行程資訊。</string>
+    <string name="monitoring_uber_arrived">包含「arrived」（英文大小寫皆可）。</string>
+    <string name="monitoring_uber_on_trip">包含「Dropoff at [時間]」（英文大小寫皆可），或「Heading to [地點]」。</string>
+    <string name="monitoring_uber_ended">包含「Rate your trip」（英文大小寫皆可）。</string>
+
+    <string name="monitoring_uber_eats_received">包含「訂單已收到」或「已收到您的訂單」。</string>
+    <string name="monitoring_uber_eats_preparing">包含「正在準備訂單」或「準備訂單」。</string>
+    <string name="monitoring_uber_eats_picking_up">包含「正在取餐」。</string>
+    <string name="monitoring_uber_eats_on_the_way">包含「正前往您所在位置」、「正在前往您所在位置」或「即將抵達」。</string>
+    <string name="monitoring_uber_eats_arriving">包含「快到了」。</string>
+    <string name="monitoring_uber_eats_ended">包含「訂單已送達」、「已送達」、「訂單已取消」、「已取消」或「訂單取消」。</string>
+    <string name="monitoring_pikmin_started">包含繁體「正在背景執行時種花」或簡體「正在背景执行时种花」。</string>
+    <string name="monitoring_pikmin_stopped">來源種花通知被移除，或後續 Pikmin Bloom 通知不再符合種花文案。</string>
 </resources>
