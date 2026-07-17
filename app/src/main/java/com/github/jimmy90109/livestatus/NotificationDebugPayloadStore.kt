@@ -11,15 +11,46 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-object UberEatsDebugPayloadStore {
+object NotificationDebugPayloadStore {
     private const val MAX_ITEMS = 30
     private val fourDigitCandidate = Regex("""(?<!\d)\d{4}(?!\d)""")
     private val timeFormatter = SimpleDateFormat("MM/dd HH:mm:ss", Locale.TAIWAN)
-    private val _payloads = MutableStateFlow<List<UberEatsDebugPayload>>(emptyList())
+    private val _uberPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
-    val payloads: StateFlow<List<UberEatsDebugPayload>> = _payloads
+    val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
+    val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
 
-    fun record(
+    fun recordUber(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        shortCriticalText: String?,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        update: LiveStatusNotificationParser.UberRideUpdate,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = shortCriticalText,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = update.event.name,
+            parsedPin = update.pin,
+            parsedDetails = linkedMapOf(
+                "parsedTitle" to update.title.orEmpty(),
+                "parsedPickupPoint" to update.pickupPoint.orEmpty(),
+                "parsedDropoffPoint" to update.dropoffPoint.orEmpty(),
+                "parsedPlate" to update.plate.orEmpty(),
+                "parsedVehicle" to update.vehicle.orEmpty(),
+            ),
+        )
+        _uberPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
+    fun recordUberEats(
         context: Context,
         statusBarNotification: StatusBarNotification,
         notificationText: String,
@@ -28,16 +59,50 @@ object UberEatsDebugPayloadStore {
         notificationContentText: String?,
         update: LiveStatusNotificationParser.UberEatsUpdate,
     ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = shortCriticalText,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = update.event.name,
+            parsedPin = update.pin,
+            parsedDetails = emptyMap(),
+        )
+        _uberEatsPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
+    fun clearUber() {
+        _uberPayloads.value = emptyList()
+    }
+
+    fun clearUberEats() {
+        _uberEatsPayloads.value = emptyList()
+    }
+
+    private fun createPayload(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        shortCriticalText: String?,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        parsedEvent: String,
+        parsedPin: String?,
+        parsedDetails: Map<String, String>,
+    ): NotificationDebugPayload {
         val notification = statusBarNotification.notification
-        val payload = UberEatsDebugPayload(
+        return NotificationDebugPayload(
             capturedAt = timeFormatter.format(Date()),
             key = statusBarNotification.key,
             id = statusBarNotification.id,
             tag = statusBarNotification.tag,
             postTime = timeFormatter.format(Date(statusBarNotification.postTime)),
             appLabel = statusBarNotification.packageName.toAppLabel(context),
-            parsedEvent = update.event.name,
-            parsedPin = update.pin,
+            parsedEvent = parsedEvent,
+            parsedPin = parsedPin,
+            parsedDetails = parsedDetails,
             pinCandidates = pinCandidates(notification, notificationText, shortCriticalText),
             fields = notificationFields(
                 statusBarNotification,
@@ -49,11 +114,6 @@ object UberEatsDebugPayloadStore {
             ),
             extras = notification.extras.toDebugMap(),
         )
-        _payloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
-    }
-
-    fun clear() {
-        _payloads.value = emptyList()
     }
 
     private fun notificationFields(
@@ -126,7 +186,7 @@ object UberEatsDebugPayloadStore {
     }
 }
 
-data class UberEatsDebugPayload(
+data class NotificationDebugPayload(
     val capturedAt: String,
     val key: String,
     val id: Int,
@@ -135,6 +195,7 @@ data class UberEatsDebugPayload(
     val appLabel: String,
     val parsedEvent: String,
     val parsedPin: String?,
+    val parsedDetails: Map<String, String>,
     val pinCandidates: List<String>,
     val fields: Map<String, String>,
     val extras: Map<String, String>,

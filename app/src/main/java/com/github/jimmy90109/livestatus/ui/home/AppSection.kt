@@ -63,6 +63,7 @@ internal fun AppsSection(
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = TAB_IPASS) { APP_PAGE_COUNT }
@@ -150,6 +151,7 @@ internal fun AppsSection(
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.UBER_RIDE, it)
                         },
+                        onOpenDebug = onOpenUberDebug,
                     )
                     TAB_PIKMIN_BLOOM -> PikminBloomCard(
                         installed = status.pikminBloomInstalled,
@@ -323,6 +325,7 @@ private fun UberRideCard(
     installed: Boolean,
     enabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
@@ -341,7 +344,7 @@ private fun UberRideCard(
         foregroundColor = colors.onSurface,
     ) {
         UberRideTestButton(
-            label = "模擬前往上車點",
+            label = "模擬上車 ETA 與地點",
             supportingText = stringResource(R.string.monitoring_uber_pickup_en_route),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE,
@@ -391,6 +394,11 @@ private fun UberRideCard(
             supportingText = stringResource(R.string.monitoring_uber_ended),
         ) {
             LiveStatusReminder.clearUberRide(context)
+        }
+        if (BuildConfig.DEBUG) {
+            ActionButton("查看通知 payload", colors.commonSurface, colors.onSurface) {
+                onOpenDebug()
+            }
         }
     }
 }

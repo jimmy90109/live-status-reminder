@@ -455,7 +455,7 @@ object LiveStatusReminder {
             LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Nearby"
             LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Arrived"
             LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> "On trip"
-            else -> "Pickup"
+            else -> "To pickup"
         }
 
     private fun uberRideProgress(event: LiveStatusNotificationParser.UberRideEvent): Int =

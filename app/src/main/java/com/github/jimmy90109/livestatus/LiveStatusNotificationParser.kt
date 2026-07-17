@@ -138,17 +138,16 @@ object LiveStatusNotificationParser {
         val dropoffPoint = lines.firstTextAfter("Heading to ")
         val vehicleDetails = lines.firstNotNullOfOrNull(::parseVehicleDetails)
         val pin = exactPin(shortCriticalText) ?: separatedPin(notificationText)
-        val pickupMinutes = title.pickupMinutes()
+        val hasPickupEta = title?.contains(Regex("""(?i)\bpick up in \d+\s*min\b""")) == true
 
         val event = when {
             title?.contains(Regex("""(?i)\bdropoff at\b""")) == true ||
                 dropoffPoint != null -> UberRideEvent.ON_TRIP
             title?.contains(Regex("""(?i)\barrived\b""")) == true -> UberRideEvent.ARRIVED
-            pickupMinutes != null &&
-                pickupMinutes <= UBER_RIDE_NEARBY_MINUTES &&
+            hasPickupEta &&
+                pickupPoint == null &&
                 (vehicleDetails != null || pin != null) -> UberRideEvent.PICKUP_NEARBY
-            title?.contains(Regex("""(?i)\bpick up in \d+\s*min\b""")) == true ||
-                pickupPoint != null -> UberRideEvent.PICKUP_EN_ROUTE
+            hasPickupEta && pickupPoint != null -> UberRideEvent.PICKUP_EN_ROUTE
             else -> UberRideEvent.NONE
         }
 
@@ -211,14 +210,4 @@ object LiveStatusNotificationParser {
         return if (looksLikePlate && vehicle.any { it.isLetter() }) plate to vehicle else null
     }
 
-    private fun String?.pickupMinutes(): Int? =
-        this?.let {
-            Regex("""(?i)\bpick up in (\d+)\s*min\b""")
-                .find(it)
-                ?.groupValues
-                ?.getOrNull(1)
-                ?.toIntOrNull()
-        }
-
-    private const val UBER_RIDE_NEARBY_MINUTES = 3
 }

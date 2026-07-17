@@ -72,6 +72,7 @@ import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
+import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
 import kotlinx.coroutines.CancellationException
@@ -308,6 +309,11 @@ internal data class StatusSnapshot(
         get() = notificationAccess && notificationPermission
 }
 
+private enum class DebugTarget(val appName: String) {
+    UBER("Uber"),
+    UBER_EATS("Uber Eats"),
+}
+
 @Composable
 private fun HomeScreenHostActivity.MainScreen(
     status: StatusSnapshot,
@@ -321,7 +327,7 @@ private fun HomeScreenHostActivity.MainScreen(
     var settingsExpanded by rememberSaveable { mutableStateOf(true) }
     var showNotificationAccessDisclosure by rememberSaveable { mutableStateOf(false) }
     var settingsLayerVisible by rememberSaveable { mutableStateOf(false) }
-    var uberEatsDebugVisible by rememberSaveable { mutableStateOf(false) }
+    var debugTarget by rememberSaveable { mutableStateOf<DebugTarget?>(null) }
     val settingsProgress = remember {
         Animatable(SETTINGS_CLOSED_PROGRESS)
     }
@@ -378,11 +384,32 @@ private fun HomeScreenHostActivity.MainScreen(
         modifier = Modifier.fillMaxSize(),
         color = LocalAppColors.current.background,
     ) {
-        if (uberEatsDebugVisible) {
-            UberEatsDebugPage(
+        val currentDebugTarget = debugTarget
+        if (currentDebugTarget != null) {
+            val colors = LocalAppColors.current
+            NotificationDebugPage(
+                appName = currentDebugTarget.appName,
+                payloadsFlow = when (currentDebugTarget) {
+                    DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
+                    DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
+                },
+                cardColor = when (currentDebugTarget) {
+                    DebugTarget.UBER -> colors.commonContainer
+                    DebugTarget.UBER_EATS -> colors.uberEatsContainer
+                },
+                actionColor = when (currentDebugTarget) {
+                    DebugTarget.UBER -> colors.onSurface
+                    DebugTarget.UBER_EATS -> colors.uberEatsText
+                },
                 topPadding = scrollTopPadding,
                 bottomPadding = scrollBottomPadding,
-                onBack = { uberEatsDebugVisible = false },
+                onBack = { debugTarget = null },
+                onClear = {
+                    when (currentDebugTarget) {
+                        DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
+                        DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
+                    }
+                },
             )
             return@Surface
         }
@@ -408,7 +435,8 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
-                        onOpenUberEatsDebug = { uberEatsDebugVisible = true },
+                        onOpenUberDebug = { debugTarget = DebugTarget.UBER },
+                        onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                     )
                 }
             } else {
@@ -427,7 +455,8 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
-                        onOpenUberEatsDebug = { uberEatsDebugVisible = true },
+                        onOpenUberDebug = { debugTarget = DebugTarget.UBER },
+                        onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                     )
                 }
             }
@@ -498,6 +527,7 @@ private fun HomeContentWide(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
     Row(
@@ -536,6 +566,7 @@ private fun HomeContentWide(
                 status = status,
                 horizontalContentPadding = 0.dp,
                 onAppEnabledChange = onAppEnabledChange,
+                onOpenUberDebug = onOpenUberDebug,
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
             )
         }
@@ -555,6 +586,7 @@ private fun HomeContentNarrow(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
     Column(
@@ -581,6 +613,7 @@ private fun HomeContentNarrow(
             status = status,
             horizontalContentPadding = 20.dp,
             onAppEnabledChange = onAppEnabledChange,
+            onOpenUberDebug = onOpenUberDebug,
             onOpenUberEatsDebug = onOpenUberEatsDebug,
         )
     }

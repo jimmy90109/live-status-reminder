@@ -235,13 +235,13 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
-    fun uberRideMeetAtTextStartsPickupStageWithoutEta() {
+    fun uberRideMeetAtTextDoesNotStartPickupStageWithoutEta() {
         val update = LiveStatusNotificationParser.parseUberRide(
             "Uber\nMeet at Demo Transit Center",
             null,
         )
 
-        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
+        assertEquals(UberRideEvent.NONE, update.event)
         assertEquals("Demo Transit Center", update.pickupPoint)
     }
 
@@ -249,7 +249,10 @@ class LiveStatusNotificationParserTest {
     fun uberRidePatternKeywordsAreCaseInsensitiveWhereAdvertised() {
         assertEquals(
             UberRideEvent.PICKUP_EN_ROUTE,
-            LiveStatusNotificationParser.parseUberRide("PICK UP IN 8 MIN", null).event,
+            LiveStatusNotificationParser.parseUberRide(
+                "PICK UP IN 8 MIN\nMeet at Demo Transit Center",
+                null,
+            ).event,
         )
         assertEquals(
             UberRideEvent.ARRIVED,
@@ -278,6 +281,21 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun uberRideRequiresPickupEtaAndMeetingPointForPickupStage() {
+        val onlyPickupEta = LiveStatusNotificationParser.parseUberRide(
+            "Uber\nPick up in 14 min",
+            null,
+        )
+        val onlyMeetingPoint = LiveStatusNotificationParser.parseUberRide(
+            "Uber\nMeet at Demo Transit Center",
+            null,
+        )
+
+        assertEquals(UberRideEvent.NONE, onlyPickupEta.event)
+        assertEquals(UberRideEvent.NONE, onlyMeetingPoint.event)
+    }
+
+    @Test
     fun uberRideParsesNearbyVehicleAndSplitPin() {
         val update = LiveStatusNotificationParser.parseUberRide(
             "Pick up in 2 min\nABC1234 · Blue Toyota Prius\n1\n2\n3\n4",
@@ -292,9 +310,9 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
-    fun uberRideThreeMinuteBoundaryIsNearbyWithVehicleDetails() {
+    fun uberRidePickupEtaWithVehicleDetailsIsNearby() {
         val update = LiveStatusNotificationParser.parseUberRide(
-            "Pick up in 3 min\nABC1234 · Blue Toyota Prius",
+            "Pick up in 12 min\nABC1234 · Blue Toyota Prius",
             null,
         )
 
@@ -302,9 +320,9 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
-    fun uberRideThreeMinuteBoundaryIsNearbyWithValidPin() {
+    fun uberRidePickupEtaWithValidPinIsNearby() {
         val update = LiveStatusNotificationParser.parseUberRide(
-            "Pick up in 3 min",
+            "Pick up in 12 min",
             "1234",
         )
 
@@ -313,7 +331,7 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
-    fun uberRideThreeMinuteBoundaryNeedsVehicleDetailsOrValidPin() {
+    fun uberRidePickupEtaWithoutMeetingPointNeedsVehicleDetailsOrValidPin() {
         val withoutDetails = LiveStatusNotificationParser.parseUberRide(
             "Pick up in 3 min",
             null,
@@ -323,15 +341,15 @@ class LiveStatusNotificationParserTest {
             "PIN 1234",
         )
 
-        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, withoutDetails.event)
-        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, invalidPin.event)
+        assertEquals(UberRideEvent.NONE, withoutDetails.event)
+        assertEquals(UberRideEvent.NONE, invalidPin.event)
         assertNull(invalidPin.pin)
     }
 
     @Test
-    fun uberRideFourMinutesIsNotNearbyEvenWithVehicleDetailsAndPin() {
+    fun uberRidePickupEtaAndMeetingPointStayPickupStageEvenWithVehicleDetailsAndPin() {
         val update = LiveStatusNotificationParser.parseUberRide(
-            "Pick up in 4 min\nABC1234 · Blue Toyota Prius",
+            "Pick up in 4 min\nMeet at Demo Transit Center\nABC1234 · Blue Toyota Prius",
             "1234",
         )
 

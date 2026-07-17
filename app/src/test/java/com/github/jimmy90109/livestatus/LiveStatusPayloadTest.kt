@@ -86,7 +86,7 @@ class LiveStatusPayloadTest {
         assertEquals("Uber", payload.appName)
         assertEquals("Pick up in 14 min", payload.title)
         assertEquals("Meet at Demo Transit Center", payload.contentText)
-        assertEquals("Pickup", payload.criticalText)
+        assertEquals("To pickup", payload.criticalText)
         assertEquals(25, payload.progress)
     }
 

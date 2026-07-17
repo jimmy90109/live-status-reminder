@@ -29,24 +29,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.jimmy90109.livestatus.UberEatsDebugPayload
-import com.github.jimmy90109.livestatus.UberEatsDebugPayloadStore
+import com.github.jimmy90109.livestatus.NotificationDebugPayload
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-internal fun UberEatsDebugPage(
+internal fun NotificationDebugPage(
+    appName: String,
+    payloadsFlow: StateFlow<List<NotificationDebugPayload>>,
+    cardColor: Color,
+    actionColor: Color,
     topPadding: Dp,
     bottomPadding: Dp,
     onBack: () -> Unit,
+    onClear: () -> Unit,
 ) {
     val colors = LocalAppColors.current
-    val payloads by UberEatsDebugPayloadStore.payloads.collectAsState()
+    val payloads by payloadsFlow.collectAsState()
     var expandedIndex by remember(payloads.firstOrNull()?.key) { mutableIntStateOf(0) }
 
     BackHandler(onBack = onBack)
@@ -66,20 +72,20 @@ internal fun UberEatsDebugPage(
                 )
             }
             Column(Modifier.weight(1f)) {
-                AppText("Uber Eats payload", 26, colors.onSurface, true)
+                AppText("$appName payload", 26, colors.onSurface, true)
                 Spacer(Modifier.height(3.dp))
                 AppText("檢查通知 extras、shortCriticalText 與 PIN 候選值。", 14, colors.onSurfaceVariant)
             }
         }
         Spacer(Modifier.height(18.dp))
-        CardSurface(colors.uberEatsContainer, 28, 18) {
+        CardSurface(cardColor, 28, 18) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     AppText("最近通知", 20, colors.onSurface, true)
                     Spacer(Modifier.height(4.dp))
                     AppText(
                         if (payloads.isEmpty()) {
-                            "尚未收到 Uber Eats 通知；收到後會顯示最近 30 筆。"
+                            "尚未收到 $appName 通知；收到後會顯示最近 30 筆。"
                         } else {
                             "已記錄 ${payloads.size} 筆，只保留在目前 App 程序記憶體。"
                         },
@@ -90,14 +96,14 @@ internal fun UberEatsDebugPage(
                 if (payloads.isNotEmpty()) {
                     Text(
                         text = "清除",
-                        color = colors.uberEatsText,
+                        color = actionColor,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .clip(RoundedCornerShape(100.dp))
                             .clickable(role = Role.Button) {
                                 expandedIndex = 0
-                                UberEatsDebugPayloadStore.clear()
+                                onClear()
                             }
                             .padding(horizontal = 10.dp, vertical = 7.dp),
                     )
@@ -105,8 +111,9 @@ internal fun UberEatsDebugPage(
             }
             Spacer(Modifier.height(12.dp))
             payloads.forEachIndexed { index, payload ->
-                UberEatsDebugPayloadRow(
+                NotificationDebugPayloadRow(
                     payload = payload,
+                    actionColor = actionColor,
                     expanded = index == expandedIndex,
                     onToggle = { expandedIndex = if (expandedIndex == index) -1 else index },
                 )
@@ -117,8 +124,9 @@ internal fun UberEatsDebugPage(
 }
 
 @Composable
-private fun UberEatsDebugPayloadRow(
-    payload: UberEatsDebugPayload,
+private fun NotificationDebugPayloadRow(
+    payload: NotificationDebugPayload,
+    actionColor: Color,
     expanded: Boolean,
     onToggle: () -> Unit,
 ) {
@@ -148,7 +156,7 @@ private fun UberEatsDebugPayloadRow(
             }
             Text(
                 text = if (expanded) "收合" else "展開",
-                color = colors.uberEatsText,
+                color = actionColor,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = 10.dp),
@@ -171,7 +179,7 @@ private fun UberEatsDebugPayloadRow(
     }
 }
 
-private fun UberEatsDebugPayload.toDebugText(): String = buildString {
+private fun NotificationDebugPayload.toDebugText(): String = buildString {
     appendLine("capturedAt=$capturedAt")
     appendLine("appLabel=$appLabel")
     appendLine("postTime=$postTime")
@@ -180,6 +188,7 @@ private fun UberEatsDebugPayload.toDebugText(): String = buildString {
     appendLine("key=$key")
     appendLine("parsedEvent=$parsedEvent")
     appendLine("parsedPin=${parsedPin.orEmpty()}")
+    parsedDetails.forEach { (key, value) -> appendLine("$key=${value.lineSafe()}") }
     appendLine("pinCandidates=${pinCandidates.joinToString()}")
     appendLine()
     appendLine("[notification]")

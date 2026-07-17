@@ -32,10 +32,24 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 handleFoodpandaNotification(notificationText)
             }
             UBER_RIDE_PACKAGE -> {
+                val shortCriticalText = readShortCriticalText(notification)
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
                 val update = LiveStatusNotificationParser.parseUberRide(
                     notificationText,
-                    readShortCriticalText(notification),
+                    shortCriticalText,
                 )
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordUber(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        shortCriticalText,
+                        notificationTitle,
+                        notificationContentText,
+                        update,
+                    )
+                }
                 if (AppReminderPreferences.App.UBER_RIDE.isEnabled(this)) {
                     handleUberRideNotification(update)
                 } else {
@@ -50,15 +64,17 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     notificationText,
                     shortCriticalText,
                 )
-                UberEatsDebugPayloadStore.record(
-                    this,
-                    statusBarNotification,
-                    notificationText,
-                    shortCriticalText,
-                    notificationTitle,
-                    notificationContentText,
-                    update,
-                )
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordUberEats(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        shortCriticalText,
+                        notificationTitle,
+                        notificationContentText,
+                        update,
+                    )
+                }
                 if (AppReminderPreferences.App.UBER_EATS.isEnabled(this)) {
                     handleUberEatsNotification(
                         update,
