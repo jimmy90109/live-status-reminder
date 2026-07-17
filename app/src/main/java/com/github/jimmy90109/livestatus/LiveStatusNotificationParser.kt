@@ -31,6 +31,15 @@ object LiveStatusNotificationParser {
         ORDER_ENDED,
     }
 
+    enum class UberRideEvent {
+        NONE,
+        PICKUP_EN_ROUTE,
+        PICKUP_NEARBY,
+        ARRIVED,
+        ON_TRIP,
+        TRIP_ENDED,
+    }
+
     enum class PikminEvent {
         NONE,
         FLOWER_PLANTING,
@@ -39,6 +48,16 @@ object LiveStatusNotificationParser {
     data class UberEatsUpdate(
         val event: UberEatsEvent,
         val pin: String?,
+    )
+
+    data class UberRideUpdate(
+        val event: UberRideEvent,
+        val title: String? = null,
+        val pickupPoint: String? = null,
+        val dropoffPoint: String? = null,
+        val plate: String? = null,
+        val vehicle: String? = null,
+        val pin: String? = null,
     )
 
     @JvmStatic
@@ -99,6 +118,52 @@ object LiveStatusNotificationParser {
     }
 
     @JvmStatic
+    fun parseUberRide(
+        notificationText: String?,
+        shortCriticalText: String?,
+    ): UberRideUpdate {
+        val lines = notificationText.cleanLines()
+        val normalized = lines.joinToString("\n").lowercase(Locale.ROOT)
+
+        if (normalized.contains("rate your trip")) {
+            return UberRideUpdate(event = UberRideEvent.TRIP_ENDED)
+        }
+
+        val title = lines.firstOrNull { line ->
+            line.contains(Regex("""(?i)\bpick up in \d+\s*min\b""")) ||
+                line.contains(Regex("""(?i)\bdropoff at \d{1,2}:\d{2}\s*(?:AM|PM)?\b""")) ||
+                line.contains(Regex("""(?i)\barrived\b"""))
+        }
+        val pickupPoint = lines.firstTextAfter("Meet at ")
+        val dropoffPoint = lines.firstTextAfter("Heading to ")
+        val vehicleDetails = lines.firstNotNullOfOrNull(::parseVehicleDetails)
+        val pin = exactPin(shortCriticalText) ?: separatedPin(notificationText)
+        val pickupMinutes = title.pickupMinutes()
+
+        val event = when {
+            title?.contains(Regex("""(?i)\bdropoff at\b""")) == true ||
+                dropoffPoint != null -> UberRideEvent.ON_TRIP
+            title?.contains(Regex("""(?i)\barrived\b""")) == true -> UberRideEvent.ARRIVED
+            pickupMinutes != null &&
+                pickupMinutes <= UBER_RIDE_NEARBY_MINUTES &&
+                (vehicleDetails != null || pin != null) -> UberRideEvent.PICKUP_NEARBY
+            title?.contains(Regex("""(?i)\bpick up in \d+\s*min\b""")) == true ||
+                pickupPoint != null -> UberRideEvent.PICKUP_EN_ROUTE
+            else -> UberRideEvent.NONE
+        }
+
+        return UberRideUpdate(
+            event = event,
+            title = title,
+            pickupPoint = pickupPoint,
+            dropoffPoint = dropoffPoint,
+            plate = vehicleDetails?.first,
+            vehicle = vehicleDetails?.second,
+            pin = pin,
+        )
+    }
+
+    @JvmStatic
     fun parsePikminBloom(notificationText: String?): PikminEvent {
         if (notificationText == null) return PikminEvent.NONE
 
@@ -122,4 +187,38 @@ object LiveStatusNotificationParser {
                 first + second + third + fourth
             }
         }
+
+    private fun String?.cleanLines(): List<String> =
+        orEmpty()
+            .lineSequence()
+            .map { it.replace(Regex("""\s+"""), " ").trim() }
+            .filter { it.isNotEmpty() }
+            .toList()
+
+    private fun List<String>.firstTextAfter(prefix: String): String? =
+        firstNotNullOfOrNull { line ->
+            line.substringAfter(prefix, missingDelimiterValue = "")
+                .trim()
+                .takeIf { it.isNotEmpty() }
+        }
+
+    private fun parseVehicleDetails(line: String): Pair<String, String>? {
+        val parts = line.split("·").map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.size < 2) return null
+        val plate = parts.first()
+        val vehicle = parts.drop(1).joinToString(" · ")
+        val looksLikePlate = plate.any { it.isLetter() } && plate.any { it.isDigit() }
+        return if (looksLikePlate && vehicle.any { it.isLetter() }) plate to vehicle else null
+    }
+
+    private fun String?.pickupMinutes(): Int? =
+        this?.let {
+            Regex("""(?i)\bpick up in (\d+)\s*min\b""")
+                .find(it)
+                ?.groupValues
+                ?.getOrNull(1)
+                ?.toIntOrNull()
+        }
+
+    private const val UBER_RIDE_NEARBY_MINUTES = 3
 }

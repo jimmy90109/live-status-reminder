@@ -10,6 +10,8 @@ import android.widget.RemoteViews
 import android.widget.TextView
 
 class LiveStatusNotificationListenerService : NotificationListenerService() {
+    private var lastUberRideUpdate =
+        LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
     private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
     private var lastUberEatsPin: String? = null
     private var lastUberEatsTitle: String? = null
@@ -28,6 +30,17 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             }
             FOODPANDA_PACKAGE -> if (AppReminderPreferences.App.FOODPANDA.isEnabled(this)) {
                 handleFoodpandaNotification(notificationText)
+            }
+            UBER_RIDE_PACKAGE -> {
+                val update = LiveStatusNotificationParser.parseUberRide(
+                    notificationText,
+                    readShortCriticalText(notification),
+                )
+                if (AppReminderPreferences.App.UBER_RIDE.isEnabled(this)) {
+                    handleUberRideNotification(update)
+                } else {
+                    resetUberRideState()
+                }
             }
             UBER_EATS_PACKAGE -> {
                 val shortCriticalText = readShortCriticalText(notification)
@@ -92,6 +105,21 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 LiveStatusReminder.clearFoodpanda(this)
             }
             LiveStatusNotificationParser.FoodpandaEvent.NONE -> Unit
+        }
+    }
+
+    private fun handleUberRideNotification(update: LiveStatusNotificationParser.UberRideUpdate) {
+        if (update.event == LiveStatusNotificationParser.UberRideEvent.TRIP_ENDED) {
+            resetUberRideState()
+            LiveStatusReminder.clearUberRide(this)
+            return
+        }
+
+        if (update.event == LiveStatusNotificationParser.UberRideEvent.NONE) return
+
+        lastUberRideUpdate = lastUberRideUpdate.merge(update)
+        if (lastUberRideUpdate.event != LiveStatusNotificationParser.UberRideEvent.NONE) {
+            LiveStatusReminder.showUberRide(this, lastUberRideUpdate)
         }
     }
 
@@ -163,6 +191,11 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         lastUberEatsText = null
     }
 
+    private fun resetUberRideState() {
+        lastUberRideUpdate =
+            LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
+    }
+
     private fun eventRank(event: LiveStatusNotificationParser.UberEatsEvent): Int = when (event) {
         LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED -> 1
         LiveStatusNotificationParser.UberEatsEvent.PREPARING -> 2
@@ -172,9 +205,38 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         else -> 0
     }
 
+    private fun LiveStatusNotificationParser.UberRideUpdate.merge(
+        update: LiveStatusNotificationParser.UberRideUpdate,
+    ): LiveStatusNotificationParser.UberRideUpdate {
+        val mergedEvent = if (uberRideEventRank(update.event) >= uberRideEventRank(event)) {
+            update.event
+        } else {
+            event
+        }
+        return LiveStatusNotificationParser.UberRideUpdate(
+            event = mergedEvent,
+            title = update.title ?: title,
+            pickupPoint = update.pickupPoint ?: pickupPoint,
+            dropoffPoint = update.dropoffPoint ?: dropoffPoint,
+            plate = update.plate ?: plate,
+            vehicle = update.vehicle ?: vehicle,
+            pin = update.pin ?: pin,
+        )
+    }
+
+    private fun uberRideEventRank(event: LiveStatusNotificationParser.UberRideEvent): Int = when (event) {
+        LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE -> 1
+        LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> 2
+        LiveStatusNotificationParser.UberRideEvent.ARRIVED -> 3
+        LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> 4
+        LiveStatusNotificationParser.UberRideEvent.TRIP_ENDED -> 5
+        else -> 0
+    }
+
     companion object {
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+        private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
 

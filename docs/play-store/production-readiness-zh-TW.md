@@ -44,7 +44,7 @@
 
 ### App 用途
 
-「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、foodpanda、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、外送與種花狀態。
+「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、外送與種花狀態。
 
 ### 測試方式
 
@@ -54,6 +54,7 @@
 - 使用者可拒絕或撤銷通知存取權限。
 - iPASS MONEY 進出站通知可建立與結束乘車提醒。
 - foodpanda 外送通知可更新外送狀態。
+- Uber 乘車通知可更新行程狀態，乘車 PIN 僅在裝置上處理。
 - Uber Eats 訂單通知可更新進度，交付 PIN 僅在裝置上處理。
 - Pikmin Bloom 背景種花通知可建立提醒，來源通知消失後自動結束。
 
@@ -61,7 +62,7 @@
 
 - App 不需要帳號登入。
 - App 不含廣告或分析 SDK。
-- App 不上傳、出售或分享通知內容、交付 PIN 或其他使用者資料。
+- App 不上傳、出售或分享通知內容、PIN 或其他使用者資料。
 - 通知內容僅在裝置上即時解析，不永久儲存。
 - 使用者可隨時在 Android 系統設定撤銷通知存取權限。
 
@@ -85,6 +86,7 @@ Production release 前請確認：
 
 - 支援 iPASS MONEY 乘車進出站提醒。
 - 支援 foodpanda 外送進度提醒。
+- 支援 Uber 乘車進度與 PIN 顯示。
 - 支援 Uber Eats 訂單進度與交付 PIN 顯示。
 - 支援 Android 16 Live Update。
 - 通知內容僅在裝置上處理，不上傳或分享。

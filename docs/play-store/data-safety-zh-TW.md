@@ -5,7 +5,7 @@
 ## 資料收集與分享
 
 - App 是否收集或分享任何必要揭露的使用者資料：**否**
-- 理由：通知內容與 Uber Eats PIN 僅在裝置上即時處理，未傳送出裝置。依 Google Play「資料安全」定義，純裝置端處理不屬於收集。
+- 理由：通知內容與 Uber / Uber Eats PIN 僅在裝置上即時處理，未傳送出裝置。依 Google Play「資料安全」定義，純裝置端處理不屬於收集。
 - App 是否使用加密傳輸：**不適用，App 不傳輸使用者資料**
 - 使用者是否能要求刪除資料：**不適用，開發者未收集或持有使用者資料**
 
@@ -14,8 +14,8 @@
 即使「資料安全」回答未收集資料，隱私權政策與 App 內仍須清楚說明：
 
 - App 會在使用者授權後讀取通知內容。
-- 用途限於辨識 iPASS MONEY、foodpanda、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
-- Uber Eats 通知可能包含交付 PIN。
+- 用途限於辨識 iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
+- Uber 與 Uber Eats 通知可能包含 PIN。
 - 通知內容與 PIN 不上傳、不分享、不永久儲存。
 - 使用者可隨時撤銷通知存取權限。
 
@@ -31,4 +31,4 @@
 
 ## 審查備註草稿
 
-本 App 的核心功能需要 Android Notification Listener，使用者點選首頁「開啟通知存取權限」時，App 會先顯示醒目揭露，再由使用者主動前往系統設定授權。通知內容只在裝置上解析，用於建立乘車、外送及 Pikmin Bloom 種花 Live Update，不會傳送或永久保存。審查可使用首頁各服務的模擬功能確認顯示，不需要真實訂單、支付帳號或遊戲進度。
+本 App 的核心功能需要 Android Notification Listener，使用者點選首頁「開啟通知存取權限」時，App 會先顯示醒目揭露，再由使用者主動前往系統設定授權。通知內容只在裝置上解析，用於建立乘車、外送及 Pikmin Bloom 種花 Live Update，不會傳送或永久保存。審查可使用首頁各服務的模擬功能確認顯示，不需要真實行程、訂單、支付帳號或遊戲進度。

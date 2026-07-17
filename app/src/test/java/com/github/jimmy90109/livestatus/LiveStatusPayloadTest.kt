@@ -2,6 +2,7 @@ package com.github.jimmy90109.livestatus
 
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -70,6 +71,56 @@ class LiveStatusPayloadTest {
         )
 
         assertEquals("外送夥伴正在取餐。 · PIN 0152", text)
+    }
+
+    @Test
+    fun uberRidePayloadUsesPickupPointBeforePickup() {
+        val payload = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_EN_ROUTE,
+                title = "Pick up in 14 min",
+                pickupPoint = "Meet at Demo Transit Center",
+            ),
+        )
+
+        assertEquals("Uber", payload.appName)
+        assertEquals("Pick up in 14 min", payload.title)
+        assertEquals("Meet at Demo Transit Center", payload.contentText)
+        assertEquals("Pickup", payload.criticalText)
+        assertEquals(25, payload.progress)
+    }
+
+    @Test
+    fun uberRidePayloadUsesVehicleAndPinNearPickup() {
+        val payload = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_NEARBY,
+                title = "Pick up in 2 min",
+                plate = "ABC1234",
+                vehicle = "Blue Toyota Prius",
+                pin = "1234",
+            ),
+        )
+
+        assertEquals("Pick up in 2 min", payload.title)
+        assertEquals("ABC1234 · Blue Toyota Prius · PIN 1234", payload.contentText)
+        assertEquals("Nearby", payload.criticalText)
+    }
+
+    @Test
+    fun uberRidePayloadUsesDropoffPointOnTrip() {
+        val payload = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.ON_TRIP,
+                title = "Dropoff at 4:30 PM",
+                dropoffPoint = "Demo Office Tower",
+            ),
+        )
+
+        assertEquals("Dropoff at 4:30 PM", payload.title)
+        assertEquals("Demo Office Tower", payload.contentText)
+        assertEquals("On trip", payload.criticalText)
+        assertEquals(80, payload.progress)
     }
 
     @Test

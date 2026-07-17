@@ -110,7 +110,7 @@ internal fun RequiredSettingsSection(
                 SettingCard(
                     number = "01",
                     title = "讀取狀態通知",
-                    description = "允許 App 辨識 iPASS MONEY、foodpanda、Uber Eats 與 Pikmin Bloom 狀態。",
+                    description = "允許 App 辨識 iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
                     enabled = status.notificationAccess,
                     enabledText = "已開啟",
                     disabledText = "尚未開啟",

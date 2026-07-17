@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽 iPASS MONEY、foodpanda、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽 iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -27,6 +27,14 @@
 - 只從 Android 16 `shortCriticalText` 解析剛好四位數的 PIN。
 - 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
 - 訂單送達或取消後自動移除提醒。
+
+### Uber
+
+- 司機接單後顯示預估上車時間與上車點。
+- 快抵達或已抵達時顯示車牌、車款與四位數 PIN。
+- 上車後顯示預估下車時間與下車點。
+- 偵測到評分通知後自動移除提醒。
+- 第一版只支援英文 Uber 乘車通知文案。
 
 ### Pikmin Bloom
 
@@ -57,7 +65,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 - PIN 只保留在記憶體中，不會寫入檔案、偏好設定或正式日誌。
 - 完整 PIN 僅在解鎖後顯示。
 - 鎖定畫面使用不含 PIN 的公開版通知。
-- 第一版只追蹤一筆 Uber Eats 訂單；新訂單會取代上一筆狀態。
+- 第一版分別只追蹤一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
 
 ## 建置與驗證
 

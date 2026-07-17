@@ -4,6 +4,7 @@ import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEv
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.RideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -177,6 +178,102 @@ class LiveStatusNotificationParserTest {
         )
         assertEquals(UberEatsEvent.PICKING_UP, update.event)
         assertNull(update.pin)
+    }
+
+    @Test
+    fun uberEatsReadsPinFromJoinedTextWhenShortCriticalTextIsEmpty() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "正前往您所在位置\n0\n1\n5\n2\n秋發 · PAQ-8928 · 抵達時間：1:58-2:11 PM\n秋發 · PAQ-8928\nMidnightblue Uber Motorbike",
+            "",
+        )
+
+        assertEquals(UberEatsEvent.ON_THE_WAY, update.event)
+        assertEquals("0152", update.pin)
+    }
+
+    @Test
+    fun uberEatsDoesNotReadPlateSuffixAsPinWhenJoinedTextHasNoSplitDigits() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "正前往您所在位置\n秋發 · PAQ-8928 · 抵達時間：1:58-2:11 PM\n秋發 · PAQ-8928\nMidnightblue Uber Motorbike",
+            "",
+        )
+
+        assertEquals(UberEatsEvent.ON_THE_WAY, update.event)
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberRideParsesPickupNotification() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Uber\nPick up in 14 min\nMeet at Demo Transit Center",
+            null,
+        )
+
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
+        assertEquals("Pick up in 14 min", update.title)
+        assertEquals("Demo Transit Center", update.pickupPoint)
+    }
+
+    @Test
+    fun uberRideKeepsLongPickupEtaInPickupStageEvenWithVehicleAndPin() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 14 min\nMeet at Demo Transit Center\nABC1234 · Blue Toyota Prius\n1\n2\n3\n4",
+            null,
+        )
+
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
+        assertEquals("Demo Transit Center", update.pickupPoint)
+        assertEquals("1234", update.pin)
+    }
+
+    @Test
+    fun uberRideParsesNearbyVehicleAndSplitPin() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 2 min\nABC1234 · Blue Toyota Prius\n1\n2\n3\n4",
+            null,
+        )
+
+        assertEquals(UberRideEvent.PICKUP_NEARBY, update.event)
+        assertEquals("Pick up in 2 min", update.title)
+        assertEquals("ABC1234", update.plate)
+        assertEquals("Blue Toyota Prius", update.vehicle)
+        assertEquals("1234", update.pin)
+    }
+
+    @Test
+    fun uberRideParsesArrivedVehicleAndShortCriticalPin() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Driver arrived\nABC1234 · Blue Toyota Prius",
+            "1234",
+        )
+
+        assertEquals(UberRideEvent.ARRIVED, update.event)
+        assertEquals("Driver arrived", update.title)
+        assertEquals("ABC1234", update.plate)
+        assertEquals("Blue Toyota Prius", update.vehicle)
+        assertEquals("1234", update.pin)
+    }
+
+    @Test
+    fun uberRideParsesDropoffNotification() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Uber\nDropoff at 4:30 PM\nHeading to Demo Office Tower",
+            null,
+        )
+
+        assertEquals(UberRideEvent.ON_TRIP, update.event)
+        assertEquals("Dropoff at 4:30 PM", update.title)
+        assertEquals("Demo Office Tower", update.dropoffPoint)
+    }
+
+    @Test
+    fun uberRideRateYourTripEndsTrip() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Uber\nRate your trip\nThanks for riding with Driver. Please rate your trip.",
+            null,
+        )
+
+        assertEquals(UberRideEvent.TRIP_ENDED, update.event)
     }
 
     @Test

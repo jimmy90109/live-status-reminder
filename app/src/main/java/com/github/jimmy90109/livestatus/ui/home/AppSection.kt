@@ -71,6 +71,7 @@ internal fun AppsSection(
     var maxPageHeightPx by remember(
         status.ipassInstalled,
         status.foodpandaInstalled,
+        status.uberInstalled,
         status.uberEatsInstalled,
         status.pikminBloomInstalled,
     ) {
@@ -142,6 +143,13 @@ internal fun AppsSection(
                         },
                         onOpenDebug = onOpenUberEatsDebug,
                     )
+                    TAB_UBER -> UberRideCard(
+                        installed = status.uberInstalled,
+                        enabled = status.uberEnabled,
+                        onEnabledChange = {
+                            onAppEnabledChange(AppReminderPreferences.App.UBER_RIDE, it)
+                        },
+                    )
                     TAB_PIKMIN_BLOOM -> PikminBloomCard(
                         installed = status.pikminBloomInstalled,
                         enabled = status.pikminBloomEnabled,
@@ -179,6 +187,7 @@ private fun AppTabs(
         AppTab("iPASS MONEY", TAB_IPASS, selectedTab, colors.ipassPrimary, colors.commonOnPrimary, onSelect)
         AppTab("foodpanda", TAB_FOODPANDA, selectedTab, colors.foodpandaPrimary, colors.commonOnPrimary, onSelect)
         AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
+        AppTab("Uber", TAB_UBER, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
         AppTab("Pikmin Bloom", TAB_PIKMIN_BLOOM, selectedTab, colors.pikminPrimary, colors.commonOnPrimary, onSelect)
         Spacer(Modifier.width(horizontalContentPadding))
     }
@@ -280,6 +289,92 @@ private fun FoodpandaCard(
         ActionButton("清除 foodpanda 狀態  ✓", colors.foodpandaSecondaryContainer, colors.foodpandaText) {
             LiveStatusReminder.clearFoodpanda(context)
         }
+    }
+}
+
+@Composable
+private fun UberRideCard(
+    installed: Boolean,
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "Uber",
+        appPackageName = UBER_PACKAGE,
+        fallbackIconRes = R.drawable.ic_notification,
+        title = "乘車進度",
+        description = "接單後顯示上車點、車輛與 PIN；上車後改顯示下車點。",
+        installed = installed,
+        enabled = enabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.commonContainer,
+        labelColor = colors.commonSurface,
+        foregroundColor = colors.onSurface,
+    ) {
+        UberRideTestButton(
+            label = "模擬前往上車點",
+            update = LiveStatusNotificationParser.UberRideUpdate(
+                event = LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE,
+                title = "Pick up in 14 min",
+                pickupPoint = "Meet at Demo Transit Center",
+            ),
+            enabled = enabled,
+        )
+        UberRideTestButton(
+            label = "模擬快抵達",
+            update = LiveStatusNotificationParser.UberRideUpdate(
+                event = LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY,
+                title = "Pick up in 2 min",
+                plate = "ABC1234",
+                vehicle = "Blue Toyota Prius",
+                pin = "1234",
+            ),
+            enabled = enabled,
+        )
+        UberRideTestButton(
+            label = "模擬已抵達",
+            update = LiveStatusNotificationParser.UberRideUpdate(
+                event = LiveStatusNotificationParser.UberRideEvent.ARRIVED,
+                title = "Driver arrived",
+                plate = "ABC1234",
+                vehicle = "Blue Toyota Prius",
+                pin = "1234",
+            ),
+            enabled = enabled,
+        )
+        UberRideTestButton(
+            label = "模擬前往目的地",
+            update = LiveStatusNotificationParser.UberRideUpdate(
+                event = LiveStatusNotificationParser.UberRideEvent.ON_TRIP,
+                title = "Dropoff at 4:30 PM",
+                dropoffPoint = "Demo Office Tower",
+            ),
+            enabled = enabled,
+        )
+        ActionButton("模擬完成，清除狀態  ✓", colors.commonSurface, colors.onSurface) {
+            LiveStatusReminder.clearUberRide(context)
+        }
+    }
+}
+
+@Composable
+private fun UberRideTestButton(
+    label: String,
+    update: LiveStatusNotificationParser.UberRideUpdate,
+    enabled: Boolean,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    val primary = update.event == LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE
+    ActionButton(
+        label,
+        if (primary) colors.commonPrimary else colors.commonSurface,
+        if (primary) colors.commonOnPrimary else colors.onSurface,
+        enabled = enabled,
+    ) {
+        LiveStatusReminder.showUberRide(context, update)
     }
 }
 
@@ -516,11 +611,13 @@ private fun Drawable.toBitmap(): Bitmap {
 private const val TAB_IPASS = 0
 private const val TAB_FOODPANDA = 1
 private const val TAB_UBER_EATS = 2
-private const val TAB_PIKMIN_BLOOM = 3
-private const val APP_PAGE_COUNT = 4
+private const val TAB_UBER = 3
+private const val TAB_PIKMIN_BLOOM = 4
+private const val APP_PAGE_COUNT = 5
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val DEFAULT_ICON_BITMAP_SIZE = 48
 private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
 private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+private const val UBER_PACKAGE = "com.ubercab"
 private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
 private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"

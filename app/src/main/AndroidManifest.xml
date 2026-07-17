@@ -6,6 +6,7 @@
     <queries>
         <package android:name="com.ipass.ipassmoney" />
         <package android:name="com.global.foodpanda.android" />
+        <package android:name="com.ubercab" />
         <package android:name="com.ubercab.eats" />
         <package android:name="com.nianticlabs.pikmin" />
     </queries>

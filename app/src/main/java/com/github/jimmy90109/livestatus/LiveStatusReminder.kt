@@ -15,6 +15,7 @@ object LiveStatusReminder {
     private const val FOODPANDA_NOTIFICATION_ID = 1002
     private const val UBER_EATS_NOTIFICATION_ID = 1003
     private const val PIKMIN_BLOOM_NOTIFICATION_ID = 1004
+    private const val UBER_RIDE_NOTIFICATION_ID = 1005
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -164,6 +165,48 @@ object LiveStatusReminder {
     @JvmStatic
     fun clearUberEats(context: Context) {
         notificationManager(context).cancel(UBER_EATS_NOTIFICATION_ID)
+    }
+
+    @JvmStatic
+    fun showUberRide(
+        context: Context,
+        update: LiveStatusNotificationParser.UberRideUpdate,
+    ) {
+        createChannel(context)
+        val openUber = PendingIntent.getActivity(
+            context,
+            4,
+            HomeScreenHostActivity.createOpenUberIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = uberRidePayload(update, openUber)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    "Open Uber",
+                    openUber,
+                ).build(),
+            )
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(UBER_RIDE_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearUberRide(context: Context) {
+        notificationManager(context).cancel(UBER_RIDE_NOTIFICATION_ID)
     }
 
     @JvmStatic
@@ -353,6 +396,22 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
 
+    internal fun uberRidePayload(
+        update: LiveStatusNotificationParser.UberRideUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload =
+        LiveStatusPayload(
+            id = UBER_RIDE_NOTIFICATION_ID,
+            appName = "Uber",
+            smallIconRes = R.drawable.ic_notification,
+            leftIconRes = R.drawable.ic_notification,
+            criticalText = uberRideShortText(update.event),
+            title = update.title ?: uberRideFallbackTitle(update.event),
+            contentText = uberRideContentText(update),
+            progress = uberRideProgress(update.event),
+            contentIntent = contentIntent,
+        )
+
     internal fun pikminBloomPayload(contentIntent: PendingIntent? = null): LiveStatusPayload =
         LiveStatusPayload(
             id = PIKMIN_BLOOM_NOTIFICATION_ID,
@@ -364,6 +423,48 @@ object LiveStatusReminder {
             contentText = "記得結束種花，避免花瓣在原地耗盡。",
             contentIntent = contentIntent,
         )
+
+    private fun uberRideContentText(update: LiveStatusNotificationParser.UberRideUpdate): String =
+        when (update.event) {
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY,
+            LiveStatusNotificationParser.UberRideEvent.ARRIVED,
+            -> uberRideVehicleText(update)
+            LiveStatusNotificationParser.UberRideEvent.ON_TRIP ->
+                update.dropoffPoint ?: "Heading to your destination"
+            else -> update.pickupPoint ?: "Meet your driver at the pickup point"
+        }
+
+    private fun uberRideVehicleText(update: LiveStatusNotificationParser.UberRideUpdate): String {
+        val vehicle = listOfNotNull(update.plate, update.vehicle)
+            .joinToString(" · ")
+            .takeIf { it.isNotBlank() }
+            ?: "Check vehicle details in Uber"
+        return update.pin?.let { "$vehicle · PIN $it" } ?: vehicle
+    }
+
+    private fun uberRideFallbackTitle(event: LiveStatusNotificationParser.UberRideEvent): String =
+        when (event) {
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Driver is nearby"
+            LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Driver arrived"
+            LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> "On your way"
+            else -> "Driver on the way"
+        }
+
+    private fun uberRideShortText(event: LiveStatusNotificationParser.UberRideEvent): String =
+        when (event) {
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Nearby"
+            LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Arrived"
+            LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> "On trip"
+            else -> "Pickup"
+        }
+
+    private fun uberRideProgress(event: LiveStatusNotificationParser.UberRideEvent): Int =
+        when (event) {
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> 50
+            LiveStatusNotificationParser.UberRideEvent.ARRIVED -> 60
+            LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> 80
+            else -> 25
+        }
 
     private fun requestPromotedOngoing(builder: Notification.Builder) {
         builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
