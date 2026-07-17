@@ -238,6 +238,7 @@ private fun IpassCard(
         fallbackIconRes = R.drawable.ic_notification,
         title = "乘車碼狀態",
         description = "進站後顯示乘車碼捷徑，準備下車時快速開啟。",
+        supportedLanguages = listOf("中文"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
@@ -273,6 +274,7 @@ private fun FoodpandaCard(
         fallbackIconRes = R.drawable.ic_food_delivery_notification,
         title = "外送訂單狀態",
         description = "外送夥伴出發或即將抵達時，顯示取餐提醒。",
+        supportedLanguages = listOf("中文"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
@@ -306,6 +308,7 @@ private fun UberRideCard(
         fallbackIconRes = R.drawable.ic_notification,
         title = "乘車進度",
         description = "接單後顯示上車點、車輛與 PIN；上車後改顯示下車點。",
+        supportedLanguages = listOf("英文"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
@@ -393,6 +396,7 @@ private fun UberEatsCard(
         fallbackIconRes = R.drawable.ic_food_delivery_notification,
         title = "五階段訂單進度",
         description = "從接單到即將抵達持續更新；可辨識時也會顯示四位數 PIN。",
+        supportedLanguages = listOf("中文"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
@@ -481,6 +485,7 @@ private fun PikminBloomCard(
         fallbackIconRes = R.drawable.ic_pikmin_flower_notification,
         title = "種花背景提醒",
         description = "偵測到背景種花通知時，立刻升級成即時提醒。",
+        supportedLanguages = listOf("中文"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
@@ -504,6 +509,7 @@ private fun AppCard(
     @DrawableRes fallbackIconRes: Int,
     title: String,
     description: String,
+    supportedLanguages: List<String>,
     installed: Boolean,
     enabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
@@ -516,17 +522,27 @@ private fun AppCard(
     CardSurface(cardColor, 30, 18) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            AppLabelPill(
-                label = appName,
-                packageName = appPackageName,
-                installed = installed,
-                fallbackIconRes = fallbackIconRes,
-                background = labelColor,
-                foreground = foregroundColor,
-            )
-            Spacer(Modifier.weight(1f))
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AppLabelPill(
+                    label = appName,
+                    packageName = appPackageName,
+                    installed = installed,
+                    fallbackIconRes = fallbackIconRes,
+                    background = labelColor,
+                    foreground = foregroundColor,
+                )
+                supportedLanguages.forEach { language ->
+                    LanguageTag(language, labelColor, foregroundColor)
+                }
+            }
             if (installed) {
                 Switch(
                     checked = enabled,
@@ -544,6 +560,24 @@ private fun AppCard(
         Spacer(Modifier.height(6.dp))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = actions)
     }
+}
+
+@Composable
+private fun LanguageTag(
+    label: String,
+    background: Color,
+    foreground: Color,
+) {
+    androidx.compose.material3.Text(
+        text = label,
+        color = foreground,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        maxLines = 1,
+        modifier = Modifier
+            .background(background, RoundedCornerShape(100.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    )
 }
 
 @Composable
