@@ -28,8 +28,24 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             IPASS_PACKAGE -> if (AppReminderPreferences.App.IPASS.isEnabled(this)) {
                 handleRideNotification(notificationText)
             }
-            FOODPANDA_PACKAGE -> if (AppReminderPreferences.App.FOODPANDA.isEnabled(this)) {
-                handleFoodpandaNotification(notificationText)
+            FOODPANDA_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val foodpandaText = notificationContentText.orEmpty()
+                val event = LiveStatusNotificationParser.parseFoodpanda(foodpandaText)
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordFoodpanda(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        event,
+                    )
+                }
+                if (AppReminderPreferences.App.FOODPANDA.isEnabled(this)) {
+                    handleFoodpandaNotification(event)
+                }
             }
             UBER_RIDE_PACKAGE -> {
                 val shortCriticalText = readShortCriticalText(notification)
@@ -112,8 +128,8 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    private fun handleFoodpandaNotification(notificationText: String) {
-        when (val event = LiveStatusNotificationParser.parseFoodpanda(notificationText)) {
+    private fun handleFoodpandaNotification(event: LiveStatusNotificationParser.FoodpandaEvent) {
+        when (event) {
             LiveStatusNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY,
             LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING,
             -> LiveStatusReminder.showFoodpanda(this, event)

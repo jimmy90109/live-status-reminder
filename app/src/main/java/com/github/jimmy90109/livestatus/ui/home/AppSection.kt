@@ -63,6 +63,7 @@ internal fun AppsSection(
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
@@ -136,6 +137,7 @@ internal fun AppsSection(
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.FOODPANDA, it)
                         },
+                        onOpenDebug = onOpenFoodpandaDebug,
                     )
                     TAB_UBER_EATS -> UberEatsCard(
                         installed = status.uberEatsInstalled,
@@ -274,6 +276,7 @@ private fun FoodpandaCard(
     installed: Boolean,
     enabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
@@ -316,6 +319,11 @@ private fun FoodpandaCard(
             supportingText = stringResource(R.string.monitoring_foodpanda_ended),
         ) {
             LiveStatusReminder.clearFoodpanda(context)
+        }
+        if (BuildConfig.DEBUG) {
+            ActionButton("查看通知 payload", colors.foodpandaSecondaryContainer, colors.foodpandaText) {
+                onOpenDebug()
+            }
         }
     }
 }

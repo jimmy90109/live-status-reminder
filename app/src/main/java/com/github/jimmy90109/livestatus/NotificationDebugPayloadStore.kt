@@ -16,9 +16,11 @@ object NotificationDebugPayloadStore {
     private val fourDigitCandidate = Regex("""(?<!\d)\d{4}(?!\d)""")
     private val timeFormatter = SimpleDateFormat("MM/dd HH:mm:ss", Locale.TAIWAN)
     private val _uberPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _foodpandaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
+    val foodpandaPayloads: StateFlow<List<NotificationDebugPayload>> = _foodpandaPayloads
     val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
 
     fun recordUber(
@@ -50,6 +52,28 @@ object NotificationDebugPayloadStore {
         _uberPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
     }
 
+    fun recordFoodpanda(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        event: LiveStatusNotificationParser.FoodpandaEvent,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = event.name,
+            parsedPin = null,
+            parsedDetails = emptyMap(),
+        )
+        _foodpandaPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
     fun recordUberEats(
         context: Context,
         statusBarNotification: StatusBarNotification,
@@ -75,6 +99,10 @@ object NotificationDebugPayloadStore {
 
     fun clearUber() {
         _uberPayloads.value = emptyList()
+    }
+
+    fun clearFoodpanda() {
+        _foodpandaPayloads.value = emptyList()
     }
 
     fun clearUberEats() {

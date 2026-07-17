@@ -46,6 +46,7 @@ internal fun NotificationDebugPage(
     payloadsFlow: StateFlow<List<NotificationDebugPayload>>,
     cardColor: Color,
     actionColor: Color,
+    showPinDetails: Boolean = true,
     topPadding: Dp,
     bottomPadding: Dp,
     onBack: () -> Unit,
@@ -74,7 +75,15 @@ internal fun NotificationDebugPage(
             Column(Modifier.weight(1f)) {
                 AppText("$appName payload", 26, colors.onSurface, true)
                 Spacer(Modifier.height(3.dp))
-                AppText("檢查通知 extras、shortCriticalText 與 PIN 候選值。", 14, colors.onSurfaceVariant)
+                AppText(
+                    if (showPinDetails) {
+                        "檢查通知 extras、shortCriticalText 與 PIN 候選值。"
+                    } else {
+                        "檢查通知 title、contentText、joinedText 與 parser 結果。"
+                    },
+                    14,
+                    colors.onSurfaceVariant,
+                )
             }
         }
         Spacer(Modifier.height(18.dp))
@@ -114,6 +123,7 @@ internal fun NotificationDebugPage(
                 NotificationDebugPayloadRow(
                     payload = payload,
                     actionColor = actionColor,
+                    showPinDetails = showPinDetails,
                     expanded = index == expandedIndex,
                     onToggle = { expandedIndex = if (expandedIndex == index) -1 else index },
                 )
@@ -127,6 +137,7 @@ internal fun NotificationDebugPage(
 private fun NotificationDebugPayloadRow(
     payload: NotificationDebugPayload,
     actionColor: Color,
+    showPinDetails: Boolean,
     expanded: Boolean,
     onToggle: () -> Unit,
 ) {
@@ -148,11 +159,13 @@ private fun NotificationDebugPayloadRow(
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.height(3.dp))
-                Text(
-                    text = "parser PIN=${payload.parsedPin ?: "-"}  candidates=${payload.pinCandidates.ifEmpty { listOf("-") }.joinToString()}",
-                    color = colors.onSurfaceVariant,
-                    fontSize = 12.sp,
-                )
+                if (showPinDetails) {
+                    Text(
+                        text = "parser PIN=${payload.parsedPin ?: "-"}  candidates=${payload.pinCandidates.ifEmpty { listOf("-") }.joinToString()}",
+                        color = colors.onSurfaceVariant,
+                        fontSize = 12.sp,
+                    )
+                }
             }
             Text(
                 text = if (expanded) "收合" else "展開",

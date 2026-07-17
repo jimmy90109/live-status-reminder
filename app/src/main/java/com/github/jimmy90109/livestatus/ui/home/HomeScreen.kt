@@ -311,6 +311,7 @@ internal data class StatusSnapshot(
 
 private enum class DebugTarget(val appName: String) {
     UBER("Uber"),
+    FOODPANDA("foodpanda"),
     UBER_EATS("Uber Eats"),
 }
 
@@ -391,22 +392,27 @@ private fun HomeScreenHostActivity.MainScreen(
                 appName = currentDebugTarget.appName,
                 payloadsFlow = when (currentDebugTarget) {
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
+                    DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                 },
                 cardColor = when (currentDebugTarget) {
                     DebugTarget.UBER -> colors.commonContainer
+                    DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
                 },
                 actionColor = when (currentDebugTarget) {
                     DebugTarget.UBER -> colors.onSurface
+                    DebugTarget.FOODPANDA -> colors.foodpandaText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
                 },
+                showPinDetails = currentDebugTarget != DebugTarget.FOODPANDA,
                 topPadding = scrollTopPadding,
                 bottomPadding = scrollBottomPadding,
                 onBack = { debugTarget = null },
                 onClear = {
                     when (currentDebugTarget) {
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
+                        DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
                     }
                 },
@@ -435,6 +441,7 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                     )
@@ -455,6 +462,7 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                     )
@@ -527,6 +535,7 @@ private fun HomeContentWide(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
@@ -566,6 +575,7 @@ private fun HomeContentWide(
                 status = status,
                 horizontalContentPadding = 0.dp,
                 onAppEnabledChange = onAppEnabledChange,
+                onOpenFoodpandaDebug = onOpenFoodpandaDebug,
                 onOpenUberDebug = onOpenUberDebug,
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
             )
@@ -586,6 +596,7 @@ private fun HomeContentNarrow(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
@@ -613,6 +624,7 @@ private fun HomeContentNarrow(
             status = status,
             horizontalContentPadding = 20.dp,
             onAppEnabledChange = onAppEnabledChange,
+            onOpenFoodpandaDebug = onOpenFoodpandaDebug,
             onOpenUberDebug = onOpenUberDebug,
             onOpenUberEatsDebug = onOpenUberEatsDebug,
         )
