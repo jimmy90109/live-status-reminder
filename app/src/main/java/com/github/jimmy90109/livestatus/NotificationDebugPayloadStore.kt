@@ -18,10 +18,41 @@ object NotificationDebugPayloadStore {
     private val _uberPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _foodpandaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _clockPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val foodpandaPayloads: StateFlow<List<NotificationDebugPayload>> = _foodpandaPayloads
     val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
+    val clockPayloads: StateFlow<List<NotificationDebugPayload>> = _clockPayloads
+
+    internal fun recordClock(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        extraction: ClockTimerExtraction,
+    ) {
+        val update = extraction.update
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = update?.state?.name ?: "NONE",
+            parsedPin = null,
+            parsedDetails = linkedMapOf(
+                "sourceKey" to update?.sourceKey.orEmpty(),
+                "source" to update?.source?.name.orEmpty(),
+                "endElapsedRealtimeMillis" to
+                    update?.endElapsedRealtimeMillis?.toString().orEmpty(),
+                "remainingMillis" to update?.remainingMillis?.toString().orEmpty(),
+            ) + extraction.diagnostics,
+        )
+        _clockPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
 
     fun recordUber(
         context: Context,
@@ -107,6 +138,10 @@ object NotificationDebugPayloadStore {
 
     fun clearUberEats() {
         _uberEatsPayloads.value = emptyList()
+    }
+
+    fun clearClock() {
+        _clockPayloads.value = emptyList()
     }
 
     private fun createPayload(

@@ -2,7 +2,11 @@
 <resources>
     <string name="app_name">即時狀態提醒</string>
     <string name="notification_channel_name">即時狀態提醒</string>
-    <string name="notification_channel_description">持續顯示乘車、外送訂單與種花狀態</string>
+    <string name="notification_channel_description">持續顯示倒數計時、乘車、外送訂單與種花狀態</string>
+
+    <string name="monitoring_clock_running">讀取主要 timer 的 MetricStyle 或倒數 chronometer 結束時間。</string>
+    <string name="monitoring_clock_paused">讀取 MetricStyle 提供的固定剩餘時間，不讓鏡像通知繼續倒數。</string>
+    <string name="monitoring_clock_ended">主要來源通知移除、失效或倒數結束時清除。</string>
 
     <string name="monitoring_ipass_entered">同一則通知同時包含「乘車碼交易」與「尚未出站」。</string>
     <string name="monitoring_ipass_exited">同一則通知同時包含「乘車碼交易」與「出站交易已完成」。</string>

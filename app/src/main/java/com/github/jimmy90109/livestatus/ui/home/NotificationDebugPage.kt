@@ -79,7 +79,7 @@ internal fun NotificationDebugPage(
                     if (showPinDetails) {
                         "檢查通知 extras、shortCriticalText 與 PIN 候選值。"
                     } else {
-                        "檢查通知 title、contentText、joinedText 與 parser 結果。"
+                        "檢查 notification fields、extras 與 parser 結果。"
                     },
                     14,
                     colors.onSurfaceVariant,

@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.Icon
+import android.os.SystemClock
 import com.github.jimmy90109.livestatus.ui.home.HomeScreenHostActivity
 
 object LiveStatusReminder {
@@ -16,6 +17,7 @@ object LiveStatusReminder {
     private const val UBER_EATS_NOTIFICATION_ID = 1003
     private const val PIKMIN_BLOOM_NOTIFICATION_ID = 1004
     private const val UBER_RIDE_NOTIFICATION_ID = 1005
+    private const val CLOCK_TIMER_NOTIFICATION_ID = 1006
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -248,6 +250,43 @@ object LiveStatusReminder {
         notificationManager(context).cancel(PIKMIN_BLOOM_NOTIFICATION_ID)
     }
 
+    @JvmStatic
+    fun showClockTimer(context: Context, update: ClockTimerUpdate) {
+        createChannel(context)
+        val openClock = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            5,
+            HomeScreenHostActivity.createOpenClockIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = clockTimerPayload(
+            update = update,
+            nowElapsedRealtimeMillis = SystemClock.elapsedRealtime(),
+            contentIntent = openClock,
+        )
+        val timer = requireNotNull(payload.timer)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_ALARM)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .also { ClockTimerNotificationStyle.apply(it, timer) }
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(CLOCK_TIMER_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearClockTimer(context: Context) {
+        notificationManager(context).cancel(CLOCK_TIMER_NOTIFICATION_ID)
+    }
+
     private fun applyUberEatsStyle(
         builder: Notification.Builder,
         event: LiveStatusNotificationParser.UberEatsEvent,
@@ -423,6 +462,70 @@ object LiveStatusReminder {
             contentText = "記得結束種花，避免花瓣在原地耗盡。",
             contentIntent = contentIntent,
         )
+
+    internal fun clockTimerPayload(
+        update: ClockTimerUpdate,
+        nowElapsedRealtimeMillis: Long,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val timer = LiveStatusTimer(
+            state = update.state,
+            endElapsedRealtimeMillis = update.endElapsedRealtimeMillis,
+            remainingMillis = update.remainingMillis,
+            language = update.language,
+        )
+        val pausedText = update.remainingMillis?.let(::formatClockTimerDuration)
+        val isChinese = update.language == ClockTimerLanguage.CHINESE
+        return LiveStatusPayload(
+            id = CLOCK_TIMER_NOTIFICATION_ID,
+            appName = if (isChinese) "時鐘" else "Clock",
+            smallIconRes = R.drawable.ic_timer_notification,
+            leftIconRes = R.drawable.ic_timer_notification,
+            criticalText = formatClockTimerCriticalText(
+                when (update.state) {
+                    ClockTimerState.RUNNING ->
+                        requireNotNull(update.endElapsedRealtimeMillis) - nowElapsedRealtimeMillis
+                    ClockTimerState.PAUSED -> requireNotNull(update.remainingMillis)
+                },
+                update.language,
+            ),
+            title = if (isChinese) "時鐘倒數計時" else "Clock timer",
+            contentText = if (pausedText != null) {
+                if (isChinese) "剩餘 $pausedText（已暫停）" else "$pausedText remaining (paused)"
+            } else {
+                if (isChinese) "倒數進行中" else "Timer running"
+            },
+            timer = timer,
+            contentIntent = contentIntent,
+        )
+    }
+
+    internal fun formatClockTimerDuration(durationMillis: Long): String {
+        val totalSeconds = ((durationMillis.coerceAtLeast(0) + 999) / 1_000)
+        val hours = totalSeconds / 3_600
+        val minutes = (totalSeconds % 3_600) / 60
+        val seconds = totalSeconds % 60
+        return if (hours > 0) {
+            "%d:%02d:%02d".format(hours, minutes, seconds)
+        } else {
+            "%02d:%02d".format(minutes, seconds)
+        }
+    }
+
+    internal fun formatClockTimerCriticalText(
+        remainingMillis: Long,
+        language: ClockTimerLanguage = ClockTimerLanguage.ENGLISH,
+    ): String {
+        val safeRemainingMillis = remainingMillis.coerceAtLeast(0)
+        val isChinese = language == ClockTimerLanguage.CHINESE
+        return if (safeRemainingMillis >= 60_000L) {
+            val minutes = (safeRemainingMillis + 59_999L) / 60_000L
+            if (isChinese) "$minutes 分" else "$minutes min"
+        } else {
+            val seconds = (safeRemainingMillis + 999L) / 1_000L
+            if (isChinese) "$seconds 秒" else "$seconds s"
+        }
+    }
 
     private fun uberRideContentText(update: LiveStatusNotificationParser.UberRideUpdate): String =
         when (update.event) {

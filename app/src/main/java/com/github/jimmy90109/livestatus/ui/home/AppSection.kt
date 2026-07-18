@@ -3,6 +3,7 @@ package com.github.jimmy90109.livestatus.ui.home
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import android.os.SystemClock
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -52,6 +53,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.BuildConfig
+import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
+import com.github.jimmy90109.livestatus.ClockTimerSource
+import com.github.jimmy90109.livestatus.ClockTimerState
+import com.github.jimmy90109.livestatus.ClockTimerUpdate
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.R
@@ -63,6 +68,7 @@ internal fun AppsSection(
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenClockDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
@@ -72,6 +78,7 @@ internal fun AppsSection(
     val density = LocalDensity.current
     var selectedTab by remember { mutableIntStateOf(TAB_IPASS) }
     var maxPageHeightPx by remember(
+        status.clockInstalled,
         status.ipassInstalled,
         status.foodpandaInstalled,
         status.uberInstalled,
@@ -131,6 +138,14 @@ internal fun AppsSection(
                     .padding(horizontal = horizontalContentPadding),
             ) {
                 when (page) {
+                    TAB_CLOCK -> ClockCard(
+                        installed = status.clockInstalled,
+                        enabled = status.clockEnabled,
+                        onEnabledChange = {
+                            onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
+                        },
+                        onOpenDebug = onOpenClockDebug,
+                    )
                     TAB_FOODPANDA -> FoodpandaCard(
                         installed = status.foodpandaInstalled,
                         enabled = status.foodpandaEnabled,
@@ -194,6 +209,7 @@ private fun AppTabs(
         AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
         AppTab("Uber", TAB_UBER, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
         AppTab("Pikmin Bloom", TAB_PIKMIN_BLOOM, selectedTab, colors.pikminPrimary, colors.commonOnPrimary, onSelect)
+        AppTab("Clock", TAB_CLOCK, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
         Spacer(Modifier.width(horizontalContentPadding))
     }
 }
@@ -267,6 +283,79 @@ private fun IpassCard(
             supportingText = stringResource(R.string.monitoring_ipass_exited),
         ) {
             LiveStatusReminder.clear(context)
+        }
+    }
+}
+
+@Composable
+private fun ClockCard(
+    installed: Boolean,
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "Clock",
+        appPackageName = CLOCK_PACKAGE,
+        fallbackIconRes = R.drawable.ic_timer_notification,
+        title = "倒數計時",
+        description = "將 Google 時鐘的主要倒數同步成即時通知；暫停時固定顯示剩餘時間。",
+        supportedLanguages = listOf("不依賴語言"),
+        installed = installed,
+        enabled = enabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.commonContainer,
+        labelColor = colors.commonSurface,
+        foregroundColor = colors.onSurface,
+    ) {
+        ActionButton(
+            "模擬 22 分鐘倒數",
+            colors.commonPrimary,
+            colors.commonOnPrimary,
+            supportingText = stringResource(R.string.monitoring_clock_running),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showClockTimer(
+                context,
+                ClockTimerUpdate(
+                    sourceKey = "debug-clock-running",
+                    state = ClockTimerState.RUNNING,
+                    endElapsedRealtimeMillis = SystemClock.elapsedRealtime() + 22 * 60_000L,
+                    source = ClockTimerSource.METRIC_STYLE,
+                ),
+            )
+        }
+        ActionButton(
+            "模擬暫停於 12:34",
+            colors.commonSurface,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_clock_paused),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showClockTimer(
+                context,
+                ClockTimerUpdate(
+                    sourceKey = "debug-clock-paused",
+                    state = ClockTimerState.PAUSED,
+                    remainingMillis = 12 * 60_000L + 34_000L,
+                    source = ClockTimerSource.METRIC_STYLE,
+                ),
+            )
+        }
+        ActionButton(
+            "清除 Clock 倒數  ✓",
+            colors.commonSurface,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_clock_ended),
+        ) {
+            LiveStatusReminder.clearClockTimer(context)
+        }
+        if (BuildConfig.DEBUG) {
+            ActionButton("查看通知 payload", colors.commonSurface, colors.onSurface) {
+                onOpenDebug()
+            }
         }
     }
 }
@@ -721,10 +810,12 @@ private const val TAB_FOODPANDA = 1
 private const val TAB_UBER_EATS = 2
 private const val TAB_UBER = 3
 private const val TAB_PIKMIN_BLOOM = 4
-private const val APP_PAGE_COUNT = 5
+private const val TAB_CLOCK = 5
+private const val APP_PAGE_COUNT = 6
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val DEFAULT_ICON_BITMAP_SIZE = 48
 private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
+private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
 private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
 private const val UBER_PACKAGE = "com.ubercab"
 private const val UBER_EATS_PACKAGE = "com.ubercab.eats"

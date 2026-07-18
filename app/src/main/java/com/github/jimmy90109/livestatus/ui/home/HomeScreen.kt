@@ -18,26 +18,19 @@ import androidx.activity.enableEdgeToEdge
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -62,21 +55,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
+import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
-import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 open class HomeScreenHostActivity : ComponentActivity() {
@@ -88,6 +76,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         LiveStatusReminder.createChannel(this)
 
         when (intent.action) {
+            ACTION_OPEN_CLOCK -> openClock()
             ACTION_OPEN_IPASS -> openIpass()
             ACTION_OPEN_FOODPANDA -> openFoodpanda()
             ACTION_OPEN_UBER -> openUber()
@@ -119,6 +108,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
     }
 
     private fun refreshStatus() {
+        val clockInstalled = isPackageInstalled(CLOCK_PACKAGE)
         val ipassInstalled = isPackageInstalled(IPASS_PACKAGE)
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
@@ -127,6 +117,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
             notificationPermission = canPostNotifications(),
+            clockInstalled = clockInstalled,
             ipassInstalled = ipassInstalled,
             foodpandaInstalled = foodpandaInstalled,
             uberInstalled = uberInstalled,
@@ -136,6 +127,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             isXiaomiDevice = isXiaomiDevice(),
             nowBarTroubleshootingDismissed =
                 AppReminderPreferences.isNowBarTroubleshootingDismissed(this),
+            clockEnabled = AppReminderPreferences.App.CLOCK.isEnabled(this, clockInstalled),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
             uberEnabled = AppReminderPreferences.App.UBER_RIDE.isEnabled(this, uberInstalled),
@@ -199,6 +191,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openIpass() = openPackage(IPASS_PACKAGE, "iPASS MONEY")
 
+    private fun openClock() = openPackage(CLOCK_PACKAGE, "Clock")
+
     private fun openFoodpanda() = openPackage(FOODPANDA_PACKAGE, "foodpanda")
 
     private fun openUber() = openPackage(UBER_PACKAGE, "Uber")
@@ -226,6 +220,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun clearReminder(app: AppReminderPreferences.App) {
         when (app) {
+            AppReminderPreferences.App.CLOCK -> LiveStatusReminder.clearClockTimer(this)
             AppReminderPreferences.App.IPASS -> LiveStatusReminder.clear(this)
             AppReminderPreferences.App.FOODPANDA -> LiveStatusReminder.clearFoodpanda(this)
             AppReminderPreferences.App.UBER_RIDE -> LiveStatusReminder.clearUberRide(this)
@@ -241,6 +236,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     companion object {
         private const val REQUEST_NOTIFICATIONS = 7
+        private const val ACTION_OPEN_CLOCK =
+            "com.github.jimmy90109.livestatus.action.OPEN_CLOCK"
         private const val ACTION_OPEN_IPASS =
             "com.github.jimmy90109.livestatus.action.OPEN_IPASS"
         private const val ACTION_OPEN_FOODPANDA =
@@ -251,6 +248,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_UBER_EATS"
         private const val ACTION_OPEN_PIKMIN_BLOOM =
             "com.github.jimmy90109.livestatus.action.OPEN_PIKMIN_BLOOM"
+        private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_PACKAGE = "com.ubercab"
@@ -260,6 +258,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html"
         private const val PRIVACY_POLICY_URL =
             "https://jimmy90109.github.io/live-status-reminder/"
+
+        @JvmStatic
+        fun createOpenClockIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_CLOCK)
 
         @JvmStatic
         fun createOpenIpassIntent(context: Context): Intent =
@@ -291,6 +293,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
 internal data class StatusSnapshot(
     val notificationAccess: Boolean = false,
     val notificationPermission: Boolean = false,
+    val clockInstalled: Boolean = false,
     val ipassInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
@@ -299,6 +302,7 @@ internal data class StatusSnapshot(
     val isSamsungDevice: Boolean = false,
     val isXiaomiDevice: Boolean = false,
     val nowBarTroubleshootingDismissed: Boolean = false,
+    val clockEnabled: Boolean = false,
     val ipassEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,
     val uberEnabled: Boolean = false,
@@ -310,6 +314,7 @@ internal data class StatusSnapshot(
 }
 
 private enum class DebugTarget(val appName: String) {
+    CLOCK("Clock"),
     UBER("Uber"),
     FOODPANDA("foodpanda"),
     UBER_EATS("Uber Eats"),
@@ -391,26 +396,31 @@ private fun HomeScreenHostActivity.MainScreen(
             NotificationDebugPage(
                 appName = currentDebugTarget.appName,
                 payloadsFlow = when (currentDebugTarget) {
+                    DebugTarget.CLOCK -> NotificationDebugPayloadStore.clockPayloads
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
                     DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                 },
                 cardColor = when (currentDebugTarget) {
+                    DebugTarget.CLOCK -> colors.commonContainer
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
                 },
                 actionColor = when (currentDebugTarget) {
+                    DebugTarget.CLOCK -> colors.onSurface
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.FOODPANDA -> colors.foodpandaText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
                 },
-                showPinDetails = currentDebugTarget != DebugTarget.FOODPANDA,
+                showPinDetails = currentDebugTarget == DebugTarget.UBER ||
+                    currentDebugTarget == DebugTarget.UBER_EATS,
                 topPadding = scrollTopPadding,
                 bottomPadding = scrollBottomPadding,
                 onBack = { debugTarget = null },
                 onClear = {
                     when (currentDebugTarget) {
+                        DebugTarget.CLOCK -> NotificationDebugPayloadStore.clearClock()
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
                         DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
@@ -441,6 +451,7 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
@@ -462,6 +473,7 @@ private fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
@@ -535,6 +547,7 @@ private fun HomeContentWide(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenClockDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
@@ -575,6 +588,7 @@ private fun HomeContentWide(
                 status = status,
                 horizontalContentPadding = 0.dp,
                 onAppEnabledChange = onAppEnabledChange,
+                onOpenClockDebug = onOpenClockDebug,
                 onOpenFoodpandaDebug = onOpenFoodpandaDebug,
                 onOpenUberDebug = onOpenUberDebug,
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
@@ -596,6 +610,7 @@ private fun HomeContentNarrow(
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenClockDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
@@ -624,6 +639,7 @@ private fun HomeContentNarrow(
             status = status,
             horizontalContentPadding = 20.dp,
             onAppEnabledChange = onAppEnabledChange,
+            onOpenClockDebug = onOpenClockDebug,
             onOpenFoodpandaDebug = onOpenFoodpandaDebug,
             onOpenUberDebug = onOpenUberDebug,
             onOpenUberEatsDebug = onOpenUberEatsDebug,
@@ -712,8 +728,8 @@ private fun NotificationAccessDisclosureDialog(
         title = { Text("允許讀取通知前，請先了解") },
         text = {
             Text(
-                "即時狀態提醒會讀取 iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
-                    "用來辨識乘車、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
+                "即時狀態提醒會讀取 Clock、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                    "用來辨識倒數計時、乘車、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
                     "也不會永久儲存通知內容或 PIN。您隨時可以在系統設定中關閉通知存取權限。",
             )

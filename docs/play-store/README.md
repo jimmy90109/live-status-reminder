@@ -9,7 +9,7 @@
 - [x] 使用永久且唯一的正式 application ID：`com.github.jimmy90109.livestatus`。
 - [x] 本機 upload keystore 設定已修正，`./gradlew verifyReleaseSigning bundleRelease` 可重新產生正式簽署 AAB。
 - [x] 準備 upload keystore 排查筆記：[upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md)。
-- [ ] 在實體 Android 16 裝置完整驗證三種來源通知與權限撤銷流程。
+- [ ] 在實體 Android 16／17 裝置完整驗證所有支援來源通知、Clock 倒數與權限撤銷流程。
 
 ## 商店與政策
 

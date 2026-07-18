@@ -2,6 +2,9 @@ package com.github.jimmy90109.livestatus
 
 import android.app.Notification
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.view.View
@@ -10,6 +13,10 @@ import android.widget.RemoteViews
 import android.widget.TextView
 
 class LiveStatusNotificationListenerService : NotificationListenerService() {
+    private val clockTimerTracker = ClockTimerTracker()
+    private val clockTimerHandler = Handler(Looper.getMainLooper())
+    private var activeClockTimerUpdate: ClockTimerUpdate? = null
+    private val clockTimerRefreshRunnable = Runnable(::refreshClockTimer)
     private var lastUberRideUpdate =
         LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
     private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
@@ -18,6 +25,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private var lastUberEatsText: String? = null
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
+        if (statusBarNotification.packageName == packageName) return
         val notification = statusBarNotification.notification
         val notificationText = readNotificationText(
             this,
@@ -25,6 +33,28 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            CLOCK_PACKAGE -> {
+                val extraction = ClockTimerNotificationExtractor.extract(this, statusBarNotification)
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordClock(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                        extraction,
+                    )
+                }
+                if (AppReminderPreferences.App.CLOCK.isEnabled(this)) {
+                    handleClockTimerDecision(
+                        clockTimerTracker.onPosted(statusBarNotification.key, extraction.update),
+                    )
+                } else {
+                    clockTimerTracker.reset()
+                    stopClockTimerRefresh()
+                    LiveStatusReminder.clearClockTimer(this)
+                }
+            }
             IPASS_PACKAGE -> if (AppReminderPreferences.App.IPASS.isEnabled(this)) {
                 handleRideNotification(notificationText)
             }
@@ -109,6 +139,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
+        if (statusBarNotification.packageName == CLOCK_PACKAGE) {
+            handleClockTimerDecision(clockTimerTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
 
         val notificationText = readNotificationText(statusBarNotification.notification)
@@ -118,6 +152,55 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         ) {
             LiveStatusReminder.clearPikminBloom(this)
         }
+    }
+
+    override fun onDestroy() {
+        stopClockTimerRefresh()
+        super.onDestroy()
+    }
+
+    private fun handleClockTimerDecision(decision: ClockTimerDecision) {
+        when (decision) {
+            is ClockTimerDecision.Show -> showAndScheduleClockTimer(decision.update)
+            ClockTimerDecision.Clear -> {
+                stopClockTimerRefresh()
+                LiveStatusReminder.clearClockTimer(this)
+            }
+            ClockTimerDecision.None -> Unit
+        }
+    }
+
+    private fun showAndScheduleClockTimer(update: ClockTimerUpdate) {
+        clockTimerHandler.removeCallbacks(clockTimerRefreshRunnable)
+        activeClockTimerUpdate = update
+        LiveStatusReminder.showClockTimer(this, update)
+        scheduleClockTimerRefresh(update)
+    }
+
+    private fun refreshClockTimer() {
+        val update = activeClockTimerUpdate ?: return
+        val endElapsedRealtimeMillis = update.endElapsedRealtimeMillis ?: return
+        val remainingMillis = endElapsedRealtimeMillis - SystemClock.elapsedRealtime()
+        if (remainingMillis <= 0) {
+            stopClockTimerRefresh()
+            LiveStatusReminder.clearClockTimer(this)
+            return
+        }
+        LiveStatusReminder.showClockTimer(this, update)
+        scheduleClockTimerRefresh(update)
+    }
+
+    private fun scheduleClockTimerRefresh(update: ClockTimerUpdate) {
+        if (update.state != ClockTimerState.RUNNING) return
+        val remainingMillis = requireNotNull(update.endElapsedRealtimeMillis) -
+            SystemClock.elapsedRealtime()
+        val delayMillis = ClockTimerRefreshTiming.nextDelayMillis(remainingMillis) ?: return
+        clockTimerHandler.postDelayed(clockTimerRefreshRunnable, delayMillis)
+    }
+
+    private fun stopClockTimerRefresh() {
+        clockTimerHandler.removeCallbacks(clockTimerRefreshRunnable)
+        activeClockTimerUpdate = null
     }
 
     private fun handleRideNotification(notificationText: String) {
@@ -266,6 +349,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     companion object {
+        private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_RIDE_PACKAGE = "com.ubercab"

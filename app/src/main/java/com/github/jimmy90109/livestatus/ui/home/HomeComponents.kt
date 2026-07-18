@@ -50,7 +50,7 @@ internal fun HeroCard(onOpenSettings: () -> Unit) {
         AppText("重要狀態，\n留在最前面。", 34, colors.onSurface, true)
         Spacer(Modifier.height(12.dp))
         AppText(
-            "進站後顯示乘車碼捷徑；外送期間顯示訂單進度；Pikmin Bloom 種花時提醒你記得結束。",
+            "倒數計時、乘車、外送與 Pikmin Bloom 種花期間，持續顯示重要狀態。",
             16,
             colors.onSurfaceVariant,
         )

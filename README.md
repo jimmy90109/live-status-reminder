@@ -1,8 +1,15 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽 iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽 Google 時鐘、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
+
+### Google 時鐘
+
+- 將 `com.google.android.deskclock` 的主要倒數計時器同步成 Live Update。
+- 支援運行、暫停、繼續與加一分鐘造成的時間更新；倒數結束或來源通知移除後自動清除。
+- Android 17 優先讀取 `MetricStyle` timer，Android 16 則使用通知 chronometer；不解析畫面文字猜測剩餘時間。
+- 點擊提醒可開啟原始 Clock 計時器，但不複製暫停或加一分鐘操作按鈕。
 
 ### iPASS MONEY
 
@@ -66,6 +73,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 - 完整 PIN 僅在解鎖後顯示。
 - 鎖定畫面使用不含 PIN 的公開版通知。
 - 第一版分別只追蹤一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
+- Google 時鐘只鏡像來源通知指定的主要倒數計時器。
 
 ## 建置與驗證
 

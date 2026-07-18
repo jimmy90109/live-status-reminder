@@ -6,6 +6,7 @@ object AppReminderPreferences {
     private const val NOW_BAR_TROUBLESHOOTING_DISMISSED = "now_bar_troubleshooting_dismissed"
 
     enum class App(private val preferenceKey: String) {
+        CLOCK("clock_enabled"),
         IPASS("ipass_enabled"),
         FOODPANDA("foodpanda_enabled"),
         UBER_RIDE("uber_ride_enabled"),
