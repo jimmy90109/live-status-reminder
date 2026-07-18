@@ -28,8 +28,8 @@ android {
         applicationId = "com.github.jimmy90109.livestatus"
         minSdk = 36
         targetSdk = 37
-        versionCode = 2607150
-        versionName = "1.0.0-beta5"
+        versionCode = 2607180
+        versionName = "1.0.0-beta6"
 
         ndk {
             debugSymbolLevel = "SYMBOL_TABLE"
