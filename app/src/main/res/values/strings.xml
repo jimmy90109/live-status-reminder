@@ -12,7 +12,7 @@
     <string name="monitoring_foodpanda_ended">包含「已送達」、「訂單完成」、「已取消」或「訂單取消」。</string>
 
     <string name="monitoring_uber_pickup_en_route">同時包含「Pick up in [分鐘] min」（英文大小寫皆可）與「Meet at [地點]」。</string>
-    <string name="monitoring_uber_pickup_nearby">包含「Pick up in [分鐘] min」，且內文已改為車牌、車款或 PIN。</string>
+     <string name="monitoring_uber_pickup_nearby">「Pick up in [分鐘] min」為 2 分鐘內，且取得車牌、車款或 PIN。</string>
     <string name="monitoring_uber_arrived">包含「arrived」（英文大小寫皆可）。</string>
     <string name="monitoring_uber_on_trip">包含「Dropoff at [時間]」（英文大小寫皆可），或「Heading to [地點]」。</string>
     <string name="monitoring_uber_ended">包含「Rate your trip」（英文大小寫皆可）。</string>

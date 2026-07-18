@@ -405,7 +405,7 @@ object LiveStatusReminder {
             appName = "Uber",
             smallIconRes = R.drawable.ic_notification,
             leftIconRes = R.drawable.ic_notification,
-            criticalText = uberRideShortText(update.event),
+            criticalText = uberRideShortText(update),
             title = update.title ?: uberRideFallbackTitle(update.event),
             contentText = uberRideContentText(update),
             progress = uberRideProgress(update.event),
@@ -450,12 +450,31 @@ object LiveStatusReminder {
             else -> "Driver on the way"
         }
 
-    private fun uberRideShortText(event: LiveStatusNotificationParser.UberRideEvent): String =
-        when (event) {
+    private fun uberRideShortText(update: LiveStatusNotificationParser.UberRideUpdate): String =
+        when (update.event) {
             LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Nearby"
             LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Arrived"
-            LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> "On trip"
-            else -> "To pickup"
+            LiveStatusNotificationParser.UberRideEvent.ON_TRIP ->
+                dropoffTimeText(update.title) ?: "On trip"
+            else -> pickupEtaText(update.title) ?: "To pickup"
+        }
+
+    private fun pickupEtaText(title: String?): String? =
+        title?.let {
+            Regex("""(?i)\bpick up in (\d+\s*min)\b""")
+                .find(it)
+                ?.groupValues
+                ?.getOrNull(1)
+                ?.replace(Regex("""\s+"""), " ")
+        }
+
+    private fun dropoffTimeText(title: String?): String? =
+        title?.let {
+            Regex("""(?i)\bdropoff at (\d{1,2}:\d{2}\s*(?:AM|PM)?)\b""")
+                .find(it)
+                ?.groupValues
+                ?.getOrNull(1)
+                ?.replace(Regex("""\s+"""), " ")
         }
 
     private fun uberRideProgress(event: LiveStatusNotificationParser.UberRideEvent): Int =

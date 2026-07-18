@@ -86,7 +86,7 @@ class LiveStatusPayloadTest {
         assertEquals("Uber", payload.appName)
         assertEquals("Pick up in 14 min", payload.title)
         assertEquals("Meet at Demo Transit Center", payload.contentText)
-        assertEquals("To pickup", payload.criticalText)
+        assertEquals("14 min", payload.criticalText)
         assertEquals(25, payload.progress)
     }
 
@@ -119,8 +119,27 @@ class LiveStatusPayloadTest {
 
         assertEquals("Dropoff at 4:30 PM", payload.title)
         assertEquals("Demo Office Tower", payload.contentText)
-        assertEquals("On trip", payload.criticalText)
+        assertEquals("4:30 PM", payload.criticalText)
         assertEquals(80, payload.progress)
+    }
+
+    @Test
+    fun uberRidePayloadFallsBackWhenTitleHasNoCompactEta() {
+        val pickupPayload = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_EN_ROUTE,
+                pickupPoint = "Meet at Demo Transit Center",
+            ),
+        )
+        val onTripPayload = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.ON_TRIP,
+                dropoffPoint = "Demo Office Tower",
+            ),
+        )
+
+        assertEquals("To pickup", pickupPayload.criticalText)
+        assertEquals("On trip", onTripPayload.criticalText)
     }
 
     @Test

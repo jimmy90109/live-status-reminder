@@ -231,7 +231,7 @@ class LiveStatusNotificationParserTest {
 
         assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
         assertEquals("Pick up in 14 min", update.title)
-        assertEquals("Demo Transit Center", update.pickupPoint)
+        assertEquals("Meet at Demo Transit Center", update.pickupPoint)
     }
 
     @Test
@@ -242,7 +242,7 @@ class LiveStatusNotificationParserTest {
         )
 
         assertEquals(UberRideEvent.NONE, update.event)
-        assertEquals("Demo Transit Center", update.pickupPoint)
+        assertEquals("Meet at Demo Transit Center", update.pickupPoint)
     }
 
     @Test
@@ -276,7 +276,7 @@ class LiveStatusNotificationParserTest {
         )
 
         assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
-        assertEquals("Demo Transit Center", update.pickupPoint)
+        assertEquals("Meet at Demo Transit Center", update.pickupPoint)
         assertEquals("1234", update.pin)
     }
 
@@ -310,19 +310,19 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
-    fun uberRidePickupEtaWithVehicleDetailsIsNearby() {
+    fun uberRidePickupEtaOverTwoMinutesWithVehicleDetailsStaysPickupStage() {
         val update = LiveStatusNotificationParser.parseUberRide(
-            "Pick up in 12 min\nABC1234 · Blue Toyota Prius",
+            "Pick up in 12 min\nMeet at Demo Transit Center\nABC1234 · Blue Toyota Prius",
             null,
         )
 
-        assertEquals(UberRideEvent.PICKUP_NEARBY, update.event)
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
     }
 
     @Test
-    fun uberRidePickupEtaWithValidPinIsNearby() {
+    fun uberRidePickupEtaWithinTwoMinutesWithValidPinIsNearby() {
         val update = LiveStatusNotificationParser.parseUberRide(
-            "Pick up in 12 min",
+            "Pick up in 2 min",
             "1234",
         )
 
@@ -347,7 +347,21 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
-    fun uberRidePickupEtaAndMeetingPointStayPickupStageEvenWithVehicleDetailsAndPin() {
+    fun uberRidePickupEtaWithinTwoMinutesOverridesMeetingPointWhenVehicleDetailsOrPinExist() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "Pick up in 2 min\nMeet at Demo Transit Center\nABC1234 · Blue Toyota Prius\n1\n2\n3\n4",
+            null,
+        )
+
+        assertEquals(UberRideEvent.PICKUP_NEARBY, update.event)
+        assertEquals("Meet at Demo Transit Center", update.pickupPoint)
+        assertEquals("ABC1234", update.plate)
+        assertEquals("Blue Toyota Prius", update.vehicle)
+        assertEquals("1234", update.pin)
+    }
+
+    @Test
+    fun uberRidePickupEtaOverTwoMinutesAndMeetingPointStayPickupStageEvenWithVehicleDetailsAndPin() {
         val update = LiveStatusNotificationParser.parseUberRide(
             "Pick up in 4 min\nMeet at Demo Transit Center\nABC1234 · Blue Toyota Prius",
             "1234",
