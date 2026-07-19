@@ -26,7 +26,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -205,3 +208,35 @@ private fun Drawable.toBitmap(): Bitmap {
 }
 
 private const val DEFAULT_ICON_BITMAP_SIZE = 48
+
+@Composable
+internal fun AppActionDivider(color: Color) {
+    HorizontalDivider(
+        modifier = Modifier.padding(vertical = 6.dp),
+        color = color.copy(alpha = 0.18f),
+    )
+}
+
+@Composable
+internal fun AppWarningNotice(
+    title: String,
+    description: String,
+) {
+    val colors = LocalAppColors.current
+    CardSurface(colors.warningContainer, 14, 14) {
+        Row(verticalAlignment = Alignment.Top) {
+            Icon(
+                imageVector = Icons.Rounded.WarningAmber,
+                contentDescription = null,
+                tint = colors.warningText,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(9.dp))
+            Column {
+                AppText(title, 14, colors.warningText, true)
+                Spacer(Modifier.height(4.dp))
+                AppText(description, 13, colors.warningText)
+            }
+        }
+    }
+}

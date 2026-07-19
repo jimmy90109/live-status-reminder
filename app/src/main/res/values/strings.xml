@@ -7,6 +7,10 @@
     <string name="monitoring_clock_running">讀取主要 timer 的 MetricStyle 或倒數 chronometer 結束時間。</string>
     <string name="monitoring_clock_paused">讀取 MetricStyle 提供的固定剩餘時間，不讓鏡像通知繼續倒數。</string>
     <string name="monitoring_clock_ended">主要來源通知移除、失效或倒數結束時清除。</string>
+    <string name="clock_aod_update_warning_title">AOD 倒數更新限制</string>
+    <string name="clock_aod_update_warning_description">AOD 或深度休眠期間無法保證每秒刷新；喚醒螢幕後會自動校正。</string>
+    <string name="platform_special_status_warning_title">其他特殊情況不會顯示於即時通知</string>
+    <string name="platform_special_status_warning_description">例如正在尋找其他外送員、餐點停止供應，或其他尚未支援的訂單／行程狀態。實際情況請以平台官方通知為主。</string>
 
     <string name="monitoring_ipass_entered">同一則通知同時包含「乘車碼交易」與「尚未出站」。</string>
     <string name="monitoring_ipass_exited">同一則通知同時包含「乘車碼交易」與「出站交易已完成」。</string>

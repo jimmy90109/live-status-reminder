@@ -206,6 +206,22 @@ class ClockTimerNotificationTest {
         assertNull(ClockTimerRefreshTiming.nextDelayMillis(0L))
     }
 
+    @Test
+    fun metricUsesChronometerUntilFinalMinuteThenSwitchesToFixedText() {
+        val runningTimer = LiveStatusTimer(
+            state = ClockTimerState.RUNNING,
+            endElapsedRealtimeMillis = 170_000L,
+        )
+        val pausedTimer = LiveStatusTimer(
+            state = ClockTimerState.PAUSED,
+            remainingMillis = 120_000L,
+        )
+
+        assertEquals(false, ClockTimerMetricPresentation.usesFixedText(runningTimer, 50_000L))
+        assertTrue(ClockTimerMetricPresentation.usesFixedText(runningTimer, 110_000L))
+        assertTrue(ClockTimerMetricPresentation.usesFixedText(pausedTimer, 50_000L))
+    }
+
     private fun interpret(signals: ClockTimerSignals): ClockTimerUpdate? =
         ClockTimerInterpreter.interpret(
             sourceKey = "clock|timer",

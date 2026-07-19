@@ -137,7 +137,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                 },
                 cardColor = when (currentDebugTarget) {
-                    DebugTarget.CLOCK -> colors.commonContainer
+                    DebugTarget.CLOCK -> colors.clockContainer
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer

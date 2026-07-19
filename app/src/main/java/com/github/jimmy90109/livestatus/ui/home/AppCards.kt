@@ -86,10 +86,11 @@ internal fun IpassCard(
         labelColor = colors.ipassSecondaryContainer,
         foregroundColor = colors.onSurface,
     ) {
+        AppActionDivider(colors.onSurface)
         ActionButton(
             "模擬上車，顯示提醒  ↑",
-            colors.ipassPrimary,
-            colors.commonOnPrimary,
+            colors.ipassTertiaryContainer,
+            colors.onSurface,
             supportingText = stringResource(R.string.monitoring_ipass_entered),
             enabled = enabled,
         ) {
@@ -125,14 +126,19 @@ internal fun ClockCard(
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
-        cardColor = colors.commonContainer,
-        labelColor = colors.commonSurface,
-        foregroundColor = colors.onSurface,
+        cardColor = colors.clockContainer,
+        labelColor = colors.clockSurface,
+        foregroundColor = colors.clockText,
     ) {
+        AppWarningNotice(
+            title = stringResource(R.string.clock_aod_update_warning_title),
+            description = stringResource(R.string.clock_aod_update_warning_description),
+        )
+        AppActionDivider(colors.clockText)
         ActionButton(
             "模擬 22 分鐘倒數",
-            colors.commonPrimary,
-            colors.commonOnPrimary,
+            colors.clockSurface,
+            colors.clockText,
             supportingText = stringResource(R.string.monitoring_clock_running),
             enabled = enabled,
         ) {
@@ -148,8 +154,8 @@ internal fun ClockCard(
         }
         ActionButton(
             "模擬暫停於 12:34",
-            colors.commonSurface,
-            colors.onSurface,
+            colors.clockSurface,
+            colors.clockText,
             supportingText = stringResource(R.string.monitoring_clock_paused),
             enabled = enabled,
         ) {
@@ -165,14 +171,14 @@ internal fun ClockCard(
         }
         ActionButton(
             "清除 Clock 倒數  ✓",
-            colors.commonSurface,
-            colors.onSurface,
+            colors.clockSurface,
+            colors.clockText,
             supportingText = stringResource(R.string.monitoring_clock_ended),
         ) {
             LiveStatusReminder.clearClockTimer(context)
         }
         if (BuildConfig.DEBUG) {
-            ActionButton("查看通知 payload", colors.commonSurface, colors.onSurface) {
+            ActionButton("查看通知 payload", colors.clockSurface, colors.clockText) {
                 onOpenDebug()
             }
         }

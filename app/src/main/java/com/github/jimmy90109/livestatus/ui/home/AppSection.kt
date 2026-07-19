@@ -209,7 +209,7 @@ private fun AppTabs(
         AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
         AppTab("Uber", TAB_UBER, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
         AppTab("Pikmin Bloom", TAB_PIKMIN_BLOOM, selectedTab, colors.pikminPrimary, colors.commonOnPrimary, onSelect)
-        AppTab("Clock", TAB_CLOCK, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
+        AppTab("Clock", TAB_CLOCK, selectedTab, colors.clockPrimary, colors.commonOnPrimary, onSelect)
         Spacer(Modifier.width(horizontalContentPadding))
     }
 }

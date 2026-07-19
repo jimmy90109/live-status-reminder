@@ -88,6 +88,11 @@ internal fun UberRideCard(
         labelColor = colors.commonSurface,
         foregroundColor = colors.onSurface,
     ) {
+        AppWarningNotice(
+            title = stringResource(R.string.platform_special_status_warning_title),
+            description = stringResource(R.string.platform_special_status_warning_description),
+        )
+        AppActionDivider(colors.onSurface)
         UberRideTestButton(
             label = "模擬上車 ETA 與地點",
             supportingText = stringResource(R.string.monitoring_uber_pickup_en_route),
@@ -157,11 +162,10 @@ private fun UberRideTestButton(
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
-    val primary = update.event == LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE
     ActionButton(
         label,
-        if (primary) colors.commonPrimary else colors.commonSurface,
-        if (primary) colors.commonOnPrimary else colors.onSurface,
+        colors.commonSurface,
+        colors.onSurface,
         supportingText = supportingText,
         enabled = enabled,
     ) {
@@ -192,10 +196,11 @@ internal fun PikminBloomCard(
         labelColor = colors.pikminSecondaryContainer,
         foregroundColor = colors.pikminText,
     ) {
+        AppActionDivider(colors.pikminText)
         ActionButton(
             "模擬種花中",
-            colors.pikminPrimary,
-            colors.commonOnPrimary,
+            colors.pikminSecondaryContainer,
+            colors.pikminText,
             supportingText = stringResource(R.string.monitoring_pikmin_started),
             enabled = enabled,
         ) {

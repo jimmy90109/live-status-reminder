@@ -274,7 +274,7 @@ object LiveStatusReminder {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
-            .also { ClockTimerNotificationStyle.apply(it, timer) }
+            .also { ClockTimerNotificationStyle.apply(it, timer, payload.criticalText) }
             .setShortCriticalText(payload.criticalText)
             .also(::requestPromotedOngoing)
             .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }

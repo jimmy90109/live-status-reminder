@@ -354,9 +354,13 @@ internal class ClockTimerTracker {
 }
 
 internal object ClockTimerNotificationStyle {
-    fun apply(builder: Notification.Builder, timer: LiveStatusTimer) {
+    fun apply(
+        builder: Notification.Builder,
+        timer: LiveStatusTimer,
+        criticalText: String,
+    ) {
         if (Build.VERSION.SDK_INT >= 37) {
-            ClockTimerStyleApi37.apply(builder, timer)
+            ClockTimerStyleApi37.apply(builder, timer, criticalText)
             return
         }
         when (timer.state) {
@@ -380,6 +384,15 @@ internal object ClockTimerNotificationStyle {
             )
         }
     }
+}
+
+internal object ClockTimerMetricPresentation {
+    fun usesFixedText(timer: LiveStatusTimer, nowElapsedRealtimeMillis: Long): Boolean =
+        when (timer.state) {
+            ClockTimerState.PAUSED -> true
+            ClockTimerState.RUNNING ->
+                requireNotNull(timer.endElapsedRealtimeMillis) - nowElapsedRealtimeMillis <= 60_000L
+        }
 }
 
 private data class MetricReadResult(
@@ -435,14 +448,18 @@ private object ClockTimerApi37 {
 
 @RequiresApi(37)
 private object ClockTimerStyleApi37 {
-    fun apply(builder: Notification.Builder, timer: LiveStatusTimer) {
-        val timeDifference = when (timer.state) {
-            ClockTimerState.RUNNING -> Notification.Metric.TimeDifference.forTimer(
+    fun apply(
+        builder: Notification.Builder,
+        timer: LiveStatusTimer,
+        criticalText: String,
+    ) {
+        val metricValue = if (
+            ClockTimerMetricPresentation.usesFixedText(timer, SystemClock.elapsedRealtime())
+        ) {
+            Notification.Metric.FixedText(criticalText)
+        } else {
+            Notification.Metric.TimeDifference.forTimer(
                 requireNotNull(timer.endElapsedRealtimeMillis),
-                Notification.Metric.TimeDifference.FORMAT_CHRONOMETER,
-            )
-            ClockTimerState.PAUSED -> Notification.Metric.TimeDifference.forPausedTimer(
-                Duration.ofMillis(requireNotNull(timer.remainingMillis)),
                 Notification.Metric.TimeDifference.FORMAT_CHRONOMETER,
             )
         }
@@ -452,7 +469,7 @@ private object ClockTimerStyleApi37 {
             "Time remaining"
         }
         val style = Notification.MetricStyle()
-            .addMetric(Notification.Metric(timeDifference, metricLabel))
+            .addMetric(Notification.Metric(metricValue, metricLabel))
             .setCriticalMetric(0)
         builder.setStyle(style)
     }

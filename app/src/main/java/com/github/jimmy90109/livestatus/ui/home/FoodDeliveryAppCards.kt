@@ -88,10 +88,15 @@ internal fun FoodpandaCard(
         labelColor = colors.foodpandaSecondaryContainer,
         foregroundColor = colors.foodpandaText,
     ) {
+        AppWarningNotice(
+            title = stringResource(R.string.platform_special_status_warning_title),
+            description = stringResource(R.string.platform_special_status_warning_description),
+        )
+        AppActionDivider(colors.foodpandaText)
         ActionButton(
             "模擬外送中",
-            colors.foodpandaPrimary,
-            colors.commonOnPrimary,
+            colors.foodpandaSecondaryContainer,
+            colors.foodpandaText,
             supportingText = stringResource(R.string.monitoring_foodpanda_on_the_way),
             enabled = enabled,
         ) {
@@ -146,6 +151,11 @@ internal fun UberEatsCard(
         labelColor = colors.uberEatsSecondaryContainer,
         foregroundColor = colors.uberEatsText,
     ) {
+        AppWarningNotice(
+            title = stringResource(R.string.platform_special_status_warning_title),
+            description = stringResource(R.string.platform_special_status_warning_description),
+        )
+        AppActionDivider(colors.uberEatsText)
         UberEatsTestButton(
             label = "模擬訂單已收到",
             supportingText = stringResource(R.string.monitoring_uber_eats_received),
@@ -213,11 +223,10 @@ private fun UberEatsTestButton(
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
-    val primary = event == LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED
     ActionButton(
         label,
-        if (primary) colors.uberEatsPrimary else colors.uberEatsSecondaryContainer,
-        if (primary) colors.commonOnPrimary else colors.uberEatsText,
+        colors.uberEatsSecondaryContainer,
+        colors.uberEatsText,
         supportingText = supportingText,
         enabled = enabled,
     ) {
