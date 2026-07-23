@@ -2,6 +2,7 @@ package com.github.jimmy90109.livestatus.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -170,11 +171,34 @@ internal fun StatusPill(enabled: Boolean, enabledText: String, disabledText: Str
 }
 
 @Composable
+internal fun AppCardActionButton(
+    label: String,
+    selectedBackground: Color,
+    lightForeground: Color,
+    supportingText: String? = null,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val darkTheme = isSystemInDarkTheme()
+    ActionButton(
+        label = label,
+        background = if (darkTheme) selectedBackground else colors.appActionContainer,
+        foreground = if (darkTheme) colors.commonOnPrimary else lightForeground,
+        supportingText = supportingText,
+        supportingForeground = if (darkTheme) colors.commonOnPrimary else lightForeground,
+        enabled = enabled,
+        onClick = onClick,
+    )
+}
+
+@Composable
 internal fun ActionButton(
     label: String,
     background: Color,
     foreground: Color,
     supportingText: String? = null,
+    supportingForeground: Color = foreground,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -201,7 +225,7 @@ internal fun ActionButton(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = it,
-                    color = foreground,
+                    color = supportingForeground,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
                 )

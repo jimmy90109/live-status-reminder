@@ -93,34 +93,34 @@ internal fun FoodpandaCard(
             description = stringResource(R.string.platform_special_status_warning_description),
         )
         AppActionDivider(colors.foodpandaText)
-        ActionButton(
+        AppCardActionButton(
             "模擬外送中",
-            colors.foodpandaSecondaryContainer,
+            colors.foodpandaPrimary,
             colors.foodpandaText,
             supportingText = stringResource(R.string.monitoring_foodpanda_on_the_way),
             enabled = enabled,
         ) {
             LiveStatusReminder.showFoodpanda(context, LiveStatusNotificationParser.FoodpandaEvent.COURIER_ON_THE_WAY)
         }
-        ActionButton(
+        AppCardActionButton(
             "模擬即將抵達",
-            colors.foodpandaSecondaryContainer,
+            colors.foodpandaPrimary,
             colors.foodpandaText,
             supportingText = stringResource(R.string.monitoring_foodpanda_arriving),
             enabled = enabled,
         ) {
             LiveStatusReminder.showFoodpanda(context, LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING)
         }
-        ActionButton(
+        AppCardActionButton(
             "清除 foodpanda 狀態  ✓",
-            colors.foodpandaSecondaryContainer,
+            colors.foodpandaPrimary,
             colors.foodpandaText,
             supportingText = stringResource(R.string.monitoring_foodpanda_ended),
         ) {
             LiveStatusReminder.clearFoodpanda(context)
         }
         if (BuildConfig.DEBUG) {
-            ActionButton("查看通知 payload", colors.foodpandaSecondaryContainer, colors.foodpandaText) {
+            AppCardActionButton("查看通知 payload", colors.foodpandaPrimary, colors.foodpandaText) {
                 onOpenDebug()
             }
         }
@@ -196,16 +196,16 @@ internal fun UberEatsCard(
             officialText = "小明 · ABC-1234 · 即將抵達",
             enabled = enabled,
         )
-        ActionButton(
+        AppCardActionButton(
             "模擬送達，清除狀態  ✓",
-            colors.uberEatsSecondaryContainer,
+            colors.uberEatsPrimary,
             colors.uberEatsText,
             supportingText = stringResource(R.string.monitoring_uber_eats_ended),
         ) {
             LiveStatusReminder.clearUberEats(context)
         }
         if (BuildConfig.DEBUG) {
-            ActionButton("查看通知 payload", colors.uberEatsSecondaryContainer, colors.uberEatsText) {
+            AppCardActionButton("查看通知 payload", colors.uberEatsPrimary, colors.uberEatsText) {
                 onOpenDebug()
             }
         }
@@ -223,9 +223,9 @@ private fun UberEatsTestButton(
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
-    ActionButton(
+    AppCardActionButton(
         label,
-        colors.uberEatsSecondaryContainer,
+        colors.uberEatsPrimary,
         colors.uberEatsText,
         supportingText = supportingText,
         enabled = enabled,

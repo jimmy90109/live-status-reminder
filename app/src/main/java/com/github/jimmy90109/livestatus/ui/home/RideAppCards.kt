@@ -142,9 +142,9 @@ internal fun UberRideCard(
             ),
             enabled = enabled,
         )
-        ActionButton(
+        AppCardActionButton(
             "模擬完成，清除狀態  ✓",
-            colors.commonSurface,
+            colors.commonPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_uber_ended),
         ) {
@@ -192,16 +192,16 @@ internal fun UberRideCard(
             ),
             enabled = enabled,
         )
-        ActionButton(
+        AppCardActionButton(
             "模擬小黃行程完成，清除狀態  ✓",
-            colors.commonSurface,
+            colors.commonPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_uber_taxi_ended),
         ) {
             LiveStatusReminder.clearUberRide(context)
         }
         if (BuildConfig.DEBUG) {
-            ActionButton("查看通知 payload", colors.commonSurface, colors.onSurface) {
+            AppCardActionButton("查看通知 payload", colors.commonPrimary, colors.onSurface) {
                 onOpenDebug()
             }
         }
@@ -232,9 +232,9 @@ private fun UberRideTestButton(
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
-    ActionButton(
+    AppCardActionButton(
         label,
-        colors.commonSurface,
+        colors.commonPrimary,
         colors.onSurface,
         supportingText = supportingText,
         enabled = enabled,
@@ -267,18 +267,18 @@ internal fun PikminBloomCard(
         foregroundColor = colors.pikminText,
     ) {
         AppActionDivider(colors.pikminText)
-        ActionButton(
+        AppCardActionButton(
             "模擬種花中",
-            colors.pikminSecondaryContainer,
+            colors.pikminPrimary,
             colors.pikminText,
             supportingText = stringResource(R.string.monitoring_pikmin_started),
             enabled = enabled,
         ) {
             LiveStatusReminder.showPikminBloom(context)
         }
-        ActionButton(
+        AppCardActionButton(
             "清除 Pikmin Bloom 狀態  ✓",
-            colors.pikminSecondaryContainer,
+            colors.pikminPrimary,
             colors.pikminText,
             supportingText = stringResource(R.string.monitoring_pikmin_stopped),
         ) {
