@@ -79,8 +79,8 @@ internal fun UberRideCard(
         appPackageName = UBER_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
         title = "乘車進度",
-        description = "接單後顯示上車點、車輛與 PIN；上車後改顯示下車點。",
-        supportedLanguages = listOf("英文"),
+        description = "一般行程顯示上車點、車輛與 PIN；優步小黃顯示職業駕駛接近進度。",
+        supportedLanguages = listOf("En / 繁中"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
@@ -93,6 +93,11 @@ internal fun UberRideCard(
             description = stringResource(R.string.platform_special_status_warning_description),
         )
         AppActionDivider(colors.onSurface)
+        UberRideSectionHeader(
+            title = "標準型優步",
+            language = "En",
+        )
+        Spacer(Modifier.height(2.dp))
         UberRideTestButton(
             label = "模擬上車 ETA 與地點",
             supportingText = stringResource(R.string.monitoring_uber_pickup_en_route),
@@ -145,11 +150,76 @@ internal fun UberRideCard(
         ) {
             LiveStatusReminder.clearUberRide(context)
         }
+        AppActionDivider(colors.onSurface)
+        UberRideSectionHeader(
+            title = "優步小黃",
+            language = "繁中",
+        )
+        Spacer(Modifier.height(2.dp))
+        UberRideTestButton(
+            label = "模擬職業駕駛正在途中",
+            supportingText = stringResource(R.string.monitoring_uber_taxi_pickup_en_route),
+            update = LiveStatusNotificationParser.UberRideUpdate(
+                event = LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE,
+                rideType = LiveStatusNotificationParser.UberRideType.UBER_TAXI,
+                title = "職業駕駛正在途中",
+                officialText = "王先生（4.96 顆星評分）將在 4 分鐘內抵達。",
+                pickupEtaMinutes = 4,
+            ),
+            enabled = enabled,
+        )
+        UberRideTestButton(
+            label = "模擬職業駕駛已在附近",
+            supportingText = stringResource(R.string.monitoring_uber_taxi_pickup_approaching),
+            update = LiveStatusNotificationParser.UberRideUpdate(
+                event = LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING,
+                rideType = LiveStatusNotificationParser.UberRideType.UBER_TAXI,
+                title = "職業駕駛在幾分鐘後就會抵達",
+                officialText = "請準備好與職業駕駛碰面",
+            ),
+            enabled = enabled,
+        )
+        UberRideTestButton(
+            label = "模擬職業駕駛即將抵達",
+            supportingText = stringResource(R.string.monitoring_uber_taxi_pickup_nearby),
+            update = LiveStatusNotificationParser.UberRideUpdate(
+                event = LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY,
+                rideType = LiveStatusNotificationParser.UberRideType.UBER_TAXI,
+                title = "職業駕駛即將抵達",
+                officialText = "王先生即將抵達，駕駛車款為 Toyota Corolla Cross Hybrid (ABC1234)。",
+                plate = "ABC1234",
+                vehicle = "Toyota Corolla Cross Hybrid",
+            ),
+            enabled = enabled,
+        )
+        ActionButton(
+            "模擬小黃行程完成，清除狀態  ✓",
+            colors.commonSurface,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_uber_taxi_ended),
+        ) {
+            LiveStatusReminder.clearUberRide(context)
+        }
         if (BuildConfig.DEBUG) {
             ActionButton("查看通知 payload", colors.commonSurface, colors.onSurface) {
                 onOpenDebug()
             }
         }
+    }
+}
+
+@Composable
+private fun UberRideSectionHeader(
+    title: String,
+    language: String,
+) {
+    val colors = LocalAppColors.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AppText(title, 15, colors.onSurface, true)
+        LanguageTag(language, colors.commonSurface, colors.onSurface)
     }
 }
 

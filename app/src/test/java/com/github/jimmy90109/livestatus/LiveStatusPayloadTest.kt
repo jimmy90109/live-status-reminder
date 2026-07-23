@@ -3,6 +3,7 @@ package com.github.jimmy90109.livestatus
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -84,6 +85,8 @@ class LiveStatusPayloadTest {
         )
 
         assertEquals("Uber", payload.appName)
+        assertEquals(R.drawable.ic_car_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_car_notification, payload.leftIconRes)
         assertEquals("Pick up in 14 min", payload.title)
         assertEquals("Meet at Demo Transit Center", payload.contentText)
         assertEquals("14 min", payload.criticalText)
@@ -140,6 +143,55 @@ class LiveStatusPayloadTest {
 
         assertEquals("To pickup", pickupPayload.criticalText)
         assertEquals("On trip", onTripPayload.criticalText)
+    }
+
+    @Test
+    fun uberTaxiPayloadUsesProfessionalDriverCopyAndEta() {
+        val payload = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_EN_ROUTE,
+                rideType = UberRideType.UBER_TAXI,
+                title = "職業駕駛正在途中",
+                officialText = "王先生（4.96 顆星評分）將在 4 分鐘內抵達。",
+                pickupEtaMinutes = 4,
+            ),
+        )
+
+        assertEquals("Uber", payload.appName)
+        assertEquals("職業駕駛正在前往上車點", payload.title)
+        assertEquals("王先生（4.96 顆星評分）將在 4 分鐘內抵達。", payload.contentText)
+        assertEquals("4 分鐘", payload.criticalText)
+        assertEquals(25, payload.progress)
+        assertFalse(payload.title.contains("優步小黃"))
+    }
+
+    @Test
+    fun uberTaxiPayloadUsesNearbyStages() {
+        val approaching = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_APPROACHING,
+                rideType = UberRideType.UBER_TAXI,
+                officialText = "請準備好與職業駕駛碰面",
+            ),
+        )
+        val nearby = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_NEARBY,
+                rideType = UberRideType.UBER_TAXI,
+                officialText = "王先生即將抵達，駕駛車款為 Toyota Corolla Cross Hybrid (ABC1234)。",
+                plate = "ABC1234",
+                vehicle = "Toyota Corolla Cross Hybrid",
+            ),
+        )
+
+        assertEquals("職業駕駛已在附近", approaching.title)
+        assertEquals("已在附近", approaching.criticalText)
+        assertEquals(40, approaching.progress)
+        assertEquals("職業駕駛即將抵達", nearby.title)
+        assertEquals("即將抵達", nearby.criticalText)
+        assertEquals(50, nearby.progress)
+        assertFalse(approaching.title.contains("優步小黃"))
+        assertFalse(nearby.title.contains("優步小黃"))
     }
 
     @Test

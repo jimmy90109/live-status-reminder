@@ -78,7 +78,7 @@ internal fun IpassCard(
         fallbackIconRes = R.drawable.ic_notification,
         title = "乘車碼狀態",
         description = "進站後顯示乘車碼捷徑，準備下車時快速開啟。",
-        supportedLanguages = listOf("中文"),
+        supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,

@@ -128,7 +128,7 @@ internal fun AppCard(
 }
 
 @Composable
-private fun LanguageTag(
+internal fun LanguageTag(
     label: String,
     background: Color,
     foreground: Color,

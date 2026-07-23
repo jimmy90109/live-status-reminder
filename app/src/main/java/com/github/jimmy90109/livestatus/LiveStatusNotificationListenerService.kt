@@ -84,6 +84,8 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 val update = LiveStatusNotificationParser.parseUberRide(
                     notificationText,
                     shortCriticalText,
+                    notificationTitle,
+                    notificationContentText,
                 )
                 if (BuildConfig.DEBUG) {
                     NotificationDebugPayloadStore.recordUber(
@@ -323,6 +325,8 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private fun LiveStatusNotificationParser.UberRideUpdate.merge(
         update: LiveStatusNotificationParser.UberRideUpdate,
     ): LiveStatusNotificationParser.UberRideUpdate {
+        if (rideType != update.rideType) return update
+
         val mergedEvent = if (uberRideEventRank(update.event) >= uberRideEventRank(event)) {
             update.event
         } else {
@@ -330,7 +334,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
         return LiveStatusNotificationParser.UberRideUpdate(
             event = mergedEvent,
+            rideType = update.rideType,
             title = update.title ?: title,
+            officialText = update.officialText ?: officialText,
+            pickupEtaMinutes = update.pickupEtaMinutes ?: pickupEtaMinutes,
             pickupPoint = update.pickupPoint ?: pickupPoint,
             dropoffPoint = update.dropoffPoint ?: dropoffPoint,
             plate = update.plate ?: plate,
@@ -341,10 +348,11 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     private fun uberRideEventRank(event: LiveStatusNotificationParser.UberRideEvent): Int = when (event) {
         LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE -> 1
-        LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> 2
-        LiveStatusNotificationParser.UberRideEvent.ARRIVED -> 3
-        LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> 4
-        LiveStatusNotificationParser.UberRideEvent.TRIP_ENDED -> 5
+        LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING -> 2
+        LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> 3
+        LiveStatusNotificationParser.UberRideEvent.ARRIVED -> 4
+        LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> 5
+        LiveStatusNotificationParser.UberRideEvent.TRIP_ENDED -> 6
         else -> 0
     }
 

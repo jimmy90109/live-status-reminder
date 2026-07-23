@@ -5,6 +5,7 @@ import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.RideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -232,6 +233,97 @@ class LiveStatusNotificationParserTest {
         assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
         assertEquals("Pick up in 14 min", update.title)
         assertEquals("Meet at Demo Transit Center", update.pickupPoint)
+    }
+
+    @Test
+    fun uberTaxiParsesProfessionalDriverEnRouteWithEta() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            notificationText =
+                "職業駕駛正在途中\n盛船（4.96 顆星評分）將在 4 分鐘內抵達。\n" +
+                    "職業駕駛正在途中\n盛船（4.96 顆星評分）將在 4 分鐘內抵達。",
+            shortCriticalText = null,
+            notificationTitle = "職業駕駛正在途中",
+            notificationContentText = "盛船（4.96 顆星評分）將在 4 分鐘內抵達。",
+        )
+
+        assertEquals(UberRideType.UBER_TAXI, update.rideType)
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
+        assertEquals(4, update.pickupEtaMinutes)
+        assertEquals("盛船（4.96 顆星評分）將在 4 分鐘內抵達。", update.officialText)
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberTaxiParsesProfessionalDriverApproaching() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            notificationText =
+                "職業駕駛在幾分鐘後就會抵達\n職業駕駛在幾分鐘後就會抵達\n" +
+                    "請準備好與職業駕駛碰面\n請準備好與職業駕駛碰面",
+            shortCriticalText = null,
+        )
+
+        assertEquals(UberRideType.UBER_TAXI, update.rideType)
+        assertEquals(UberRideEvent.PICKUP_APPROACHING, update.event)
+    }
+
+    @Test
+    fun uberTaxiParsesNearbyVehicleWithoutTreatingPlateAsPin() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            notificationText =
+                "職業駕駛即將抵達\n" +
+                    "盛船 即將抵達，駕駛車款為 Toyota Corolla Cross Hybrid (TDX7597)。\n" +
+                    "ApplicationInfo{d3996d8 com.ubercab}",
+            shortCriticalText = null,
+            notificationTitle = "職業駕駛即將抵達",
+            notificationContentText =
+                "盛船 即將抵達，駕駛車款為 Toyota Corolla Cross Hybrid (TDX7597)。",
+        )
+
+        assertEquals(UberRideType.UBER_TAXI, update.rideType)
+        assertEquals(UberRideEvent.PICKUP_NEARBY, update.event)
+        assertEquals("Toyota Corolla Cross Hybrid", update.vehicle)
+        assertEquals("TDX7597", update.plate)
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberTaxiRatingNotificationEndsTripBeforeOlderJoinedText() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            notificationText =
+                "職業駕駛即將抵達\n為您的行程評分\n感謝您選擇 Uber，請為盛船之行程評分。",
+            shortCriticalText = null,
+            notificationTitle = "為您的行程評分",
+            notificationContentText = "感謝您選擇 Uber，請為盛船之行程評分。您也可以給駕駛小費。",
+        )
+
+        assertEquals(UberRideType.UBER_TAXI, update.rideType)
+        assertEquals(UberRideEvent.TRIP_ENDED, update.event)
+    }
+
+    @Test
+    fun uberTaxiRequiresCompleteKnownStatusText() {
+        val enRouteWithoutEta = LiveStatusNotificationParser.parseUberRide(
+            "職業駕駛正在途中",
+            null,
+            "職業駕駛正在途中",
+            "歡迎使用 Uber",
+        )
+        val approachingWithoutMeetingText = LiveStatusNotificationParser.parseUberRide(
+            "職業駕駛在幾分鐘後就會抵達",
+            null,
+            "職業駕駛在幾分鐘後就會抵達",
+            "請查看其他行程資訊",
+        )
+        val unrelated = LiveStatusNotificationParser.parseUberRide(
+            "職業駕駛招募資訊",
+            null,
+            "職業駕駛招募資訊",
+            null,
+        )
+
+        assertEquals(UberRideEvent.NONE, enRouteWithoutEta.event)
+        assertEquals(UberRideEvent.NONE, approachingWithoutMeetingText.event)
+        assertEquals(UberRideEvent.NONE, unrelated.event)
     }
 
     @Test

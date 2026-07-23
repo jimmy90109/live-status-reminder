@@ -41,7 +41,10 @@
 - 快抵達或已抵達時顯示車牌、車款與四位數 PIN。
 - 上車後顯示預估下車時間與下車點。
 - 偵測到評分通知後自動移除提醒。
-- 第一版只支援英文 Uber 乘車通知文案。
+- 一般 Uber 行程目前支援英文通知文案。
+- 優步小黃支援繁體中文的「職業駕駛正在途中」、「已在附近」與「即將抵達」三階段；
+  評分通知出現後自動移除提醒。
+- 尚未觀察到的優步小黃已抵達、行程中與取消通知不會自行推測狀態。
 
 ### Pikmin Bloom
 
@@ -87,4 +90,6 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 ~/.gradle/project-builds/LiveStatusReminder/app/outputs/apk/debug/app-debug.apk
 ```
 
-Uber Eats 截圖評估與實機待驗證項目位於 [`docs/ubereats-audit/`](docs/ubereats-audit/README.md)。
+Uber 與 Uber Eats 的截圖評估及實機待驗證項目分別位於
+[`docs/uber-audit/`](docs/uber-audit/README.md) 與
+[`docs/ubereats-audit/`](docs/ubereats-audit/README.md)。

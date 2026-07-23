@@ -73,7 +73,10 @@ object NotificationDebugPayloadStore {
             parsedEvent = update.event.name,
             parsedPin = update.pin,
             parsedDetails = linkedMapOf(
+                "parsedRideType" to update.rideType.name,
                 "parsedTitle" to update.title.orEmpty(),
+                "parsedOfficialText" to update.officialText.orEmpty(),
+                "parsedPickupEtaMinutes" to update.pickupEtaMinutes?.toString().orEmpty(),
                 "parsedPickupPoint" to update.pickupPoint.orEmpty(),
                 "parsedDropoffPoint" to update.dropoffPoint.orEmpty(),
                 "parsedPlate" to update.plate.orEmpty(),

@@ -34,10 +34,16 @@ object LiveStatusNotificationParser {
     enum class UberRideEvent {
         NONE,
         PICKUP_EN_ROUTE,
+        PICKUP_APPROACHING,
         PICKUP_NEARBY,
         ARRIVED,
         ON_TRIP,
         TRIP_ENDED,
+    }
+
+    enum class UberRideType {
+        STANDARD,
+        UBER_TAXI,
     }
 
     enum class PikminEvent {
@@ -52,7 +58,10 @@ object LiveStatusNotificationParser {
 
     data class UberRideUpdate(
         val event: UberRideEvent,
+        val rideType: UberRideType = UberRideType.STANDARD,
         val title: String? = null,
+        val officialText: String? = null,
+        val pickupEtaMinutes: Int? = null,
         val pickupPoint: String? = null,
         val dropoffPoint: String? = null,
         val plate: String? = null,
@@ -121,12 +130,33 @@ object LiveStatusNotificationParser {
     fun parseUberRide(
         notificationText: String?,
         shortCriticalText: String?,
+        notificationTitle: String? = null,
+        notificationContentText: String? = null,
     ): UberRideUpdate {
         val lines = notificationText.cleanLines()
         val normalized = lines.joinToString("\n").lowercase(Locale.ROOT)
+        val taxiTitle = notificationTitle.cleanText()
+            ?: lines.firstOrNull { it in UBER_TAXI_TITLES }
+        val taxiContent = notificationContentText.cleanText()
+            ?: lines.firstOrNull { line ->
+                UBER_TAXI_CONTENT_MARKERS.any(line::contains)
+            }
+
+        if (taxiTitle == UBER_TAXI_TRIP_ENDED_TITLE) {
+            return UberRideUpdate(
+                event = UberRideEvent.TRIP_ENDED,
+                rideType = UberRideType.UBER_TAXI,
+                title = taxiTitle,
+                officialText = notificationContentText.cleanText(),
+            )
+        }
 
         if (normalized.contains("rate your trip")) {
             return UberRideUpdate(event = UberRideEvent.TRIP_ENDED)
+        }
+
+        parseUberTaxi(taxiTitle, taxiContent, shortCriticalText, notificationText)?.let {
+            return it
         }
 
         val title = lines.firstOrNull { line ->
@@ -164,6 +194,42 @@ object LiveStatusNotificationParser {
         )
     }
 
+    private fun parseUberTaxi(
+        title: String?,
+        contentText: String?,
+        shortCriticalText: String?,
+        notificationText: String?,
+    ): UberRideUpdate? {
+        val event = when {
+            title == UBER_TAXI_PICKUP_NEARBY_TITLE -> UberRideEvent.PICKUP_NEARBY
+            title == UBER_TAXI_PICKUP_APPROACHING_TITLE &&
+                contentText?.contains(UBER_TAXI_MEETING_TEXT) == true ->
+                UberRideEvent.PICKUP_APPROACHING
+            title == UBER_TAXI_PICKUP_EN_ROUTE_TITLE &&
+                UBER_TAXI_ETA.find(contentText.orEmpty()) != null ->
+                UberRideEvent.PICKUP_EN_ROUTE
+            else -> return null
+        }
+        val etaMinutes = UBER_TAXI_ETA.find(contentText.orEmpty())
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.toIntOrNull()
+        val vehicleDetails = UBER_TAXI_VEHICLE.find(contentText.orEmpty())?.let { match ->
+            match.groupValues[2] to match.groupValues[1].trim()
+        }
+
+        return UberRideUpdate(
+            event = event,
+            rideType = UberRideType.UBER_TAXI,
+            title = title,
+            officialText = contentText,
+            pickupEtaMinutes = etaMinutes,
+            plate = vehicleDetails?.first,
+            vehicle = vehicleDetails?.second,
+            pin = exactPin(shortCriticalText) ?: separatedPin(notificationText),
+        )
+    }
+
     @JvmStatic
     fun parsePikminBloom(notificationText: String?): PikminEvent {
         if (notificationText == null) return PikminEvent.NONE
@@ -196,6 +262,9 @@ object LiveStatusNotificationParser {
             .filter { it.isNotEmpty() }
             .toList()
 
+    private fun String?.cleanText(): String? =
+        this?.replace(Regex("""\s+"""), " ")?.trim()?.takeIf { it.isNotEmpty() }
+
     private fun List<String>.firstTextAfter(prefix: String): String? =
         firstNotNullOfOrNull { line ->
             line.substringAfter(prefix, missingDelimiterValue = "")
@@ -227,4 +296,24 @@ object LiveStatusNotificationParser {
         }
 
     private const val UBER_RIDE_NEARBY_MINUTES = 2
+    private const val UBER_TAXI_PICKUP_EN_ROUTE_TITLE = "職業駕駛正在途中"
+    private const val UBER_TAXI_PICKUP_APPROACHING_TITLE = "職業駕駛在幾分鐘後就會抵達"
+    private const val UBER_TAXI_PICKUP_NEARBY_TITLE = "職業駕駛即將抵達"
+    private const val UBER_TAXI_TRIP_ENDED_TITLE = "為您的行程評分"
+    private const val UBER_TAXI_MEETING_TEXT = "請準備好與職業駕駛碰面"
+    private val UBER_TAXI_TITLES = setOf(
+        UBER_TAXI_PICKUP_EN_ROUTE_TITLE,
+        UBER_TAXI_PICKUP_APPROACHING_TITLE,
+        UBER_TAXI_PICKUP_NEARBY_TITLE,
+        UBER_TAXI_TRIP_ENDED_TITLE,
+    )
+    private val UBER_TAXI_CONTENT_MARKERS = listOf(
+        "分鐘內抵達",
+        UBER_TAXI_MEETING_TEXT,
+        "駕駛車款為",
+    )
+    private val UBER_TAXI_ETA = Regex("""將在\s*(\d+)\s*分鐘內抵達""")
+    private val UBER_TAXI_VEHICLE = Regex(
+        """駕駛車款為\s*(.+?)\s*[（(]\s*([\p{L}\p{N}-]+)\s*[）)]""",
+    )
 }

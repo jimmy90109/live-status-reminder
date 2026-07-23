@@ -442,12 +442,12 @@ object LiveStatusReminder {
         LiveStatusPayload(
             id = UBER_RIDE_NOTIFICATION_ID,
             appName = "Uber",
-            smallIconRes = R.drawable.ic_notification,
-            leftIconRes = R.drawable.ic_notification,
+            smallIconRes = R.drawable.ic_car_notification,
+            leftIconRes = R.drawable.ic_car_notification,
             criticalText = uberRideShortText(update),
-            title = update.title ?: uberRideFallbackTitle(update.event),
+            title = uberRideTitle(update),
             contentText = uberRideContentText(update),
-            progress = uberRideProgress(update.event),
+            progress = uberRideProgress(update),
             contentIntent = contentIntent,
         )
 
@@ -527,14 +527,47 @@ object LiveStatusReminder {
         }
     }
 
-    private fun uberRideContentText(update: LiveStatusNotificationParser.UberRideUpdate): String =
-        when (update.event) {
+    private fun uberRideTitle(update: LiveStatusNotificationParser.UberRideUpdate): String =
+        if (update.rideType == LiveStatusNotificationParser.UberRideType.UBER_TAXI) {
+            when (update.event) {
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE ->
+                    "職業駕駛正在前往上車點"
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING ->
+                    "職業駕駛已在附近"
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY ->
+                    "職業駕駛即將抵達"
+                else -> "職業駕駛行程"
+            }
+        } else {
+            update.title ?: uberRideFallbackTitle(update.event)
+        }
+
+    private fun uberRideContentText(update: LiveStatusNotificationParser.UberRideUpdate): String {
+        if (update.rideType == LiveStatusNotificationParser.UberRideType.UBER_TAXI) {
+            return update.officialText ?: uberTaxiFallbackContentText(update)
+        }
+        return when (update.event) {
             LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY,
             LiveStatusNotificationParser.UberRideEvent.ARRIVED,
             -> uberRideVehicleText(update)
             LiveStatusNotificationParser.UberRideEvent.ON_TRIP ->
                 update.dropoffPoint ?: "Heading to your destination"
             else -> update.pickupPoint ?: "Meet your driver at the pickup point"
+        }
+    }
+
+    private fun uberTaxiFallbackContentText(
+        update: LiveStatusNotificationParser.UberRideUpdate,
+    ): String =
+        when (update.event) {
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE ->
+                update.pickupEtaMinutes?.let { "職業駕駛將在 $it 分鐘內抵達。" }
+                    ?: "職業駕駛正在前往上車點。"
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING ->
+                "請準備好與職業駕駛碰面。"
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY ->
+                uberRideVehicleText(update)
+            else -> "請開啟 Uber 查看最新行程資訊。"
         }
 
     private fun uberRideVehicleText(update: LiveStatusNotificationParser.UberRideUpdate): String {
@@ -547,6 +580,8 @@ object LiveStatusReminder {
 
     private fun uberRideFallbackTitle(event: LiveStatusNotificationParser.UberRideEvent): String =
         when (event) {
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING ->
+                "Driver is approaching"
             LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Driver is nearby"
             LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Driver arrived"
             LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> "On your way"
@@ -554,12 +589,23 @@ object LiveStatusReminder {
         }
 
     private fun uberRideShortText(update: LiveStatusNotificationParser.UberRideUpdate): String =
-        when (update.event) {
-            LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Nearby"
-            LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Arrived"
-            LiveStatusNotificationParser.UberRideEvent.ON_TRIP ->
-                dropoffTimeText(update.title) ?: "On trip"
-            else -> pickupEtaText(update.title) ?: "To pickup"
+        if (update.rideType == LiveStatusNotificationParser.UberRideType.UBER_TAXI) {
+            when (update.event) {
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE ->
+                    update.pickupEtaMinutes?.let { "$it 分鐘" } ?: "前往上車點"
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING -> "已在附近"
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "即將抵達"
+                else -> "行程中"
+            }
+        } else {
+            when (update.event) {
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING -> "Approaching"
+                LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Nearby"
+                LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Arrived"
+                LiveStatusNotificationParser.UberRideEvent.ON_TRIP ->
+                    dropoffTimeText(update.title) ?: "On trip"
+                else -> pickupEtaText(update.title) ?: "To pickup"
+            }
         }
 
     private fun pickupEtaText(title: String?): String? =
@@ -580,8 +626,9 @@ object LiveStatusReminder {
                 ?.replace(Regex("""\s+"""), " ")
         }
 
-    private fun uberRideProgress(event: LiveStatusNotificationParser.UberRideEvent): Int =
-        when (event) {
+    private fun uberRideProgress(update: LiveStatusNotificationParser.UberRideUpdate): Int =
+        when (update.event) {
+            LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING -> 40
             LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> 50
             LiveStatusNotificationParser.UberRideEvent.ARRIVED -> 60
             LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> 80
