@@ -68,6 +68,7 @@ import kotlinx.coroutines.launch
 internal fun IpassCard(
     installed: Boolean,
     enabled: Boolean,
+    interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
 ) {
     val colors = LocalAppColors.current
@@ -81,6 +82,7 @@ internal fun IpassCard(
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
+        interactionEnabled = interactionEnabled,
         onEnabledChange = onEnabledChange,
         cardColor = colors.ipassContainer,
         labelColor = colors.ipassSecondaryContainer,
@@ -111,6 +113,7 @@ internal fun IpassCard(
 internal fun ClockCard(
     installed: Boolean,
     enabled: Boolean,
+    interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     onOpenDebug: () -> Unit,
 ) {
@@ -125,6 +128,7 @@ internal fun ClockCard(
         supportedLanguages = listOf("不依賴語言"),
         installed = installed,
         enabled = enabled,
+        interactionEnabled = interactionEnabled,
         onEnabledChange = onEnabledChange,
         cardColor = colors.clockContainer,
         labelColor = colors.clockSurface,

@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 internal fun FoodpandaCard(
     installed: Boolean,
     enabled: Boolean,
+    interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     onOpenDebug: () -> Unit,
 ) {
@@ -83,6 +84,7 @@ internal fun FoodpandaCard(
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
+        interactionEnabled = interactionEnabled,
         onEnabledChange = onEnabledChange,
         cardColor = colors.foodpandaContainer,
         labelColor = colors.foodpandaSecondaryContainer,
@@ -132,6 +134,7 @@ internal fun FoodpandaCard(
 internal fun UberEatsCard(
     installed: Boolean,
     enabled: Boolean,
+    interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     onOpenDebug: () -> Unit,
 ) {
@@ -146,6 +149,7 @@ internal fun UberEatsCard(
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
+        interactionEnabled = interactionEnabled,
         onEnabledChange = onEnabledChange,
         cardColor = colors.uberEatsContainer,
         labelColor = colors.uberEatsSecondaryContainer,

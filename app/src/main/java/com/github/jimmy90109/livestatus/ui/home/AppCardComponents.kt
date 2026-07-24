@@ -32,7 +32,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,6 +68,7 @@ import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.launch
 
+internal val LocalAppCardInteractionEnabled = staticCompositionLocalOf { true }
 
 @Composable
 internal fun AppCard(
@@ -77,6 +80,7 @@ internal fun AppCard(
     supportedLanguages: List<String>,
     installed: Boolean,
     enabled: Boolean,
+    interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     cardColor: Color,
     labelColor: Color,
@@ -112,6 +116,7 @@ internal fun AppCard(
                 Switch(
                     checked = enabled,
                     onCheckedChange = onEnabledChange,
+                    enabled = interactionEnabled,
                     modifier = Modifier.padding(start = 12.dp),
                 )
             } else {
@@ -123,7 +128,9 @@ internal fun AppCard(
         Spacer(Modifier.height(6.dp))
         AppText(description, 15, colors.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = actions)
+        CompositionLocalProvider(LocalAppCardInteractionEnabled provides interactionEnabled) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = actions)
+        }
     }
 }
 

@@ -181,13 +181,14 @@ internal fun AppCardActionButton(
 ) {
     val colors = LocalAppColors.current
     val darkTheme = isSystemInDarkTheme()
+    val interactionEnabled = LocalAppCardInteractionEnabled.current
     ActionButton(
         label = label,
         background = if (darkTheme) selectedBackground else colors.appActionContainer,
         foreground = if (darkTheme) colors.commonOnPrimary else lightForeground,
         supportingText = supportingText,
         supportingForeground = if (darkTheme) colors.commonOnPrimary else lightForeground,
-        enabled = enabled,
+        enabled = enabled && interactionEnabled,
         onClick = onClick,
     )
 }

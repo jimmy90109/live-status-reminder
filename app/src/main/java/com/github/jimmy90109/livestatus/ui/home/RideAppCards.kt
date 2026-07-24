@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 internal fun UberRideCard(
     installed: Boolean,
     enabled: Boolean,
+    interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     onOpenDebug: () -> Unit,
 ) {
@@ -83,6 +84,7 @@ internal fun UberRideCard(
         supportedLanguages = listOf("繁中 / En"),
         installed = installed,
         enabled = enabled,
+        interactionEnabled = interactionEnabled,
         onEnabledChange = onEnabledChange,
         cardColor = colors.commonContainer,
         labelColor = colors.commonSurface,
@@ -253,6 +255,7 @@ private fun UberRideTestButton(
 internal fun PikminBloomCard(
     installed: Boolean,
     enabled: Boolean,
+    interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
 ) {
     val colors = LocalAppColors.current
@@ -266,6 +269,7 @@ internal fun PikminBloomCard(
         supportedLanguages = listOf("中文"),
         installed = installed,
         enabled = enabled,
+        interactionEnabled = interactionEnabled,
         onEnabledChange = onEnabledChange,
         cardColor = colors.pikminContainer,
         labelColor = colors.pikminSecondaryContainer,

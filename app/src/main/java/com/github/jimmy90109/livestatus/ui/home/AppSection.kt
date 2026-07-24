@@ -161,6 +161,7 @@ internal fun AppsSection(
                     TAB_CLOCK -> ClockCard(
                         installed = status.clockInstalled,
                         enabled = status.clockEnabled,
+                        interactionEnabled = status.requiredSettingsComplete,
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
                         },
@@ -169,6 +170,7 @@ internal fun AppsSection(
                     TAB_FOODPANDA -> FoodpandaCard(
                         installed = status.foodpandaInstalled,
                         enabled = status.foodpandaEnabled,
+                        interactionEnabled = status.requiredSettingsComplete,
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.FOODPANDA, it)
                         },
@@ -177,6 +179,7 @@ internal fun AppsSection(
                     TAB_UBER_EATS -> UberEatsCard(
                         installed = status.uberEatsInstalled,
                         enabled = status.uberEatsEnabled,
+                        interactionEnabled = status.requiredSettingsComplete,
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.UBER_EATS, it)
                         },
@@ -185,6 +188,7 @@ internal fun AppsSection(
                     TAB_UBER -> UberRideCard(
                         installed = status.uberInstalled,
                         enabled = status.uberEnabled,
+                        interactionEnabled = status.requiredSettingsComplete,
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.UBER_RIDE, it)
                         },
@@ -193,6 +197,7 @@ internal fun AppsSection(
                     TAB_PIKMIN_BLOOM -> PikminBloomCard(
                         installed = status.pikminBloomInstalled,
                         enabled = status.pikminBloomEnabled,
+                        interactionEnabled = status.requiredSettingsComplete,
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
                         },
@@ -200,6 +205,7 @@ internal fun AppsSection(
                     else -> IpassCard(
                         installed = status.ipassInstalled,
                         enabled = status.ipassEnabled,
+                        interactionEnabled = status.requiredSettingsComplete,
                         onEnabledChange = {
                             onAppEnabledChange(AppReminderPreferences.App.IPASS, it)
                         },
