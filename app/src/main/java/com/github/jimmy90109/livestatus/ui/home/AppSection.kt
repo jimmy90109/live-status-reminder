@@ -6,8 +6,11 @@ import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -25,25 +29,31 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -65,6 +75,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun AppsSection(
+    modifier: Modifier = Modifier,
+    containingScrollState: ScrollState? = null,
+    pageBottomPadding: Dp,
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
@@ -75,25 +88,32 @@ internal fun AppsSection(
 ) {
     val pagerState = rememberPagerState(initialPage = TAB_IPASS) { APP_PAGE_COUNT }
     val coroutineScope = rememberCoroutineScope()
-    val density = LocalDensity.current
     var selectedTab by remember { mutableIntStateOf(TAB_IPASS) }
-    var maxPageHeightPx by remember(
-        status.clockInstalled,
-        status.ipassInstalled,
-        status.foodpandaInstalled,
-        status.uberInstalled,
-        status.uberEatsInstalled,
-        status.pikminBloomInstalled,
-    ) {
-        mutableIntStateOf(0)
-    }
-    val fixedPagerHeightModifier = if (maxPageHeightPx > 0) {
-        with(density) { Modifier.height(maxPageHeightPx.toDp()) }
-    } else {
-        Modifier
+    val containingScrollConnection = remember(containingScrollState) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                val scrollState = containingScrollState
+                if (scrollState == null || available.y >= 0f) return Offset.Zero
+
+                val consumed = scrollState.dispatchRawDelta(-available.y)
+                return Offset(x = 0f, y = -consumed)
+            }
+        }
     }
 
-    Column(Modifier.fillMaxWidth()) {
+    LaunchedEffect(pagerState.settledPage) {
+        selectedTab = pagerState.settledPage
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .nestedScroll(containingScrollConnection),
+    ) {
         Column(Modifier.padding(horizontal = horizontalContentPadding)) {
             SectionHeader(
                 title = "App",
@@ -122,20 +142,20 @@ internal fun AppsSection(
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .then(fixedPagerHeightModifier),
-            userScrollEnabled = false,
+                .padding(horizontal = horizontalContentPadding)
+                .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                .weight(1f),
             verticalAlignment = Alignment.Top,
             beyondViewportPageCount = APP_PAGE_COUNT - 1,
         ) { page ->
-            Box(
+            val pageScrollState = rememberScrollState()
+
+            Column(
                 Modifier
+                    .fillMaxHeight()
                     .fillMaxWidth()
-                    .onSizeChanged { size ->
-                        if (size.height > maxPageHeightPx) {
-                            maxPageHeightPx = size.height
-                        }
-                    }
-                    .padding(horizontal = horizontalContentPadding),
+                    .verticalScroll(pageScrollState)
+                    .padding(bottom = pageBottomPadding),
             ) {
                 when (page) {
                     TAB_CLOCK -> ClockCard(
@@ -197,20 +217,57 @@ private fun AppTabs(
     onSelect: (Int) -> Unit,
 ) {
     val colors = LocalAppColors.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Spacer(Modifier.width(horizontalContentPadding))
-        AppTab("iPASS MONEY", TAB_IPASS, selectedTab, colors.ipassPrimary, colors.commonOnPrimary, onSelect)
-        AppTab("foodpanda", TAB_FOODPANDA, selectedTab, colors.foodpandaPrimary, colors.commonOnPrimary, onSelect)
-        AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
-        AppTab("Uber", TAB_UBER, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
-        AppTab("Pikmin Bloom", TAB_PIKMIN_BLOOM, selectedTab, colors.pikminPrimary, colors.commonOnPrimary, onSelect)
-        AppTab("Clock", TAB_CLOCK, selectedTab, colors.clockPrimary, colors.commonOnPrimary, onSelect)
-        Spacer(Modifier.width(horizontalContentPadding))
+    val scrollState = rememberScrollState()
+    val leftFadeAlpha by animateFloatAsState(
+        targetValue = if (scrollState.canScrollBackward) 1f else 0f,
+        animationSpec = tween(APP_TABS_EDGE_FADE_ANIMATION_MILLIS),
+        label = "App tabs left edge fade",
+    )
+    val rightFadeAlpha by animateFloatAsState(
+        targetValue = if (scrollState.canScrollForward) 1f else 0f,
+        animationSpec = tween(APP_TABS_EDGE_FADE_ANIMATION_MILLIS),
+        label = "App tabs right edge fade",
+    )
+    Box(Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(scrollState),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Spacer(Modifier.width(horizontalContentPadding))
+            AppTab("iPASS MONEY", TAB_IPASS, selectedTab, colors.ipassPrimary, colors.commonOnPrimary, onSelect)
+            AppTab("foodpanda", TAB_FOODPANDA, selectedTab, colors.foodpandaPrimary, colors.commonOnPrimary, onSelect)
+            AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
+            AppTab("Uber", TAB_UBER, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
+            AppTab("Pikmin Bloom", TAB_PIKMIN_BLOOM, selectedTab, colors.pikminPrimary, colors.commonOnPrimary, onSelect)
+            AppTab("Clock", TAB_CLOCK, selectedTab, colors.clockPrimary, colors.commonOnPrimary, onSelect)
+            Spacer(Modifier.width(horizontalContentPadding))
+        }
+        Canvas(Modifier.matchParentSize()) {
+            val fadeWidth = (
+                horizontalContentPadding.toPx() + APP_TABS_EDGE_FADE_OVERLAP.toPx()
+            ).coerceAtMost(size.width / 2f)
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(colors.background, Color.Transparent),
+                    startX = 0f,
+                    endX = fadeWidth,
+                ),
+                size = Size(fadeWidth, size.height),
+                alpha = leftFadeAlpha,
+            )
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(Color.Transparent, colors.background),
+                    startX = size.width - fadeWidth,
+                    endX = size.width,
+                ),
+                topLeft = Offset(size.width - fadeWidth, 0f),
+                size = Size(fadeWidth, size.height),
+                alpha = rightFadeAlpha,
+            )
+        }
     }
 }
 
@@ -255,3 +312,5 @@ private const val TAB_PIKMIN_BLOOM = 4
 private const val TAB_CLOCK = 5
 private const val APP_PAGE_COUNT = 6
 private const val APP_PAGE_ANIMATION_MILLIS = 300
+private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
+private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

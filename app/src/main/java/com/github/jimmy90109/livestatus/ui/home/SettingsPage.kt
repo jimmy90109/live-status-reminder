@@ -170,15 +170,30 @@ internal fun SamsungNowBarTroubleshootingCard(
 }
 
 @Composable
-internal fun XiaomiHyperIslandInfoCard() {
+internal fun XiaomiHyperIslandInfoCard(
+    onDismiss: (() -> Unit)? = null,
+) {
     val colors = LocalAppColors.current
     CardSurface(colors.warningContainer, 26, 18) {
-        AppText(
-            "小米 HyperOS 膠囊支援",
-            18,
-            colors.warningText,
-            true,
-        )
+        Row(verticalAlignment = Alignment.Top) {
+            Column(Modifier.weight(1f)) {
+                AppText(
+                    "小米 HyperOS 膠囊支援",
+                    18,
+                    colors.warningText,
+                    true,
+                )
+            }
+            if (onDismiss != null) {
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "關閉",
+                        tint = colors.warningText,
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(10.dp))
         AppText(
             "如果膠囊沒有出現，請在 HyperOS 系統設定中允許浮動或焦點通知；" +

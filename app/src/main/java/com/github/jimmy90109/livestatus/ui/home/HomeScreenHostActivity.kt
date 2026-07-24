@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
+import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
 import com.github.jimmy90109.livestatus.LiveStatusReminder
@@ -92,6 +93,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
                             onOpenSamsungNowBarGuide = ::openSamsungNowBarGuide,
                             onOpenPrivacyPolicy = ::openPrivacyPolicy,
                             onDismissNowBarTroubleshooting = ::dismissNowBarTroubleshooting,
+                            onDismissHyperIslandInfo = ::dismissHyperIslandInfo,
                             onAppEnabledChange = ::setAppEnabled,
                         )
                     }
@@ -114,6 +116,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
+        val showManufacturerCardsForDebug = BuildConfig.DEBUG && isPixelDevice()
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
             notificationPermission = canPostNotifications(),
@@ -123,10 +126,12 @@ open class HomeScreenHostActivity : ComponentActivity() {
             uberInstalled = uberInstalled,
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
-            isSamsungDevice = isSamsungDevice(),
-            isXiaomiDevice = isXiaomiDevice(),
+            isSamsungDevice = isSamsungDevice() || showManufacturerCardsForDebug,
+            isXiaomiDevice = isXiaomiDevice() || showManufacturerCardsForDebug,
             nowBarTroubleshootingDismissed =
                 AppReminderPreferences.isNowBarTroubleshootingDismissed(this),
+            hyperIslandInfoDismissed =
+                AppReminderPreferences.isHyperIslandInfoDismissed(this),
             clockEnabled = AppReminderPreferences.App.CLOCK.isEnabled(this, clockInstalled),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
@@ -184,6 +189,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
     private fun isXiaomiDevice(): Boolean =
         isXiaomiFamily(Build.MANUFACTURER) || isXiaomiFamily(Build.BRAND)
 
+    private fun isPixelDevice(): Boolean =
+        Build.MODEL.startsWith("Pixel", ignoreCase = true)
+
     private fun isXiaomiFamily(value: String?): Boolean {
         val normalized = value?.lowercase()?.trim().orEmpty()
         return normalized == "xiaomi" || normalized == "redmi" || normalized == "poco"
@@ -231,6 +239,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun dismissNowBarTroubleshooting() {
         AppReminderPreferences.setNowBarTroubleshootingDismissed(this, true)
+        refreshStatus()
+    }
+
+    private fun dismissHyperIslandInfo() {
+        AppReminderPreferences.setHyperIslandInfoDismissed(this, true)
         refreshStatus()
     }
 
@@ -302,6 +315,7 @@ internal data class StatusSnapshot(
     val isSamsungDevice: Boolean = false,
     val isXiaomiDevice: Boolean = false,
     val nowBarTroubleshootingDismissed: Boolean = false,
+    val hyperIslandInfoDismissed: Boolean = false,
     val clockEnabled: Boolean = false,
     val ipassEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,

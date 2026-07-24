@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -67,6 +68,7 @@ internal fun HomeScreenHostActivity.MainScreen(
     onOpenSamsungNowBarGuide: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onDismissNowBarTroubleshooting: () -> Unit,
+    onDismissHyperIslandInfo: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
 ) {
     var settingsExpanded by rememberSaveable { mutableStateOf(true) }
@@ -122,8 +124,15 @@ internal fun HomeScreenHostActivity.MainScreen(
         },
     )
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
-    val scrollTopPadding = safeDrawingPadding.calculateTopPadding() + 20.dp
+    val safeTopPadding = safeDrawingPadding.calculateTopPadding()
+    val scrollTopPadding = safeTopPadding + 20.dp
+    val heroTopPadding = maxOf(safeTopPadding, 20.dp)
     val scrollBottomPadding = safeDrawingPadding.calculateBottomPadding() + 32.dp
+    val appPagerBottomPadding =
+        maxOf(
+            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+            20.dp,
+        )
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -182,6 +191,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         settingsExpanded = settingsExpanded,
                         scrollTopPadding = scrollTopPadding,
                         scrollBottomPadding = scrollBottomPadding,
+                        appPagerBottomPadding = appPagerBottomPadding,
                         onOpenSettings = { openSettingsPage() },
                         onToggleSettings = { settingsExpanded = !settingsExpanded },
                         onOpenNotificationAccess = {
@@ -190,6 +200,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onRequestNotificationPermission = onRequestNotificationPermission,
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
+                        onDismissHyperIslandInfo = onDismissHyperIslandInfo,
                         onAppEnabledChange = onAppEnabledChange,
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
@@ -202,8 +213,8 @@ internal fun HomeScreenHostActivity.MainScreen(
                     HomeContentNarrow(
                         status = status,
                         settingsExpanded = settingsExpanded,
-                        scrollTopPadding = scrollTopPadding,
-                        scrollBottomPadding = scrollBottomPadding,
+                        scrollTopPadding = heroTopPadding,
+                        appPagerBottomPadding = appPagerBottomPadding,
                         onOpenSettings = { openSettingsPage() },
                         onToggleSettings = { settingsExpanded = !settingsExpanded },
                         onOpenNotificationAccess = {
@@ -212,6 +223,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onRequestNotificationPermission = onRequestNotificationPermission,
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
+                        onDismissHyperIslandInfo = onDismissHyperIslandInfo,
                         onAppEnabledChange = onAppEnabledChange,
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },

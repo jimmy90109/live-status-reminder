@@ -4,6 +4,7 @@ import android.content.Context
 
 object AppReminderPreferences {
     private const val NOW_BAR_TROUBLESHOOTING_DISMISSED = "now_bar_troubleshooting_dismissed"
+    private const val HYPER_ISLAND_INFO_DISMISSED = "hyper_island_info_dismissed"
 
     enum class App(private val preferenceKey: String) {
         CLOCK("clock_enabled"),
@@ -29,6 +30,16 @@ object AppReminderPreferences {
         preferences(context)
             .edit()
             .putBoolean(NOW_BAR_TROUBLESHOOTING_DISMISSED, dismissed)
+            .apply()
+    }
+
+    fun isHyperIslandInfoDismissed(context: Context): Boolean =
+        preferences(context).getBoolean(HYPER_ISLAND_INFO_DISMISSED, false)
+
+    fun setHyperIslandInfoDismissed(context: Context, dismissed: Boolean) {
+        preferences(context)
+            .edit()
+            .putBoolean(HYPER_ISLAND_INFO_DISMISSED, dismissed)
             .apply()
     }
 
