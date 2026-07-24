@@ -46,6 +46,11 @@ object LiveStatusNotificationParser {
         UBER_TAXI,
     }
 
+    enum class UberRideLanguage {
+        ENGLISH,
+        TRADITIONAL_CHINESE,
+    }
+
     enum class PikminEvent {
         NONE,
         FLOWER_PLANTING,
@@ -59,6 +64,7 @@ object LiveStatusNotificationParser {
     data class UberRideUpdate(
         val event: UberRideEvent,
         val rideType: UberRideType = UberRideType.STANDARD,
+        val language: UberRideLanguage = UberRideLanguage.ENGLISH,
         val title: String? = null,
         val officialText: String? = null,
         val pickupEtaMinutes: Int? = null,
@@ -146,6 +152,7 @@ object LiveStatusNotificationParser {
             return UberRideUpdate(
                 event = UberRideEvent.TRIP_ENDED,
                 rideType = UberRideType.UBER_TAXI,
+                language = UberRideLanguage.TRADITIONAL_CHINESE,
                 title = taxiTitle,
                 officialText = notificationContentText.cleanText(),
             )
@@ -161,20 +168,59 @@ object LiveStatusNotificationParser {
 
         val title = lines.firstOrNull { line ->
             line.contains(Regex("""(?i)\bpick up in \d+\s*min\b""")) ||
+                UBER_RIDE_ZH_PICKUP_ETA.containsMatchIn(line) ||
                 line.contains(Regex("""(?i)\bdropoff at \d{1,2}:\d{2}\s*(?:AM|PM)?\b""")) ||
-                line.contains(Regex("""(?i)\barrived\b"""))
+                UBER_RIDE_ZH_DROPOFF_TITLE.containsMatchIn(line) ||
+                line.contains(Regex("""(?i)\barrived\b""")) ||
+                UBER_RIDE_ZH_PICKUP_NEARBY.containsMatchIn(line) ||
+                UBER_RIDE_ZH_ARRIVED.containsMatchIn(line)
         }
         val pickupPoint = lines.firstLineStartingWith("Meet at ")
+            ?: lines.firstNotNullOfOrNull { line ->
+                UBER_RIDE_ZH_PICKUP_POINT.matchEntire(line)
+                    ?.groupValues
+                    ?.getOrNull(1)
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() }
+            }
         val dropoffPoint = lines.firstTextAfter("Heading to ")
-        val vehicleDetails = lines.firstNotNullOfOrNull(::parseVehicleDetails)
+            ?: lines.firstNotNullOfOrNull { line ->
+                UBER_RIDE_ZH_DROPOFF_POINT.matchEntire(line)
+                    ?.groupValues
+                    ?.getOrNull(1)
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() }
+            }
+        val vehicleDetails = parseVehicleDetails(lines)
         val pin = exactPin(shortCriticalText) ?: separatedPin(notificationText)
-        val hasPickupEta = title?.contains(Regex("""(?i)\bpick up in \d+\s*min\b""")) == true
+        val hasPickupEta = title?.let {
+            it.contains(Regex("""(?i)\bpick up in \d+\s*min\b""")) ||
+                UBER_RIDE_ZH_PICKUP_ETA.containsMatchIn(it)
+        } == true
         val pickupMinutes = title.pickupMinutes()
+        val language = if (
+            lines.any { line ->
+                UBER_RIDE_ZH_PICKUP_ETA.containsMatchIn(line) ||
+                    UBER_RIDE_ZH_PICKUP_NEARBY.containsMatchIn(line) ||
+                    UBER_RIDE_ZH_ARRIVED.containsMatchIn(line) ||
+                    UBER_RIDE_ZH_DROPOFF_TITLE.containsMatchIn(line) ||
+                    UBER_RIDE_ZH_DROPOFF_POINT.containsMatchIn(line)
+            }
+        ) {
+            UberRideLanguage.TRADITIONAL_CHINESE
+        } else {
+            UberRideLanguage.ENGLISH
+        }
 
         val event = when {
             title?.contains(Regex("""(?i)\bdropoff at\b""")) == true ||
+                title?.let(UBER_RIDE_ZH_DROPOFF_TITLE::containsMatchIn) == true ||
                 dropoffPoint != null -> UberRideEvent.ON_TRIP
-            title?.contains(Regex("""(?i)\barrived\b""")) == true -> UberRideEvent.ARRIVED
+            title?.contains(Regex("""(?i)\barrived\b""")) == true ||
+                title?.let(UBER_RIDE_ZH_ARRIVED::containsMatchIn) == true ->
+                UberRideEvent.ARRIVED
+            title?.let(UBER_RIDE_ZH_PICKUP_NEARBY::containsMatchIn) == true ->
+                UberRideEvent.PICKUP_NEARBY
             hasPickupEta &&
                 pickupMinutes != null &&
                 pickupMinutes <= UBER_RIDE_NEARBY_MINUTES &&
@@ -185,7 +231,9 @@ object LiveStatusNotificationParser {
 
         return UberRideUpdate(
             event = event,
+            language = language,
             title = title,
+            pickupEtaMinutes = pickupMinutes,
             pickupPoint = pickupPoint,
             dropoffPoint = dropoffPoint,
             plate = vehicleDetails?.first,
@@ -221,6 +269,7 @@ object LiveStatusNotificationParser {
         return UberRideUpdate(
             event = event,
             rideType = UberRideType.UBER_TAXI,
+            language = UberRideLanguage.TRADITIONAL_CHINESE,
             title = title,
             officialText = contentText,
             pickupEtaMinutes = etaMinutes,
@@ -286,16 +335,38 @@ object LiveStatusNotificationParser {
         return if (looksLikePlate && vehicle.any { it.isLetter() }) plate to vehicle else null
     }
 
+    private fun parseVehicleDetails(lines: List<String>): Pair<String, String>? =
+        lines.firstNotNullOfOrNull(::parseVehicleDetails)
+            ?: lines.zipWithNext().firstNotNullOfOrNull { (plate, vehicle) ->
+                val looksLikePlate = plate.matches(Regex("""[\p{L}\p{N}-]{4,10}""")) &&
+                    plate.any { it.isLetter() } &&
+                    plate.any { it.isDigit() }
+                if (looksLikePlate && vehicle.any { it.isLetter() }) {
+                    plate to vehicle
+                } else {
+                    null
+                }
+            }
+
     private fun String?.pickupMinutes(): Int? =
         this?.let {
-            Regex("""(?i)\bpick up in (\d+)\s*min\b""")
-                .find(it)
+            (
+                Regex("""(?i)\bpick up in (\d+)\s*min\b""").find(it)
+                    ?: UBER_RIDE_ZH_PICKUP_ETA.find(it)
+                )
                 ?.groupValues
                 ?.getOrNull(1)
                 ?.toIntOrNull()
         }
 
     private const val UBER_RIDE_NEARBY_MINUTES = 2
+    private val UBER_RIDE_ZH_PICKUP_ETA = Regex("""(\d+)\s*分鐘內上車""")
+    private val UBER_RIDE_ZH_PICKUP_POINT = Regex("""^在\s*(.+?)\s*碰面$""")
+    private val UBER_RIDE_ZH_PICKUP_NEARBY = Regex("""\S+\s*即將抵達$""")
+    private val UBER_RIDE_ZH_ARRIVED = Regex("""\S+\s*已抵達$""")
+    private val UBER_RIDE_ZH_DROPOFF_TITLE =
+        Regex("""^下車地點\s*[:：]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?$""", RegexOption.IGNORE_CASE)
+    private val UBER_RIDE_ZH_DROPOFF_POINT = Regex("""^正在前往\s*[:：]\s*(.+)$""")
     private const val UBER_TAXI_PICKUP_EN_ROUTE_TITLE = "職業駕駛正在途中"
     private const val UBER_TAXI_PICKUP_APPROACHING_TITLE = "職業駕駛在幾分鐘後就會抵達"
     private const val UBER_TAXI_PICKUP_NEARBY_TITLE = "職業駕駛即將抵達"

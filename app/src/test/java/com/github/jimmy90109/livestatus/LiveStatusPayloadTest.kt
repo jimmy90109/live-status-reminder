@@ -3,6 +3,7 @@ package com.github.jimmy90109.livestatus
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -124,6 +125,54 @@ class LiveStatusPayloadTest {
         assertEquals("Demo Office Tower", payload.contentText)
         assertEquals("4:30 PM", payload.criticalText)
         assertEquals(80, payload.progress)
+    }
+
+    @Test
+    fun uberRideTraditionalChinesePayloadUsesLocalizedCriticalText() {
+        val pickup = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_EN_ROUTE,
+                language = UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "8 分鐘內上車",
+                pickupEtaMinutes = 8,
+                pickupPoint = "示範轉運站",
+            ),
+        )
+        val nearby = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.PICKUP_NEARBY,
+                language = UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "志明即將抵達",
+                plate = "ABC1234",
+                vehicle = "藍色 Toyota Prius",
+                pin = "2468",
+            ),
+        )
+        val arrived = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.ARRIVED,
+                language = UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "志明 已抵達",
+                plate = "ABC1234",
+                vehicle = "藍色 Toyota Prius",
+            ),
+        )
+        val onTrip = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(
+                event = UberRideEvent.ON_TRIP,
+                language = UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "下車地點： 8:11 PM",
+                dropoffPoint = "示範路 200 號",
+            ),
+        )
+
+        assertEquals("8 分鐘", pickup.criticalText)
+        assertEquals("示範轉運站", pickup.contentText)
+        assertEquals("即將抵達", nearby.criticalText)
+        assertEquals("ABC1234 · 藍色 Toyota Prius · PIN 2468", nearby.contentText)
+        assertEquals("已抵達", arrived.criticalText)
+        assertEquals("行程中", onTrip.criticalText)
+        assertEquals("示範路 200 號", onTrip.contentText)
     }
 
     @Test

@@ -598,13 +598,26 @@ object LiveStatusReminder {
                 else -> "行程中"
             }
         } else {
-            when (update.event) {
-                LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING -> "Approaching"
-                LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Nearby"
-                LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Arrived"
-                LiveStatusNotificationParser.UberRideEvent.ON_TRIP ->
-                    dropoffTimeText(update.title) ?: "On trip"
-                else -> pickupEtaText(update.title) ?: "To pickup"
+            if (
+                update.language ==
+                LiveStatusNotificationParser.UberRideLanguage.TRADITIONAL_CHINESE
+            ) {
+                when (update.event) {
+                    LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING -> "接近中"
+                    LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "即將抵達"
+                    LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "已抵達"
+                    LiveStatusNotificationParser.UberRideEvent.ON_TRIP -> "行程中"
+                    else -> update.pickupEtaMinutes?.let { "$it 分鐘" } ?: "前往上車點"
+                }
+            } else {
+                when (update.event) {
+                    LiveStatusNotificationParser.UberRideEvent.PICKUP_APPROACHING -> "Approaching"
+                    LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY -> "Nearby"
+                    LiveStatusNotificationParser.UberRideEvent.ARRIVED -> "Arrived"
+                    LiveStatusNotificationParser.UberRideEvent.ON_TRIP ->
+                        dropoffTimeText(update.title) ?: "On trip"
+                    else -> pickupEtaText(update.title) ?: "To pickup"
+                }
             }
         }
 

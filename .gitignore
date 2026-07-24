@@ -11,5 +11,6 @@
 /app/release/
 *.iml
 /docs/ubereats-audit/
-/docs/uber-audit/
+/docs/uber-audit/*
+!/docs/uber-audit/README.md
 /docs/foodpanda-audit/

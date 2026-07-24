@@ -80,7 +80,7 @@ internal fun UberRideCard(
         fallbackIconRes = R.drawable.ic_notification,
         title = "乘車進度",
         description = "一般行程顯示上車點、車輛與 PIN；優步小黃顯示職業駕駛接近進度。",
-        supportedLanguages = listOf("En / 繁中"),
+        supportedLanguages = listOf("繁中 / En"),
         installed = installed,
         enabled = enabled,
         onEnabledChange = onEnabledChange,
@@ -95,7 +95,7 @@ internal fun UberRideCard(
         AppActionDivider(colors.onSurface)
         UberRideSectionHeader(
             title = "標準型優步",
-            language = "En",
+            language = "繁中 / En",
         )
         Spacer(Modifier.height(2.dp))
         UberRideTestButton(
@@ -103,8 +103,10 @@ internal fun UberRideCard(
             supportingText = stringResource(R.string.monitoring_uber_pickup_en_route),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.PICKUP_EN_ROUTE,
-                title = "Pick up in 14 min",
-                pickupPoint = "Meet at Demo Transit Center",
+                language = LiveStatusNotificationParser.UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "2 分鐘內上車",
+                pickupEtaMinutes = 2,
+                pickupPoint = "在 台北車站東三門 碰面",
             ),
             enabled = enabled,
         )
@@ -113,10 +115,11 @@ internal fun UberRideCard(
             supportingText = stringResource(R.string.monitoring_uber_pickup_nearby),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.PICKUP_NEARBY,
-                title = "Pick up in 2 min",
-                plate = "ABC1234",
-                vehicle = "Blue Toyota Prius",
-                pin = "1234",
+                language = LiveStatusNotificationParser.UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "志明即將抵達",
+                plate = "ABC-1234",
+                vehicle = "白色 Toyota Corolla Cross",
+                pin = "2468",
             ),
             enabled = enabled,
         )
@@ -125,10 +128,11 @@ internal fun UberRideCard(
             supportingText = stringResource(R.string.monitoring_uber_arrived),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.ARRIVED,
-                title = "Driver arrived",
-                plate = "ABC1234",
-                vehicle = "Blue Toyota Prius",
-                pin = "1234",
+                language = LiveStatusNotificationParser.UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "志明 已抵達",
+                plate = "ABC-1234",
+                vehicle = "白色 Toyota Corolla Cross",
+                pin = "2468",
             ),
             enabled = enabled,
         )
@@ -137,8 +141,9 @@ internal fun UberRideCard(
             supportingText = stringResource(R.string.monitoring_uber_on_trip),
             update = LiveStatusNotificationParser.UberRideUpdate(
                 event = LiveStatusNotificationParser.UberRideEvent.ON_TRIP,
-                title = "Dropoff at 4:30 PM",
-                dropoffPoint = "Demo Office Tower",
+                language = LiveStatusNotificationParser.UberRideLanguage.TRADITIONAL_CHINESE,
+                title = "下車地點： 4:30 PM",
+                dropoffPoint = "正在前往： 台北 101",
             ),
             enabled = enabled,
         )

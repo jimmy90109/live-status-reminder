@@ -5,6 +5,7 @@ import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.RideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -233,6 +234,95 @@ class LiveStatusNotificationParserTest {
         assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
         assertEquals("Pick up in 14 min", update.title)
         assertEquals("Meet at Demo Transit Center", update.pickupPoint)
+    }
+
+    @Test
+    fun uberRideParsesTraditionalChinesePickupPayload() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            notificationText =
+                "2 分鐘內上車\n立即出發與志明碰面\n2 分鐘內上車\n" +
+                    "在示範路 100 號碰面\nABC1234\n藍色 Toyota Prius\n" +
+                    "2\n4\n6\n8\n在示範路 100 號碰面\nABC1234\n藍色 Toyota Prius",
+            shortCriticalText = null,
+            notificationTitle = "2 分鐘內上車",
+            notificationContentText = "立即出發與志明碰面",
+        )
+
+        assertEquals(UberRideLanguage.TRADITIONAL_CHINESE, update.language)
+        assertEquals(UberRideEvent.PICKUP_NEARBY, update.event)
+        assertEquals("2 分鐘內上車", update.title)
+        assertEquals(2, update.pickupEtaMinutes)
+        assertEquals("示範路 100 號", update.pickupPoint)
+        assertEquals("ABC1234", update.plate)
+        assertEquals("藍色 Toyota Prius", update.vehicle)
+        assertEquals("2468", update.pin)
+    }
+
+    @Test
+    fun uberRideChinesePickupOverTwoMinutesStaysEnRoute() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            "8 分鐘內上車\n在示範轉運站碰面\nABC1234 · 藍色 Toyota Prius",
+            null,
+        )
+
+        assertEquals(UberRideLanguage.TRADITIONAL_CHINESE, update.language)
+        assertEquals(UberRideEvent.PICKUP_EN_ROUTE, update.event)
+        assertEquals(8, update.pickupEtaMinutes)
+        assertEquals("示範轉運站", update.pickupPoint)
+    }
+
+    @Test
+    fun uberRideParsesTraditionalChineseNearbyAndArrivedTitles() {
+        val nearby = LiveStatusNotificationParser.parseUberRide(
+            "志明即將抵達\n立即出發與志明碰面\nABC1234 · 藍色 Toyota Prius",
+            null,
+        )
+        val arrived = LiveStatusNotificationParser.parseUberRide(
+            "志明 已抵達\nABC1234 · 藍色 Toyota Prius\n2\n4\n6\n8",
+            null,
+        )
+
+        assertEquals(UberRideLanguage.TRADITIONAL_CHINESE, nearby.language)
+        assertEquals(UberRideEvent.PICKUP_NEARBY, nearby.event)
+        assertEquals("志明即將抵達", nearby.title)
+        assertEquals(UberRideLanguage.TRADITIONAL_CHINESE, arrived.language)
+        assertEquals(UberRideEvent.ARRIVED, arrived.event)
+        assertEquals("志明 已抵達", arrived.title)
+        assertEquals("2468", arrived.pin)
+    }
+
+    @Test
+    fun uberRideParsesTraditionalChineseDropoffWithoutTreatingPlateAsPin() {
+        val update = LiveStatusNotificationParser.parseUberRide(
+            notificationText =
+                "下車地點： 8:11 PM\n正在前往：示範路 200 號\n" +
+                    "下車地點： 8:11 PM\n正在前往：示範路 200 號\n" +
+                    "ABC6397\n藍色 Toyota Prius",
+            shortCriticalText = null,
+            notificationTitle = "下車地點： 8:11 PM",
+            notificationContentText = "正在前往：示範路 200 號",
+        )
+
+        assertEquals(UberRideLanguage.TRADITIONAL_CHINESE, update.language)
+        assertEquals(UberRideEvent.ON_TRIP, update.event)
+        assertEquals("下車地點： 8:11 PM", update.title)
+        assertEquals("示範路 200 號", update.dropoffPoint)
+        assertEquals("ABC6397", update.plate)
+        assertEquals("藍色 Toyota Prius", update.vehicle)
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberRideIgnoresEmptySummaryAndUnrelatedChineseText() {
+        val emptySummary = LiveStatusNotificationParser.parseUberRide("\n", null)
+        val unrelated = LiveStatusNotificationParser.parseUberRide(
+            "Uber 優惠\n2026 年夏季乘車回饋\n訂單編號 2468",
+            null,
+        )
+
+        assertEquals(UberRideEvent.NONE, emptySummary.event)
+        assertEquals(UberRideEvent.NONE, unrelated.event)
+        assertNull(unrelated.pin)
     }
 
     @Test

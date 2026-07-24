@@ -335,6 +335,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         return LiveStatusNotificationParser.UberRideUpdate(
             event = mergedEvent,
             rideType = update.rideType,
+            language = update.language,
             title = update.title ?: title,
             officialText = update.officialText ?: officialText,
             pickupEtaMinutes = update.pickupEtaMinutes ?: pickupEtaMinutes,
