@@ -66,13 +66,13 @@ internal fun SettingsPage(
             onOpenNotificationAccess = onOpenNotificationAccess,
             onRequestNotificationPermission = onRequestNotificationPermission,
         )
-        if (status.isSamsungDevice) {
+        status.brandWarning?.let { brandWarning ->
             Spacer(Modifier.height(10.dp))
-            SamsungNowBarTroubleshootingCard(onClick = onOpenSamsungNowBarGuide)
-        }
-        if (status.isXiaomiDevice) {
+            BrandWarningCard(
+                brandWarning = brandWarning,
+                onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+            )
             Spacer(Modifier.height(10.dp))
-            XiaomiHyperIslandInfoCard()
         }
         Spacer(Modifier.height(14.dp))
         ActionButton(
@@ -133,8 +133,9 @@ internal fun RequiredSettingsSection(
 }
 
 @Composable
-internal fun SamsungNowBarTroubleshootingCard(
-    onClick: () -> Unit,
+internal fun BrandWarningCard(
+    brandWarning: BrandWarning,
+    onOpenSamsungNowBarGuide: () -> Unit,
     onDismiss: (() -> Unit)? = null,
 ) {
     val colors = LocalAppColors.current
@@ -142,7 +143,12 @@ internal fun SamsungNowBarTroubleshootingCard(
         Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
                 AppText(
-                    "⚠ Samsung Now Bar 可能限制第三方 Live Updates",
+                    when (brandWarning) {
+                        BrandWarning.SAMSUNG_NOW_BAR ->
+                            "⚠ Samsung Now Bar 可能限制第三方 Live Updates"
+                        BrandWarning.XIAOMI_HYPER_ISLAND ->
+                            "小米 HyperOS 膠囊支援"
+                    },
                     18,
                     colors.warningText,
                     true,
@@ -160,46 +166,24 @@ internal fun SamsungNowBarTroubleshootingCard(
         }
         Spacer(Modifier.height(10.dp))
         AppText(
-            "如果通知已出現，但沒有上島，可以查看 Samsung One UI 的疑難排解流程。",
+            when (brandWarning) {
+                BrandWarning.SAMSUNG_NOW_BAR ->
+                    "如果通知已出現，但沒有上島，可以查看 Samsung One UI 的疑難排解流程。"
+                BrandWarning.XIAOMI_HYPER_ISLAND ->
+                    "如果膠囊沒有出現，請在 HyperOS 系統設定中允許浮動或焦點通知；" +
+                        "若系統不接受第三方膠囊，App 仍會顯示一般即時通知。"
+            },
             15,
             colors.warningText,
         )
-        Spacer(Modifier.height(14.dp))
-        ActionButton("查看解決方法  →", colors.warningText, colors.warningContainer, onClick = onClick)
-    }
-}
-
-@Composable
-internal fun XiaomiHyperIslandInfoCard(
-    onDismiss: (() -> Unit)? = null,
-) {
-    val colors = LocalAppColors.current
-    CardSurface(colors.warningContainer, 26, 18) {
-        Row(verticalAlignment = Alignment.Top) {
-            Column(Modifier.weight(1f)) {
-                AppText(
-                    "小米 HyperOS 膠囊支援",
-                    18,
-                    colors.warningText,
-                    true,
-                )
-            }
-            if (onDismiss != null) {
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Rounded.Close,
-                        contentDescription = "關閉",
-                        tint = colors.warningText,
-                    )
-                }
-            }
+        if (brandWarning == BrandWarning.SAMSUNG_NOW_BAR) {
+            Spacer(Modifier.height(14.dp))
+            ActionButton(
+                "查看解決方法  →",
+                colors.warningText,
+                colors.warningContainer,
+                onClick = onOpenSamsungNowBarGuide,
+            )
         }
-        Spacer(Modifier.height(10.dp))
-        AppText(
-            "如果膠囊沒有出現，請在 HyperOS 系統設定中允許浮動或焦點通知；" +
-                "若系統不接受第三方膠囊，App 仍會顯示一般即時通知。",
-            15,
-            colors.warningText,
-        )
     }
 }

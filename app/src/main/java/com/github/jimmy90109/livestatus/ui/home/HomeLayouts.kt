@@ -100,8 +100,7 @@ internal fun HomeContentWide(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
-    onDismissNowBarTroubleshooting: () -> Unit,
-    onDismissHyperIslandInfo: () -> Unit,
+    onDismissBrandWarning: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
     onOpenClockDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
@@ -130,8 +129,7 @@ internal fun HomeContentWide(
                 onOpenNotificationAccess = onOpenNotificationAccess,
                 onRequestNotificationPermission = onRequestNotificationPermission,
                 onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
-                onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
-                onDismissHyperIslandInfo = onDismissHyperIslandInfo,
+                onDismissBrandWarning = onDismissBrandWarning,
             )
         }
         Column(
@@ -166,8 +164,7 @@ internal fun HomeContentNarrow(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
-    onDismissNowBarTroubleshooting: () -> Unit,
-    onDismissHyperIslandInfo: () -> Unit,
+    onDismissBrandWarning: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
     onOpenClockDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
@@ -270,8 +267,7 @@ internal fun HomeContentNarrow(
                     onOpenNotificationAccess = onOpenNotificationAccess,
                     onRequestNotificationPermission = onRequestNotificationPermission,
                     onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
-                    onDismissNowBarTroubleshooting = onDismissNowBarTroubleshooting,
-                    onDismissHyperIslandInfo = onDismissHyperIslandInfo,
+                    onDismissBrandWarning = onDismissBrandWarning,
                     heroVisibleHeightPx = if (requiredSettingsComplete) {
                         {
                             if (heroHeightPx <= 0) {
@@ -337,8 +333,7 @@ private fun HomeIntroColumn(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
-    onDismissNowBarTroubleshooting: () -> Unit,
-    onDismissHyperIslandInfo: () -> Unit,
+    onDismissBrandWarning: () -> Unit,
     heroVisibleHeightPx: (() -> Float)? = null,
     heroBottomSpacingVisibleFraction: (() -> Float)? = null,
     onHeroHeightChanged: (Int) -> Unit = {},
@@ -370,24 +365,19 @@ private fun HomeIntroColumn(
         }
     }
     AnimatedVisibility(
-        visible = status.isSamsungDevice && !status.nowBarTroubleshootingDismissed,
+        visible = status.brandWarning != null && !status.brandWarningDismissed,
         modifier = Modifier.clip(RoundedCornerShape(26.dp)),
     ) {
         Column {
             Spacer(Modifier.height(10.dp))
-            SamsungNowBarTroubleshootingCard(
-                onClick = onOpenSamsungNowBarGuide,
-                onDismiss = onDismissNowBarTroubleshooting,
-            )
-        }
-    }
-    AnimatedVisibility(
-        visible = status.isXiaomiDevice && !status.hyperIslandInfoDismissed,
-        modifier = Modifier.clip(RoundedCornerShape(26.dp)),
-    ) {
-        Column {
+            status.brandWarning?.let { brandWarning ->
+                BrandWarningCard(
+                    brandWarning = brandWarning,
+                    onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                    onDismiss = onDismissBrandWarning,
+                )
+            }
             Spacer(Modifier.height(10.dp))
-            XiaomiHyperIslandInfoCard(onDismiss = onDismissHyperIslandInfo)
         }
     }
 }

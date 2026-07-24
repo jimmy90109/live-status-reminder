@@ -58,7 +58,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
-import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
 import com.github.jimmy90109.livestatus.LiveStatusReminder
@@ -92,8 +91,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
                             onRequestNotificationPermission = ::requestNotificationPermission,
                             onOpenSamsungNowBarGuide = ::openSamsungNowBarGuide,
                             onOpenPrivacyPolicy = ::openPrivacyPolicy,
-                            onDismissNowBarTroubleshooting = ::dismissNowBarTroubleshooting,
-                            onDismissHyperIslandInfo = ::dismissHyperIslandInfo,
+                            onDismissBrandWarning = ::dismissBrandWarning,
                             onAppEnabledChange = ::setAppEnabled,
                         )
                     }
@@ -116,7 +114,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
-        val showManufacturerCardsForDebug = BuildConfig.DEBUG && isPixelDevice()
+        val brandWarning = detectBrandWarning()
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
             notificationPermission = canPostNotifications(),
@@ -126,12 +124,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
             uberInstalled = uberInstalled,
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
-            isSamsungDevice = isSamsungDevice() || showManufacturerCardsForDebug,
-            isXiaomiDevice = isXiaomiDevice() || showManufacturerCardsForDebug,
-            nowBarTroubleshootingDismissed =
-                AppReminderPreferences.isNowBarTroubleshootingDismissed(this),
-            hyperIslandInfoDismissed =
-                AppReminderPreferences.isHyperIslandInfoDismissed(this),
+            brandWarning = brandWarning,
+            brandWarningDismissed =
+                AppReminderPreferences.isBrandWarningDismissed(this),
             clockEnabled = AppReminderPreferences.App.CLOCK.isEnabled(this, clockInstalled),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
@@ -189,8 +184,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
     private fun isXiaomiDevice(): Boolean =
         isXiaomiFamily(Build.MANUFACTURER) || isXiaomiFamily(Build.BRAND)
 
-    private fun isPixelDevice(): Boolean =
-        Build.MODEL.startsWith("Pixel", ignoreCase = true)
+    private fun detectBrandWarning(): BrandWarning? = when {
+        isSamsungDevice() -> BrandWarning.SAMSUNG_NOW_BAR
+        isXiaomiDevice() -> BrandWarning.XIAOMI_HYPER_ISLAND
+        else -> null
+    }
 
     private fun isXiaomiFamily(value: String?): Boolean {
         val normalized = value?.lowercase()?.trim().orEmpty()
@@ -237,13 +235,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
         }
     }
 
-    private fun dismissNowBarTroubleshooting() {
-        AppReminderPreferences.setNowBarTroubleshootingDismissed(this, true)
-        refreshStatus()
-    }
-
-    private fun dismissHyperIslandInfo() {
-        AppReminderPreferences.setHyperIslandInfoDismissed(this, true)
+    private fun dismissBrandWarning() {
+        AppReminderPreferences.setBrandWarningDismissed(this, true)
         refreshStatus()
     }
 
@@ -312,10 +305,8 @@ internal data class StatusSnapshot(
     val uberInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val pikminBloomInstalled: Boolean = false,
-    val isSamsungDevice: Boolean = false,
-    val isXiaomiDevice: Boolean = false,
-    val nowBarTroubleshootingDismissed: Boolean = false,
-    val hyperIslandInfoDismissed: Boolean = false,
+    val brandWarning: BrandWarning? = null,
+    val brandWarningDismissed: Boolean = false,
     val clockEnabled: Boolean = false,
     val ipassEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,

@@ -3,8 +3,7 @@ package com.github.jimmy90109.livestatus
 import android.content.Context
 
 object AppReminderPreferences {
-    private const val NOW_BAR_TROUBLESHOOTING_DISMISSED = "now_bar_troubleshooting_dismissed"
-    private const val HYPER_ISLAND_INFO_DISMISSED = "hyper_island_info_dismissed"
+    private const val BRAND_WARNING_DISMISSED = "brand_warning_dismissed"
 
     enum class App(private val preferenceKey: String) {
         CLOCK("clock_enabled"),
@@ -23,23 +22,13 @@ object AppReminderPreferences {
         }
     }
 
-    fun isNowBarTroubleshootingDismissed(context: Context): Boolean =
-        preferences(context).getBoolean(NOW_BAR_TROUBLESHOOTING_DISMISSED, false)
+    fun isBrandWarningDismissed(context: Context): Boolean =
+        preferences(context).getBoolean(BRAND_WARNING_DISMISSED, false)
 
-    fun setNowBarTroubleshootingDismissed(context: Context, dismissed: Boolean) {
+    fun setBrandWarningDismissed(context: Context, dismissed: Boolean) {
         preferences(context)
             .edit()
-            .putBoolean(NOW_BAR_TROUBLESHOOTING_DISMISSED, dismissed)
-            .apply()
-    }
-
-    fun isHyperIslandInfoDismissed(context: Context): Boolean =
-        preferences(context).getBoolean(HYPER_ISLAND_INFO_DISMISSED, false)
-
-    fun setHyperIslandInfoDismissed(context: Context, dismissed: Boolean) {
-        preferences(context)
-            .edit()
-            .putBoolean(HYPER_ISLAND_INFO_DISMISSED, dismissed)
+            .putBoolean(BRAND_WARNING_DISMISSED, dismissed)
             .apply()
     }
 
