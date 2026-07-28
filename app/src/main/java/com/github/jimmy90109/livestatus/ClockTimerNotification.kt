@@ -64,6 +64,33 @@ internal data class ClockTimerExtraction(
     val diagnostics: Map<String, String>,
 )
 
+internal data class ClockTimerPromotionState(
+    val requested: Boolean,
+    val promoted: Boolean,
+) {
+    val shouldMirror: Boolean
+        get() = !promoted
+}
+
+internal object ClockTimerPromotionPolicy {
+    private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
+
+    fun evaluate(
+        notificationFlags: Int,
+        requested: Boolean,
+    ): ClockTimerPromotionState =
+        ClockTimerPromotionState(
+            requested = requested,
+            promoted = notificationFlags and Notification.FLAG_PROMOTED_ONGOING != 0,
+        )
+
+    fun evaluate(notification: Notification): ClockTimerPromotionState =
+        evaluate(
+            notificationFlags = notification.flags,
+            requested = notification.extras.getBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, false),
+        )
+}
+
 internal object ClockTimerNotificationExtractor {
     const val CLOCK_PACKAGE = "com.google.android.deskclock"
 
@@ -78,6 +105,17 @@ internal object ClockTimerNotificationExtractor {
         }
 
         val notification = statusBarNotification.notification
+        val promotionState = ClockTimerPromotionPolicy.evaluate(notification)
+        if (!promotionState.shouldMirror) {
+            return ClockTimerExtraction(
+                update = null,
+                diagnostics = linkedMapOf(
+                    "reason" to "source_already_promoted",
+                    "sourceRequestedPromotion" to promotionState.requested.toString(),
+                    "sourcePromotedOngoing" to promotionState.promoted.toString(),
+                ),
+            )
+        }
         val metricResult = if (Build.VERSION.SDK_INT >= 37) {
             ClockTimerApi37.readMetric(context, statusBarNotification.packageName, notification)
         } else {
@@ -152,6 +190,8 @@ internal object ClockTimerNotificationExtractor {
                 "hasPlayAction" to signals.hasPlayAction.toString(),
                 "selectedSource" to update?.source?.name.orEmpty(),
                 "language" to language.name,
+                "sourceRequestedPromotion" to promotionState.requested.toString(),
+                "sourcePromotedOngoing" to promotionState.promoted.toString(),
             ),
         )
     }
