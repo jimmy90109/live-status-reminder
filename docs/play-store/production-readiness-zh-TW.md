@@ -93,6 +93,8 @@ Production release 前請確認：
 - 支援 foodpanda 外送進度提醒。
 - 支援 Uber 乘車進度與 PIN 顯示。
 - 支援 Uber Eats 訂單進度與交付 PIN 顯示。
+- 支援 Google 時鐘倒數計時 Live Update。
+- 支援 Pikmin Bloom 背景種花提醒。
 - 支援 Android 16 Live Update。
 - 通知內容僅在裝置上處理，不上傳或分享。
 ```
