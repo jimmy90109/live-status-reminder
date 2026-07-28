@@ -37,7 +37,7 @@
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
 - [x] 申請 Production access（若 Play Console 要求）。
-- [ ] 建立 Production release，送審 `2607280 (1.0.0)` 並確認 Google Play 已公開顯示。
+- [x] 建立 Production release，送審 `2607280 (1.0.0)` 並確認 Google Play 已公開顯示（2026-07-28）。
 
 ## 尚需開發者確認
 
@@ -46,12 +46,15 @@
 
 ## 目前 Play Console 設定紀錄
 
-- 發布軌道：封閉測試 - Alpha。
+- 發布軌道：Production。
 - 推出狀態：開始全面推出。
 - Alpha 審查狀態：已通過（2026-07-10）。
 - 已審查通過版本：`2607090 (1.0.0-beta)`。
 - 最新 Alpha 上傳版本：`2607101 (1.0.0-beta3)`，AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
-- 準備送審正式版：`2607280 (1.0.0)`。
+- 最新正式版：`2607280 (1.0.0)`。
+- Production 狀態：已公開，100% 推出（2026-07-28）。
+- Play 商店網址：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>。
+- Play Console 發布總覽：沒有取消發布的變更。
 - 正式版 AAB SHA-256：`ac9024c5c4a40eb70b871b0677ca7b622cdcb6defaee6295fb005c029d9d9e96`。
 - Play 可接受的 native debug symbols：`app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip`。
 - Native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
