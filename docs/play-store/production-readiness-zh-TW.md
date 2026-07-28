@@ -22,6 +22,8 @@
 | 最新 Alpha 上傳版本 | `2607101 (1.0.0-beta3)` |
 | 準備送審正式版 | `2607280 (1.0.0)` |
 | 正式版 AAB SHA-256 | `ac9024c5c4a40eb70b871b0677ca7b622cdcb6defaee6295fb005c029d9d9e96` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
+| Native debug symbols SHA-256 | `528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a` |
 | 測試開始日期 | 待填 |
 | 測試結束日期 | 待填 |
 | 有效測試者數量 | 待填 |
@@ -78,6 +80,7 @@ Production release 前請確認：
 - [x] 重新產生正式簽署 AAB；若簽署失敗，先依 [upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md) 排查。
 - [x] 執行 `./gradlew verifyReleaseSigning test lintRelease bundleRelease`。
 - [x] 確認 `app/build/outputs/bundle/release/app-release.aab` 是要上傳的最新檔案。
+- [x] 若 Play Console 要求 native debug symbols，使用 `native-debug-symbols-play.zip`；不要使用根目錄含 `lib/` 的 Gradle 原始 zip。
 
 ## Production release note 草稿
 
