@@ -32,7 +32,9 @@
 - [x] 準備正式版上架準備清單：[production-readiness-zh-TW.md](production-readiness-zh-TW.md)。
 - [x] Alpha 審查通過（2026-07-10）。
 - [x] Alpha 已上傳下一版 signed AAB：`2607101 (1.0.0-beta3)`（2026-07-10）。
+- [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2607290 (1.0.1)`（2026-07-28）。
 - [x] 已取得 Production access，準備正式版 `2607280 (1.0.0)` 送審。
+- [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2607290 (1.0.1)` 並送審（2026-07-28），於 2026-07-29 通過審查並 100% 全面推出。
 - [ ] 檢查並處理 Play Console Pre-launch report 問題。
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
@@ -50,12 +52,12 @@
 - 推出狀態：開始全面推出。
 - Alpha 審查狀態：已通過（2026-07-10）。
 - 已審查通過版本：`2607090 (1.0.0-beta)`。
-- 最新 Alpha 上傳版本：`2607101 (1.0.0-beta3)`，AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
-- 最新正式版：`2607280 (1.0.0)`。
-- Production 狀態：已公開，100% 推出（2026-07-28）。
+- 最新 Alpha 上傳版本：`2607290 (1.0.1)`，已於 2026-07-28 送審；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
+- 最新正式版：`2607290 (1.0.1)`。
+- Production 狀態：已公開，100% 推出（2026-07-29）。
 - Play 商店網址：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>。
 - Play Console 發布總覽：沒有取消發布的變更。
-- 正式版 AAB SHA-256：`ac9024c5c4a40eb70b871b0677ca7b622cdcb6defaee6295fb005c029d9d9e96`。
+- 正式版 AAB SHA-256：`7dcfae208e4bc7b3c2ada8769db1b7c9052ff98ae7db8f7e272e5a5cb3cb410a`。
 - Play 可接受的 native debug symbols：`app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip`。
 - Native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
 - 應用程式名稱：LiveStatus 即時狀態提醒。
