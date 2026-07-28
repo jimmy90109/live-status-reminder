@@ -102,7 +102,7 @@ Production release 前請確認：
 ## 送出 Production 前最後確認
 
 - [ ] 商店資訊、截圖、圖示與 Feature Graphic 都是正式要公開的版本。
-- [ ] 隱私權政策網址可公開存取。
+- [x] 隱私權政策網址可公開存取。
 - [ ] 資料安全性問卷仍符合目前程式碼。
 - [ ] 內容分級與目標年齡層仍符合 App 功能。
 - [ ] App access instructions 可讓審查人員不用真實帳號也能測試核心流程。
