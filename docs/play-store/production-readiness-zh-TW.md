@@ -20,6 +20,8 @@
 | 測試群組 | `livestatus--app@googlegroups.com` |
 | 已審查通過版本 | `2607090 (1.0.0-beta)` |
 | 最新 Alpha 上傳版本 | `2607101 (1.0.0-beta3)` |
+| 準備送審正式版 | `2607280 (1.0.0)` |
+| 正式版 AAB SHA-256 | `ac9024c5c4a40eb70b871b0677ca7b622cdcb6defaee6295fb005c029d9d9e96` |
 | 測試開始日期 | 待填 |
 | 測試結束日期 | 待填 |
 | 有效測試者數量 | 待填 |
@@ -70,12 +72,12 @@
 
 Production release 前請確認：
 
-- [ ] 若 Alpha 後沒有程式碼變更，可沿用既有 AAB；若有任何變更，必須遞增 `versionCode`。
-- [ ] 若要正式發布為 `1.0.0`，將 `versionName` 從目前測試版名稱改為 `1.0.0`。
-- [ ] 若要先以 beta 名義公開，確認商店資訊與版本資訊仍標示為 beta。
-- [ ] 重新產生正式簽署 AAB；若簽署失敗，先依 [upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md) 排查。
-- [ ] 執行 `./gradlew test lintRelease bundleRelease`。
-- [ ] 確認 `app/build/outputs/bundle/release/app-release.aab` 是要上傳的最新檔案。
+- [x] 若 Alpha 後沒有程式碼變更，可沿用既有 AAB；若有任何變更，必須遞增 `versionCode`。
+- [x] 若要正式發布為 `1.0.0`，將 `versionName` 從目前測試版名稱改為 `1.0.0`。
+- [x] 正式版不再以 beta 名義公開，商店資訊與版本資訊已改為正式版。
+- [x] 重新產生正式簽署 AAB；若簽署失敗，先依 [upload-keystore-troubleshooting-zh-TW.md](upload-keystore-troubleshooting-zh-TW.md) 排查。
+- [x] 執行 `./gradlew verifyReleaseSigning test lintRelease bundleRelease`。
+- [x] 確認 `app/build/outputs/bundle/release/app-release.aab` 是要上傳的最新檔案。
 
 ## Production release note 草稿
 

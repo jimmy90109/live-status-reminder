@@ -32,11 +32,12 @@
 - [x] 準備正式版上架準備清單：[production-readiness-zh-TW.md](production-readiness-zh-TW.md)。
 - [x] Alpha 審查通過（2026-07-10）。
 - [x] Alpha 已上傳下一版 signed AAB：`2607101 (1.0.0-beta3)`（2026-07-10）。
+- [x] 已取得 Production access，準備正式版 `2607280 (1.0.0)` 送審。
 - [ ] 檢查並處理 Play Console Pre-launch report 問題。
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
-- [ ] 申請 Production access（若 Play Console 要求）。
-- [ ] 建立 Production release、送審並確認 Google Play 已公開顯示。
+- [x] 申請 Production access（若 Play Console 要求）。
+- [ ] 建立 Production release，送審 `2607280 (1.0.0)` 並確認 Google Play 已公開顯示。
 
 ## 尚需開發者確認
 
@@ -50,6 +51,8 @@
 - Alpha 審查狀態：已通過（2026-07-10）。
 - 已審查通過版本：`2607090 (1.0.0-beta)`。
 - 最新 Alpha 上傳版本：`2607101 (1.0.0-beta3)`，AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
+- 準備送審正式版：`2607280 (1.0.0)`。
+- 正式版 AAB SHA-256：`ac9024c5c4a40eb70b871b0677ca7b622cdcb6defaee6295fb005c029d9d9e96`。
 - 應用程式名稱：LiveStatus 即時狀態提醒。
 - Package name：`com.github.jimmy90109.livestatus`。
 - 目標年齡層：13 歲以上。
