@@ -6,7 +6,8 @@
 
 ### Google 時鐘
 
-- 將 `com.google.android.deskclock` 的主要倒數計時器同步成 Live Update。
+- 當 Google 時鐘原生 Live Update 未生效時，將 `com.google.android.deskclock` 的主要倒數計時器同步成備援 Live Update。
+- 若來源通知已被系統提升為 Live Update，則不建立第二則提醒；若先前已有鏡像提醒也會自動清除。
 - 支援運行、暫停、繼續與加一分鐘造成的時間更新；倒數結束或來源通知移除後自動清除。
 - Android 17 優先讀取 `MetricStyle` timer，Android 16 則使用通知 chronometer；不解析畫面文字猜測剩餘時間。
 - 點擊提醒可開啟原始 Clock 計時器，但不複製暫停或加一分鐘操作按鈕。
@@ -77,7 +78,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 - 完整 PIN 僅在解鎖後顯示。
 - 鎖定畫面使用不含 PIN 的公開版通知。
 - 第一版分別只追蹤一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
-- Google 時鐘只鏡像來源通知指定的主要倒數計時器。
+- Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
 
 ## 建置與驗證
 

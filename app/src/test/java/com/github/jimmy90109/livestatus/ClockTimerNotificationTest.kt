@@ -21,6 +21,42 @@ class ClockTimerNotificationTest {
     }
 
     @Test
+    fun mirrorsWhenSourceDoesNotRequestOrReceivePromotion() {
+        val state = ClockTimerPromotionPolicy.evaluate(
+            notificationFlags = 0,
+            requested = false,
+        )
+
+        assertEquals(false, state.requested)
+        assertEquals(false, state.promoted)
+        assertTrue(state.shouldMirror)
+    }
+
+    @Test
+    fun mirrorsWhenSourceRequestsPromotionButSystemDoesNotPromoteIt() {
+        val state = ClockTimerPromotionPolicy.evaluate(
+            notificationFlags = 0,
+            requested = true,
+        )
+
+        assertTrue(state.requested)
+        assertEquals(false, state.promoted)
+        assertTrue(state.shouldMirror)
+    }
+
+    @Test
+    fun skipsMirrorWhenSystemPromotesSourceNotification() {
+        val state = ClockTimerPromotionPolicy.evaluate(
+            notificationFlags = android.app.Notification.FLAG_PROMOTED_ONGOING,
+            requested = true,
+        )
+
+        assertTrue(state.requested)
+        assertTrue(state.promoted)
+        assertEquals(false, state.shouldMirror)
+    }
+
+    @Test
     fun detectsChineseFromNotificationFieldsAndDefaultsToEnglish() {
         assertEquals(
             ClockTimerLanguage.CHINESE,
@@ -194,6 +230,40 @@ class ClockTimerNotificationTest {
         tracker.onPosted("clock|timer", update)
 
         assertEquals(ClockTimerDecision.Clear, tracker.onPosted("clock|timer", null))
+    }
+
+    @Test
+    fun trackerClearsMirroredTimerWhenSameSourceBecomesPromoted() {
+        val tracker = ClockTimerTracker()
+        val update = requireNotNull(
+            interpret(
+                ClockTimerSignals(
+                    metricIsTimer = true,
+                    metricEndElapsedRealtimeMillis = 1_370_000L,
+                ),
+            ),
+        )
+
+        assertTrue(tracker.onPosted("clock|timer", update) is ClockTimerDecision.Show)
+        assertEquals(ClockTimerDecision.Clear, tracker.onPosted("clock|timer", null))
+    }
+
+    @Test
+    fun promotedStopwatchWithDifferentKeyDoesNotClearMirroredTimer() {
+        val tracker = ClockTimerTracker()
+        val update = requireNotNull(
+            interpret(
+                ClockTimerSignals(
+                    metricIsTimer = true,
+                    metricEndElapsedRealtimeMillis = 1_370_000L,
+                ),
+            ),
+        )
+
+        tracker.onPosted("clock|timer", update)
+
+        assertEquals(ClockTimerDecision.None, tracker.onPosted("clock|stopwatch", null))
+        assertEquals(ClockTimerDecision.None, tracker.onRemoved("clock|stopwatch"))
     }
 
     @Test

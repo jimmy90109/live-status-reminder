@@ -124,7 +124,7 @@ internal fun ClockCard(
         appPackageName = CLOCK_PACKAGE,
         fallbackIconRes = R.drawable.ic_timer_notification,
         title = "倒數計時",
-        description = "將 Google 時鐘的主要倒數同步成即時通知；暫停時固定顯示剩餘時間。",
+        description = "Google 時鐘原生即時通知未生效時，將主要倒數同步成即時通知；暫停時固定顯示剩餘時間。",
         supportedLanguages = listOf("不依賴語言"),
         installed = installed,
         enabled = enabled,
