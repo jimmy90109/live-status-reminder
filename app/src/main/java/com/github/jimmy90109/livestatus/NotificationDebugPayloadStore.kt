@@ -19,11 +19,35 @@ object NotificationDebugPayloadStore {
     private val _foodpandaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _clockPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _taiwanPayPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val foodpandaPayloads: StateFlow<List<NotificationDebugPayload>> = _foodpandaPayloads
     val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
     val clockPayloads: StateFlow<List<NotificationDebugPayload>> = _clockPayloads
+    val taiwanPayPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanPayPayloads
+
+    internal fun recordTaiwanPay(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = lifecycle,
+            parsedPin = null,
+            parsedDetails = emptyMap(),
+        )
+        _taiwanPayPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
 
     internal fun recordClock(
         context: Context,
@@ -145,6 +169,10 @@ object NotificationDebugPayloadStore {
 
     fun clearClock() {
         _clockPayloads.value = emptyList()
+    }
+
+    fun clearTaiwanPay() {
+        _taiwanPayPayloads.value = emptyList()
     }
 
     private fun createPayload(

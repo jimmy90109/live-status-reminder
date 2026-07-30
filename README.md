@@ -18,6 +18,14 @@
 - 點擊提醒可開啟 iPASS MONEY。
 - 偵測到 `出站交易已完成` 後自動移除提醒。
 
+### 台灣 Pay（debug 實測）
+
+- Debug build 會顯示「台灣 Pay」分頁，辨識官方台灣行動支付 App
+  `tw.com.twmp.twhcewallet` 的安裝狀態。
+- 收到或移除來源通知時，將 notification fields、extras 與合併文字暫存在目前 App
+  程序記憶體，最多保留 30 筆，可從分頁開啟 payload 頁面檢視。
+- 目前不解析乘車文案，也不建立 Live Update；待實際搭車取得進站、出站通知後再補正式規則與測試。
+
 ### foodpanda
 
 - 外送夥伴出發時顯示「外送中」。

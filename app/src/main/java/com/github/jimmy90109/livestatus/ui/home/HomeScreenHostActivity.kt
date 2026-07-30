@@ -110,6 +110,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
     private fun refreshStatus() {
         val clockInstalled = isPackageInstalled(CLOCK_PACKAGE)
         val ipassInstalled = isPackageInstalled(IPASS_PACKAGE)
+        val taiwanPayInstalled = isPackageInstalled(TAIWAN_PAY_PACKAGE)
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
@@ -120,6 +121,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             notificationPermission = canPostNotifications(),
             clockInstalled = clockInstalled,
             ipassInstalled = ipassInstalled,
+            taiwanPayInstalled = taiwanPayInstalled,
             foodpandaInstalled = foodpandaInstalled,
             uberInstalled = uberInstalled,
             uberEatsInstalled = uberEatsInstalled,
@@ -256,6 +258,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_PIKMIN_BLOOM"
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
+        private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
@@ -301,6 +304,7 @@ internal data class StatusSnapshot(
     val notificationPermission: Boolean = false,
     val clockInstalled: Boolean = false,
     val ipassInstalled: Boolean = false,
+    val taiwanPayInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,

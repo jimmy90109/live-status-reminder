@@ -110,6 +110,44 @@ internal fun IpassCard(
 }
 
 @Composable
+internal fun TaiwanPayDebugCard(
+    installed: Boolean,
+    interactionEnabled: Boolean,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    AppCard(
+        appName = "台灣 Pay",
+        appPackageName = TAIWAN_PAY_PACKAGE,
+        fallbackIconRes = R.drawable.ic_notification,
+        title = stringResource(R.string.taiwan_pay_debug_title),
+        description = stringResource(R.string.taiwan_pay_debug_description),
+        supportedLanguages = listOf("文案待實測"),
+        installed = installed,
+        enabled = false,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = {},
+        showEnabledSwitch = false,
+        cardColor = colors.taiwanPayContainer,
+        labelColor = colors.taiwanPaySecondaryContainer,
+        foregroundColor = colors.onSurface,
+    ) {
+        AppWarningNotice(
+            title = stringResource(R.string.taiwan_pay_debug_notice_title),
+            description = stringResource(R.string.taiwan_pay_debug_notice_description),
+        )
+        AppActionDivider(colors.onSurface)
+        AppCardActionButton(
+            stringResource(R.string.taiwan_pay_debug_open_payload),
+            colors.taiwanPayPrimary,
+            colors.onSurface,
+        ) {
+            onOpenDebug()
+        }
+    }
+}
+
+@Composable
 internal fun ClockCard(
     installed: Boolean,
     enabled: Boolean,
@@ -191,4 +229,5 @@ internal fun ClockCard(
 
 
 private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
+private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
 private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE

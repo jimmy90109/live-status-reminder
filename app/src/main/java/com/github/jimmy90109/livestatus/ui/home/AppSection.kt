@@ -81,6 +81,7 @@ internal fun AppsSection(
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    onOpenTaiwanPayDebug: () -> Unit,
     onOpenClockDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
@@ -158,6 +159,11 @@ internal fun AppsSection(
                     .padding(bottom = pageBottomPadding),
             ) {
                 when (page) {
+                    TAB_TAIWAN_PAY -> TaiwanPayDebugCard(
+                        installed = status.taiwanPayInstalled,
+                        interactionEnabled = status.requiredSettingsComplete,
+                        onOpenDebug = onOpenTaiwanPayDebug,
+                    )
                     TAB_CLOCK -> ClockCard(
                         installed = status.clockInstalled,
                         enabled = status.clockEnabled,
@@ -243,6 +249,9 @@ private fun AppTabs(
         ) {
             Spacer(Modifier.width(horizontalContentPadding))
             AppTab("iPASS MONEY", TAB_IPASS, selectedTab, colors.ipassPrimary, colors.commonOnPrimary, onSelect)
+            if (BuildConfig.DEBUG) {
+                AppTab("台灣 Pay", TAB_TAIWAN_PAY, selectedTab, colors.taiwanPayPrimary, colors.commonOnPrimary, onSelect)
+            }
             AppTab("foodpanda", TAB_FOODPANDA, selectedTab, colors.foodpandaPrimary, colors.commonOnPrimary, onSelect)
             AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
             AppTab("Uber", TAB_UBER, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
@@ -311,12 +320,13 @@ private fun AppTab(
 
 
 private const val TAB_IPASS = 0
-private const val TAB_FOODPANDA = 1
-private const val TAB_UBER_EATS = 2
-private const val TAB_UBER = 3
-private const val TAB_PIKMIN_BLOOM = 4
-private const val TAB_CLOCK = 5
-private const val APP_PAGE_COUNT = 6
+private val TAB_TAIWAN_PAY = if (BuildConfig.DEBUG) 1 else -1
+private val TAB_FOODPANDA = if (BuildConfig.DEBUG) 2 else 1
+private val TAB_UBER_EATS = if (BuildConfig.DEBUG) 3 else 2
+private val TAB_UBER = if (BuildConfig.DEBUG) 4 else 3
+private val TAB_PIKMIN_BLOOM = if (BuildConfig.DEBUG) 5 else 4
+private val TAB_CLOCK = if (BuildConfig.DEBUG) 6 else 5
+private val APP_PAGE_COUNT = if (BuildConfig.DEBUG) 7 else 6
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
 private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

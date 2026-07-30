@@ -18,6 +18,11 @@
 
     <string name="monitoring_ipass_entered">同一則通知同時包含「乘車碼交易」與「尚未出站」。</string>
     <string name="monitoring_ipass_exited">同一則通知同時包含「乘車碼交易」與「出站交易已完成」。</string>
+    <string name="taiwan_pay_debug_title">乘車碼通知實測</string>
+    <string name="taiwan_pay_debug_description">收集台灣行動支付的原始通知欄位，供搭車後確認進站、出站文案與通知生命週期。</string>
+    <string name="taiwan_pay_debug_notice_title">尚未啟用正式乘車提醒</string>
+    <string name="taiwan_pay_debug_notice_description">目前不解析通知，也不建立 Live Update；只在 debug build 的 App 程序記憶體保留最近 30 筆通知。</string>
+    <string name="taiwan_pay_debug_open_payload">查看通知 payload</string>
 
     <string name="monitoring_foodpanda_on_the_way">包含「外送夥伴在路上」。</string>
     <string name="monitoring_foodpanda_arriving">包含「外送夥伴即將抵達」。</string>

@@ -82,6 +82,7 @@ internal fun AppCard(
     enabled: Boolean,
     interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
+    showEnabledSwitch: Boolean = true,
     cardColor: Color,
     labelColor: Color,
     foregroundColor: Color,
@@ -112,15 +113,17 @@ internal fun AppCard(
                     LanguageTag(language, labelColor, foregroundColor)
                 }
             }
-            if (installed) {
+            if (installed && showEnabledSwitch) {
                 Switch(
                     checked = enabled,
                     onCheckedChange = onEnabledChange,
                     enabled = interactionEnabled,
                     modifier = Modifier.padding(start = 12.dp),
                 )
-            } else {
+            } else if (!installed) {
                 StatusPill(false, "已安裝", "尚未安裝")
+            } else {
+                StatusPill(true, "已安裝", "尚未安裝")
             }
         }
         Spacer(Modifier.height(12.dp))

@@ -58,6 +58,16 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             IPASS_PACKAGE -> if (AppReminderPreferences.App.IPASS.isEnabled(this)) {
                 handleRideNotification(notificationText)
             }
+            TAIWAN_PAY_PACKAGE -> if (BuildConfig.DEBUG) {
+                NotificationDebugPayloadStore.recordTaiwanPay(
+                    this,
+                    statusBarNotification,
+                    notificationText,
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                    "POSTED_UNPARSED",
+                )
+            }
             FOODPANDA_PACKAGE -> {
                 val notificationTitle = readNotificationTitle(notification)
                 val notificationContentText = readNotificationContentText(notification)
@@ -141,6 +151,21 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
+        if (
+            BuildConfig.DEBUG &&
+            statusBarNotification.packageName == TAIWAN_PAY_PACKAGE
+        ) {
+            val notification = statusBarNotification.notification
+            NotificationDebugPayloadStore.recordTaiwanPay(
+                this,
+                statusBarNotification,
+                readNotificationText(this, statusBarNotification.packageName, notification),
+                readNotificationTitle(notification),
+                readNotificationContentText(notification),
+                "REMOVED",
+            )
+            return
+        }
         if (statusBarNotification.packageName == CLOCK_PACKAGE) {
             handleClockTimerDecision(clockTimerTracker.onRemoved(statusBarNotification.key))
             return
@@ -360,6 +385,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     companion object {
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
+        private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 @Composable
@@ -110,7 +111,11 @@ internal fun RequiredSettingsSection(
                 SettingCard(
                     number = "01",
                     title = "讀取狀態通知",
-                    description = "允許 App 辨識 Clock、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
+                    description = if (BuildConfig.DEBUG) {
+                        "允許 App 辨識 Clock、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態，並暫存台灣 Pay 通知供開發實測。"
+                    } else {
+                        "允許 App 辨識 Clock、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態。"
+                    },
                     enabled = status.notificationAccess,
                     enabledText = "已開啟",
                     disabledText = "尚未開啟",
