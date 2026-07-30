@@ -87,9 +87,11 @@ internal fun AppsSection(
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
-    val pagerState = rememberPagerState(initialPage = TAB_IPASS) { APP_PAGE_COUNT }
+    val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
+        APP_CATEGORY_PAGE_COUNT
+    }
     val coroutineScope = rememberCoroutineScope()
-    var selectedTab by remember { mutableIntStateOf(TAB_IPASS) }
+    var selectedTab by remember { mutableIntStateOf(CATEGORY_TRANSIT_CODE) }
     val containingScrollConnection = remember(containingScrollState) {
         object : NestedScrollConnection {
             override fun onPreScroll(
@@ -147,7 +149,7 @@ internal fun AppsSection(
                 .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                 .weight(1f),
             verticalAlignment = Alignment.Top,
-            beyondViewportPageCount = APP_PAGE_COUNT - 1,
+            beyondViewportPageCount = APP_CATEGORY_PAGE_COUNT - 1,
         ) { page ->
             val pageScrollState = rememberScrollState()
 
@@ -157,41 +159,30 @@ internal fun AppsSection(
                     .fillMaxWidth()
                     .verticalScroll(pageScrollState)
                     .padding(bottom = pageBottomPadding),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 when (page) {
-                    TAB_TAIWAN_PAY -> TaiwanPayDebugCard(
-                        installed = status.taiwanPayInstalled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onOpenDebug = onOpenTaiwanPayDebug,
-                    )
-                    TAB_CLOCK -> ClockCard(
-                        installed = status.clockInstalled,
-                        enabled = status.clockEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
-                        },
-                        onOpenDebug = onOpenClockDebug,
-                    )
-                    TAB_FOODPANDA -> FoodpandaCard(
-                        installed = status.foodpandaInstalled,
-                        enabled = status.foodpandaEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.FOODPANDA, it)
-                        },
-                        onOpenDebug = onOpenFoodpandaDebug,
-                    )
-                    TAB_UBER_EATS -> UberEatsCard(
-                        installed = status.uberEatsInstalled,
-                        enabled = status.uberEatsEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.UBER_EATS, it)
-                        },
-                        onOpenDebug = onOpenUberEatsDebug,
-                    )
-                    TAB_UBER -> UberRideCard(
+                    CATEGORY_DELIVERY -> {
+                        FoodpandaCard(
+                            installed = status.foodpandaInstalled,
+                            enabled = status.foodpandaEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.FOODPANDA, it)
+                            },
+                            onOpenDebug = onOpenFoodpandaDebug,
+                        )
+                        UberEatsCard(
+                            installed = status.uberEatsInstalled,
+                            enabled = status.uberEatsEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.UBER_EATS, it)
+                            },
+                            onOpenDebug = onOpenUberEatsDebug,
+                        )
+                    }
+                    CATEGORY_RIDE -> UberRideCard(
                         installed = status.uberInstalled,
                         enabled = status.uberEnabled,
                         interactionEnabled = status.requiredSettingsComplete,
@@ -200,7 +191,7 @@ internal fun AppsSection(
                         },
                         onOpenDebug = onOpenUberDebug,
                     )
-                    TAB_PIKMIN_BLOOM -> PikminBloomCard(
+                    CATEGORY_GAME -> PikminBloomCard(
                         installed = status.pikminBloomInstalled,
                         enabled = status.pikminBloomEnabled,
                         interactionEnabled = status.requiredSettingsComplete,
@@ -208,14 +199,32 @@ internal fun AppsSection(
                             onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
                         },
                     )
-                    else -> IpassCard(
-                        installed = status.ipassInstalled,
-                        enabled = status.ipassEnabled,
+                    CATEGORY_TOOL -> ClockCard(
+                        installed = status.clockInstalled,
+                        enabled = status.clockEnabled,
                         interactionEnabled = status.requiredSettingsComplete,
                         onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.IPASS, it)
+                            onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
                         },
+                        onOpenDebug = onOpenClockDebug,
                     )
+                    else -> {
+                        IpassCard(
+                            installed = status.ipassInstalled,
+                            enabled = status.ipassEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.IPASS, it)
+                            },
+                        )
+                        if (BuildConfig.DEBUG) {
+                            TaiwanPayDebugCard(
+                                installed = status.taiwanPayInstalled,
+                                interactionEnabled = status.requiredSettingsComplete,
+                                onOpenDebug = onOpenTaiwanPayDebug,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -248,15 +257,46 @@ private fun AppTabs(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Spacer(Modifier.width(horizontalContentPadding))
-            AppTab("iPASS MONEY", TAB_IPASS, selectedTab, colors.ipassPrimary, colors.commonOnPrimary, onSelect)
-            if (BuildConfig.DEBUG) {
-                AppTab("台灣 Pay", TAB_TAIWAN_PAY, selectedTab, colors.taiwanPayPrimary, colors.commonOnPrimary, onSelect)
-            }
-            AppTab("foodpanda", TAB_FOODPANDA, selectedTab, colors.foodpandaPrimary, colors.commonOnPrimary, onSelect)
-            AppTab("Uber Eats", TAB_UBER_EATS, selectedTab, colors.uberEatsPrimary, colors.commonOnPrimary, onSelect)
-            AppTab("Uber", TAB_UBER, selectedTab, colors.commonPrimary, colors.commonOnPrimary, onSelect)
-            AppTab("Pikmin Bloom", TAB_PIKMIN_BLOOM, selectedTab, colors.pikminPrimary, colors.commonOnPrimary, onSelect)
-            AppTab("Clock", TAB_CLOCK, selectedTab, colors.clockPrimary, colors.commonOnPrimary, onSelect)
+            AppTab(
+                stringResource(R.string.app_category_transit_code),
+                CATEGORY_TRANSIT_CODE,
+                selectedTab,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
+                stringResource(R.string.app_category_delivery),
+                CATEGORY_DELIVERY,
+                selectedTab,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
+                stringResource(R.string.app_category_ride),
+                CATEGORY_RIDE,
+                selectedTab,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
+                stringResource(R.string.app_category_game),
+                CATEGORY_GAME,
+                selectedTab,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
+                stringResource(R.string.app_category_tool),
+                CATEGORY_TOOL,
+                selectedTab,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
             Spacer(Modifier.width(horizontalContentPadding))
         }
         Canvas(Modifier.matchParentSize()) {
@@ -319,14 +359,12 @@ private fun AppTab(
 
 
 
-private const val TAB_IPASS = 0
-private val TAB_TAIWAN_PAY = if (BuildConfig.DEBUG) 1 else -1
-private val TAB_FOODPANDA = if (BuildConfig.DEBUG) 2 else 1
-private val TAB_UBER_EATS = if (BuildConfig.DEBUG) 3 else 2
-private val TAB_UBER = if (BuildConfig.DEBUG) 4 else 3
-private val TAB_PIKMIN_BLOOM = if (BuildConfig.DEBUG) 5 else 4
-private val TAB_CLOCK = if (BuildConfig.DEBUG) 6 else 5
-private val APP_PAGE_COUNT = if (BuildConfig.DEBUG) 7 else 6
+private const val CATEGORY_TRANSIT_CODE = 0
+private const val CATEGORY_DELIVERY = 1
+private const val CATEGORY_RIDE = 2
+private const val CATEGORY_GAME = 3
+private const val CATEGORY_TOOL = 4
+private const val APP_CATEGORY_PAGE_COUNT = 5
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
 private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

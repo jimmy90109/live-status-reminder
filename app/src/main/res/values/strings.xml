@@ -7,6 +7,11 @@
     <string name="home_intro_hide">隱藏首頁介紹</string>
     <string name="home_intro_collapsed">首頁介紹已收合</string>
     <string name="home_intro_expanded">首頁介紹已展開</string>
+    <string name="app_category_transit_code">乘車碼</string>
+    <string name="app_category_delivery">外送</string>
+    <string name="app_category_ride">叫車</string>
+    <string name="app_category_game">遊戲</string>
+    <string name="app_category_tool">工具</string>
 
     <string name="monitoring_clock_running">讀取主要 timer 的 MetricStyle 或倒數 chronometer 結束時間。</string>
     <string name="monitoring_clock_paused">讀取 MetricStyle 提供的固定剩餘時間，不讓鏡像通知繼續倒數。</string>
