@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽 Google 時鐘、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽 Google 時鐘、iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -17,6 +17,13 @@
 - 偵測到 `乘車碼交易` 與 `尚未出站` 後顯示下車提醒。
 - 點擊提醒可開啟 iPASS MONEY。
 - 偵測到 `出站交易已完成` 後自動移除提醒。
+
+### 台灣 Pay
+
+- 偵測到「[站名] 上車通知」後顯示乘車提醒，文案與 iPASS MONEY 的乘車碼捷徑一致。
+- 點擊提醒可開啟台灣行動支付，準備出示乘車碼。
+- 偵測到「[站名] 下車通知」後自動移除提醒。
+- Debug build 另會在程序記憶體保留最近 30 筆原始通知 payload，供後續文案校正。
 
 ### foodpanda
 
@@ -70,7 +77,7 @@
 Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 [Samsung Now Bar 疑難排解](https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html)。
 
-點擊提醒會開啟對應 App。若尚未安裝，則前往 Google Play。iPASS MONEY 目前沒有公開乘車碼頁面的 deep link，因此只能開啟 App 首頁。
+點擊提醒會開啟對應 App。若尚未安裝，則前往 Google Play。iPASS MONEY 與台灣 Pay 目前沒有公開乘車碼頁面的 deep link，因此只能開啟 App 首頁。
 
 ## PIN 隱私
 

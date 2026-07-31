@@ -19,11 +19,11 @@
 | --- | --- |
 | 測試群組 | `livestatus--app@googlegroups.com` |
 | 已審查通過版本 | `2607090 (1.0.0-beta)` |
-| 最新 Alpha 上傳版本 | `2607101 (1.0.0-beta3)` |
-| 最新正式版 | `2607280 (1.0.0)` |
-| Production 狀態 | 已公開，100% 推出（2026-07-28） |
+| 最新 Alpha 上傳版本 | `2607310 (1.0.2)`，已通過審查並可供測試人員使用（2026-07-31） |
+| 最新正式版 | `2607310 (1.0.2)` |
+| Production 狀態 | `2607310 (1.0.2)` 已於 2026-07-31 23:12 在 Google Play 上架，100% 全面推出已完成 |
+| 最新正式版 AAB SHA-256 | `6a38a228910bb42e6767246a8bffa2f6a4ec55013742826435c9e6672b1a1fdc` |
 | Play 商店網址 | <https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus> |
-| 正式版 AAB SHA-256 | `ac9024c5c4a40eb70b871b0677ca7b622cdcb6defaee6295fb005c029d9d9e96` |
 | Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
 | Native debug symbols SHA-256 | `528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a` |
 | 測試開始日期 | 待填 |
@@ -41,6 +41,7 @@
 | --- | --- | --- | --- | --- |
 | 待填 | 待填 | 通知存取流程 | 待填 | 待填 |
 | 待填 | 待填 | iPASS MONEY 提醒 | 待填 | 待填 |
+| 待填 | 待填 | 台灣 Pay 提醒 | 待填 | 待填 |
 | 待填 | 待填 | foodpanda 提醒 | 待填 | 待填 |
 | 待填 | 待填 | Uber Eats 提醒 | 待填 | 待填 |
 
@@ -50,7 +51,7 @@
 
 ### App 用途
 
-「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、外送與種花狀態。
+「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、外送與種花狀態。
 
 ### 測試方式
 
@@ -59,6 +60,7 @@
 - App 會在授權前顯示醒目揭露。
 - 使用者可拒絕或撤銷通知存取權限。
 - iPASS MONEY 進出站通知可建立與結束乘車提醒。
+- 台灣 Pay 上下車通知可建立與結束乘車提醒。
 - foodpanda 外送通知可更新外送狀態。
 - Uber 乘車通知可更新行程狀態，乘車 PIN 僅在裝置上處理。
 - Uber Eats 訂單通知可更新進度，交付 PIN 僅在裝置上處理。
@@ -84,21 +86,16 @@ Production release 前請確認：
 - [x] 確認 `app/build/outputs/bundle/release/app-release.aab` 是要上傳的最新檔案。
 - [x] 若 Play Console 要求 native debug symbols，使用 `native-debug-symbols-play.zip`；不要使用根目錄含 `lib/` 的 Gradle 原始 zip。
 
-## Production release note 草稿
+## Production release note
 
-若正式版使用 `1.0.0`，可貼：
+`1.0.2`：
 
 ```text
-1.0.0 首個正式版本：
+1.0.2 更新：
 
-- 支援 iPASS MONEY 乘車進出站提醒。
-- 支援 foodpanda 外送進度提醒。
-- 支援 Uber 乘車進度與 PIN 顯示。
-- 支援 Uber Eats 訂單進度與交付 PIN 顯示。
-- 支援 Google 時鐘倒數計時備援 Live Update，並避免與原生 Live Update 重複。
-- 支援 Pikmin Bloom 背景種花提醒。
-- 支援 Android 16 Live Update。
-- 通知內容僅在裝置上處理，不上傳或分享。
+- 新增台灣 Pay 捷運上下車通知的 Live Update 支援。
+- 首頁設定改以倒數、交通、外送與活動類別分組，更容易找到各來源設定。
+- 改善通知解析與提醒結束流程的可靠性。
 ```
 
 ## 送出 Production 前最後確認

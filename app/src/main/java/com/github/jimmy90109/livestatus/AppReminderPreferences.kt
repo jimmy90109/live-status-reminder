@@ -8,6 +8,7 @@ object AppReminderPreferences {
     enum class App(private val preferenceKey: String) {
         CLOCK("clock_enabled"),
         IPASS("ipass_enabled"),
+        TAIWAN_PAY("taiwan_pay_enabled"),
         FOODPANDA("foodpanda_enabled"),
         UBER_RIDE("uber_ride_enabled"),
         UBER_EATS("uber_eats_enabled"),

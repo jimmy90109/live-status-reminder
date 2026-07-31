@@ -78,6 +78,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         when (intent.action) {
             ACTION_OPEN_CLOCK -> openClock()
             ACTION_OPEN_IPASS -> openIpass()
+            ACTION_OPEN_TAIWAN_PAY -> openTaiwanPay()
             ACTION_OPEN_FOODPANDA -> openFoodpanda()
             ACTION_OPEN_UBER -> openUber()
             ACTION_OPEN_UBER_EATS -> openUberEats()
@@ -110,6 +111,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
     private fun refreshStatus() {
         val clockInstalled = isPackageInstalled(CLOCK_PACKAGE)
         val ipassInstalled = isPackageInstalled(IPASS_PACKAGE)
+        val taiwanPayInstalled = isPackageInstalled(TAIWAN_PAY_PACKAGE)
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
@@ -120,6 +122,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             notificationPermission = canPostNotifications(),
             clockInstalled = clockInstalled,
             ipassInstalled = ipassInstalled,
+            taiwanPayInstalled = taiwanPayInstalled,
             foodpandaInstalled = foodpandaInstalled,
             uberInstalled = uberInstalled,
             uberEatsInstalled = uberEatsInstalled,
@@ -129,6 +132,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
                 AppReminderPreferences.isBrandWarningDismissed(this),
             clockEnabled = AppReminderPreferences.App.CLOCK.isEnabled(this, clockInstalled),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
+            taiwanPayEnabled =
+                AppReminderPreferences.App.TAIWAN_PAY.isEnabled(this, taiwanPayInstalled),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
             uberEnabled = AppReminderPreferences.App.UBER_RIDE.isEnabled(this, uberInstalled),
             uberEatsEnabled = AppReminderPreferences.App.UBER_EATS.isEnabled(this, uberEatsInstalled),
@@ -197,6 +202,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openIpass() = openPackage(IPASS_PACKAGE, "iPASS MONEY")
 
+    private fun openTaiwanPay() = openPackage(TAIWAN_PAY_PACKAGE, "台灣行動支付")
+
     private fun openClock() = openPackage(CLOCK_PACKAGE, "Clock")
 
     private fun openFoodpanda() = openPackage(FOODPANDA_PACKAGE, "foodpanda")
@@ -228,6 +235,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         when (app) {
             AppReminderPreferences.App.CLOCK -> LiveStatusReminder.clearClockTimer(this)
             AppReminderPreferences.App.IPASS -> LiveStatusReminder.clear(this)
+            AppReminderPreferences.App.TAIWAN_PAY -> LiveStatusReminder.clearTaiwanPay(this)
             AppReminderPreferences.App.FOODPANDA -> LiveStatusReminder.clearFoodpanda(this)
             AppReminderPreferences.App.UBER_RIDE -> LiveStatusReminder.clearUberRide(this)
             AppReminderPreferences.App.UBER_EATS -> LiveStatusReminder.clearUberEats(this)
@@ -246,6 +254,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_CLOCK"
         private const val ACTION_OPEN_IPASS =
             "com.github.jimmy90109.livestatus.action.OPEN_IPASS"
+        private const val ACTION_OPEN_TAIWAN_PAY =
+            "com.github.jimmy90109.livestatus.action.OPEN_TAIWAN_PAY"
         private const val ACTION_OPEN_FOODPANDA =
             "com.github.jimmy90109.livestatus.action.OPEN_FOODPANDA"
         private const val ACTION_OPEN_UBER =
@@ -256,6 +266,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_PIKMIN_BLOOM"
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
+        private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
@@ -272,6 +283,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
         @JvmStatic
         fun createOpenIpassIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_IPASS)
+
+        @JvmStatic
+        fun createOpenTaiwanPayIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_TAIWAN_PAY)
 
         @JvmStatic
         fun createOpenFoodpandaIntent(context: Context): Intent =
@@ -301,6 +316,7 @@ internal data class StatusSnapshot(
     val notificationPermission: Boolean = false,
     val clockInstalled: Boolean = false,
     val ipassInstalled: Boolean = false,
+    val taiwanPayInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
@@ -309,6 +325,7 @@ internal data class StatusSnapshot(
     val brandWarningDismissed: Boolean = false,
     val clockEnabled: Boolean = false,
     val ipassEnabled: Boolean = false,
+    val taiwanPayEnabled: Boolean = false,
     val foodpandaEnabled: Boolean = false,
     val uberEnabled: Boolean = false,
     val uberEatsEnabled: Boolean = false,

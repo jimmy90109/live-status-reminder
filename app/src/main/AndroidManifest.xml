@@ -6,6 +6,7 @@
     <queries>
         <package android:name="com.google.android.deskclock" />
         <package android:name="com.ipass.ipassmoney" />
+        <package android:name="tw.com.twmp.twhcewallet" />
         <package android:name="com.global.foodpanda.android" />
         <package android:name="com.ubercab" />
         <package android:name="com.ubercab.eats" />

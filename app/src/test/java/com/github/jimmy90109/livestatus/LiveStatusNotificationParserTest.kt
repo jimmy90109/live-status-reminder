@@ -41,6 +41,57 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun taiwanPayBoardingNotificationStartsReminderAndReadsStation() {
+        val update = LiveStatusNotificationParser.parseTaiwanPay(
+            "中山國中站 上車通知",
+            "中山國中站 上車通知",
+            "中山國中站 上車通知\n中山國中站 上車通知",
+        )
+
+        assertEquals(RideEvent.ENTERED, update.event)
+        assertEquals("中山國中站", update.stationName)
+    }
+
+    @Test
+    fun taiwanPayAlightingNotificationClearsReminderAndReadsStation() {
+        val update = LiveStatusNotificationParser.parseTaiwanPay(
+            "北門站 下車通知",
+            "北門站 下車通知",
+        )
+
+        assertEquals(RideEvent.EXITED, update.event)
+        assertEquals("北門站", update.stationName)
+    }
+
+    @Test
+    fun taiwanPayAlightingTakesPriorityWhenPayloadContainsBothStates() {
+        val update = LiveStatusNotificationParser.parseTaiwanPay(
+            "中山國中站 上車通知\n北門站 下車通知",
+        )
+
+        assertEquals(RideEvent.EXITED, update.event)
+        assertEquals("北門站", update.stationName)
+    }
+
+    @Test
+    fun unrelatedTaiwanPayNotificationsAreIgnored() {
+        listOf(
+            null,
+            "",
+            "交易成功\n台北捷運\nTWD 20",
+            "中山國中站",
+            "上車通知",
+            "中山國中站 上車通知已取消",
+            "公車即將到站通知",
+        ).forEach { text ->
+            assertEquals(
+                LiveStatusNotificationParser.TaiwanPayRideUpdate(RideEvent.NONE),
+                LiveStatusNotificationParser.parseTaiwanPay(text),
+            )
+        }
+    }
+
+    @Test
     fun foodpandaCourierOnTheWayUpdatesReminder() {
         assertEquals(
             FoodpandaEvent.COURIER_ON_THE_WAY,

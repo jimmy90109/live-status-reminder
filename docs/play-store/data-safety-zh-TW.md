@@ -14,7 +14,7 @@
 即使「資料安全」回答未收集資料，隱私權政策與 App 內仍須清楚說明：
 
 - App 會在使用者授權後讀取通知內容。
-- 用途限於辨識 Google 時鐘、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
+- 用途限於辨識 Google 時鐘、iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
 - Uber 與 Uber Eats 通知可能包含 PIN。
 - 通知內容與 PIN 不上傳、不分享、不永久儲存。
 - 使用者可隨時撤銷通知存取權限。
@@ -27,7 +27,7 @@
 - 新聞 App：**否**
 - COVID-19 接觸者追蹤／狀態 App：**否**
 - 政府 App：**否**
-- 金融功能：App 不提供金融交易、貸款、錢包或支付功能；只辨識 iPASS MONEY 的乘車狀態通知。
+- 金融功能：App 不提供金融交易、貸款、錢包或支付功能；只辨識 iPASS MONEY 與台灣 Pay 的乘車狀態通知。
 
 ## 審查備註草稿
 

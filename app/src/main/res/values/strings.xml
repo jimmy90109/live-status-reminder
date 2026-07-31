@@ -7,6 +7,11 @@
     <string name="home_intro_hide">隱藏首頁介紹</string>
     <string name="home_intro_collapsed">首頁介紹已收合</string>
     <string name="home_intro_expanded">首頁介紹已展開</string>
+    <string name="app_category_transit_code">乘車碼</string>
+    <string name="app_category_delivery">外送</string>
+    <string name="app_category_ride">叫車</string>
+    <string name="app_category_game">遊戲</string>
+    <string name="app_category_tool">工具</string>
 
     <string name="monitoring_clock_running">讀取主要 timer 的 MetricStyle 或倒數 chronometer 結束時間。</string>
     <string name="monitoring_clock_paused">讀取 MetricStyle 提供的固定剩餘時間，不讓鏡像通知繼續倒數。</string>
@@ -18,6 +23,13 @@
 
     <string name="monitoring_ipass_entered">同一則通知同時包含「乘車碼交易」與「尚未出站」。</string>
     <string name="monitoring_ipass_exited">同一則通知同時包含「乘車碼交易」與「出站交易已完成」。</string>
+    <string name="taiwan_pay_title">乘車碼狀態</string>
+    <string name="taiwan_pay_description">偵測台灣行動支付的捷運上、下車通知；上車後顯示乘車碼捷徑，下車時自動移除。</string>
+    <string name="taiwan_pay_simulate_boarding">模擬上車，顯示提醒  ↑</string>
+    <string name="taiwan_pay_simulate_alighting">模擬下車，移除提醒  ✓</string>
+    <string name="monitoring_taiwan_pay_boarding">通知標題或內文符合「[站名] 上車通知」。</string>
+    <string name="monitoring_taiwan_pay_alighting">通知標題或內文符合「[站名] 下車通知」。</string>
+    <string name="taiwan_pay_debug_open_payload">查看通知 payload</string>
 
     <string name="monitoring_foodpanda_on_the_way">包含「外送夥伴在路上」。</string>
     <string name="monitoring_foodpanda_arriving">包含「外送夥伴即將抵達」。</string>

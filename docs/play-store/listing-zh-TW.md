@@ -12,13 +12,16 @@ LiveStatus 即時狀態提醒
 
 LiveStatus 即時狀態提醒是一款為 Android 16 設計的通知輔助工具，會監聽指定應用程式的通知，將重要狀態轉換成持續顯示的 Live Update，讓你不用反覆打開 App，也能快速掌握倒數計時、外送、乘車與種花狀態。
 
-支援情境包含 Google 時鐘、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom。
+支援情境包含 Google 時鐘、iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom。
 
 【Google 時鐘】
 Google 時鐘原生 Live Update 未生效時，將主要倒數計時器同步成備援 Live Update。若來源通知已由系統即時顯示，則不建立重複提醒。倒數運行、暫停、繼續或加一分鐘時會同步更新；倒數結束或來源通知移除後，提醒會自動清除。
 
 【iPASS MONEY】
 當偵測到乘車碼交易與尚未出站狀態時，LiveStatus 會顯示下車提醒。點擊提醒即可快速開啟 iPASS MONEY。當偵測到出站交易完成後，提醒會自動移除。
+
+【台灣 Pay】
+當偵測到捷運站上車通知時，LiveStatus 會顯示乘車碼捷徑。點擊提醒即可快速開啟台灣行動支付。當偵測到捷運站下車通知後，提醒會自動移除。
 
 【foodpanda】
 當外送夥伴出發時，LiveStatus 會顯示外送中狀態；當外送夥伴接近時，會更新為即將抵達。訂單送達或取消後，提醒會自動移除。
@@ -63,7 +66,7 @@ LiveStatus 需要通知存取權，才能讀取指定 App 的通知內容並轉�
 系統需求：Android 16 或更新版本。Live Update 顯示方式依裝置支援情況而定。
 
 【注意事項】
-LiveStatus 是第三方通知輔助工具，並非 Google 時鐘、iPASS MONEY、foodpanda、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
+LiveStatus 是第三方通知輔助工具，並非 Google 時鐘、iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
 
 LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或格式不明確，App 可能不會顯示部分資訊，以避免誤判。
 
@@ -79,17 +82,12 @@ LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或
 
 ## 發布版本名稱
 
-1.0.0
+1.0.2
 
 ## 發布說明
 
-1.0.0 首個正式版本：
+1.0.2 更新：
 
-- 支援 iPASS MONEY 乘車進出站提醒。
-- 支援 foodpanda 外送進度提醒。
-- 支援 Uber 乘車進度與 PIN 顯示。
-- 支援 Uber Eats 訂單進度與交付 PIN 顯示。
-- 支援 Google 時鐘倒數計時備援 Live Update，並避免與原生 Live Update 重複。
-- 支援 Pikmin Bloom 背景種花提醒。
-- 支援 Android 16 Live Update。
-- 通知內容僅在裝置上處理，不上傳或分享。
+- 新增台灣 Pay 捷運上下車通知的 Live Update 支援。
+- 首頁設定改以倒數、交通、外送與活動類別分組，更容易找到各來源設定。
+- 改善通知解析與提醒結束流程的可靠性。

@@ -54,6 +54,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 private enum class DebugTarget(val appName: String) {
+    TAIWAN_PAY("台灣 Pay"),
     CLOCK("Clock"),
     UBER("Uber"),
     FOODPANDA("foodpanda"),
@@ -143,18 +144,21 @@ internal fun HomeScreenHostActivity.MainScreen(
             NotificationDebugPage(
                 appName = currentDebugTarget.appName,
                 payloadsFlow = when (currentDebugTarget) {
+                    DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.taiwanPayPayloads
                     DebugTarget.CLOCK -> NotificationDebugPayloadStore.clockPayloads
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
                     DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                 },
                 cardColor = when (currentDebugTarget) {
+                    DebugTarget.TAIWAN_PAY -> colors.taiwanPayContainer
                     DebugTarget.CLOCK -> colors.clockContainer
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
                 },
                 actionColor = when (currentDebugTarget) {
+                    DebugTarget.TAIWAN_PAY -> colors.taiwanPayPrimary
                     DebugTarget.CLOCK -> colors.onSurface
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.FOODPANDA -> colors.foodpandaText
@@ -167,6 +171,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                 onBack = { debugTarget = null },
                 onClear = {
                     when (currentDebugTarget) {
+                        DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.clearTaiwanPay()
                         DebugTarget.CLOCK -> NotificationDebugPayloadStore.clearClock()
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
                         DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
@@ -200,6 +205,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissBrandWarning = onDismissBrandWarning,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
@@ -222,6 +228,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                         onDismissBrandWarning = onDismissBrandWarning,
                         onAppEnabledChange = onAppEnabledChange,
+                        onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
@@ -321,7 +328,7 @@ private fun NotificationAccessDisclosureDialog(
         title = { Text("允許讀取通知前，請先了解") },
         text = {
             Text(
-                "即時狀態提醒會讀取 Clock、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                "即時狀態提醒會讀取 Clock、iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
                     "用來辨識倒數計時、乘車、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
                     "也不會永久儲存通知內容或 PIN。您隨時可以在系統設定中關閉通知存取權限。",
