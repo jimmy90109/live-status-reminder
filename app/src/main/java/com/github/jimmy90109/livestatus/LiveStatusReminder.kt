@@ -181,8 +181,7 @@ object LiveStatusReminder {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val payload = uberEatsPayload(event, officialTitle, officialText, openUberEats)
-        val privateText = uberEatsPrivateText(event, payload.contentText, pin)
-        val privatePayload = payload.copy(contentText = privateText)
+        val privatePayload = uberEatsPrivatePayload(event, payload, pin)
 
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(privatePayload.smallIconRes)
@@ -394,6 +393,16 @@ object LiveStatusReminder {
         val officialDetails = uberEatsOfficialDetails(event, contentText)
         return pin?.let { "$officialDetails · PIN $it" } ?: officialDetails
     }
+
+    internal fun uberEatsPrivatePayload(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        payload: LiveStatusPayload,
+        pin: String?,
+    ): LiveStatusPayload =
+        payload.copy(
+            criticalText = pin ?: payload.criticalText,
+            contentText = uberEatsPrivateText(event, payload.contentText, pin),
+        )
 
     private fun uberEatsOfficialDetails(
         event: LiveStatusNotificationParser.UberEatsEvent,

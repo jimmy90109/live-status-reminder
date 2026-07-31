@@ -82,8 +82,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 ## PIN 隱私
 
 - PIN 只保留在記憶體中，不會寫入檔案、偏好設定或正式日誌。
-- 完整 PIN 僅在解鎖後顯示。
-- 鎖定畫面使用不含 PIN 的公開版通知。
+- 可可靠辨識時，PIN 會顯示在即時通知／Live Update 中，方便核對行程或外送。
 - 第一版分別只追蹤一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
 - Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
 
