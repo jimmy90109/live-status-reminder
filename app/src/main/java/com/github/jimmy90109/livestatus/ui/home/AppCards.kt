@@ -1,67 +1,21 @@
 package com.github.jimmy90109.livestatus.ui.home
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.Drawable
 import android.os.SystemClock
-import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.ClockTimerSource
 import com.github.jimmy90109.livestatus.ClockTimerState
 import com.github.jimmy90109.livestatus.ClockTimerUpdate
-import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -77,8 +31,8 @@ internal fun IpassCard(
         appName = "iPASS MONEY",
         appPackageName = IPASS_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
-        title = "乘車碼狀態",
-        description = "進站後顯示乘車碼捷徑，準備下車時快速開啟。",
+        title = null,
+        description = null,
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
@@ -88,7 +42,7 @@ internal fun IpassCard(
         labelColor = colors.ipassSecondaryContainer,
         foregroundColor = colors.onSurface,
     ) {
-        AppActionDivider(colors.onSurface)
+        Spacer(Modifier.height(4.dp))
         AppCardActionButton(
             "模擬上車，顯示提醒  ↑",
             colors.ipassPrimary,
@@ -123,8 +77,8 @@ internal fun TaiwanPayCard(
         appName = "台灣 Pay",
         appPackageName = TAIWAN_PAY_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
-        title = stringResource(R.string.taiwan_pay_title),
-        description = stringResource(R.string.taiwan_pay_description),
+        title = null,
+        description = null,
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
@@ -134,7 +88,7 @@ internal fun TaiwanPayCard(
         labelColor = colors.taiwanPaySecondaryContainer,
         foregroundColor = colors.onSurface,
     ) {
-        AppActionDivider(colors.onSurface)
+        Spacer(Modifier.height(4.dp))
         AppCardActionButton(
             stringResource(R.string.taiwan_pay_simulate_boarding),
             colors.taiwanPayPrimary,

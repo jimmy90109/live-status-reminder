@@ -12,6 +12,7 @@
     <string name="app_category_ride">叫車</string>
     <string name="app_category_game">遊戲</string>
     <string name="app_category_tool">工具</string>
+    <string name="transit_code_status_description">進站後顯示乘車碼捷徑，準備下車時快速開啟。</string>
 
     <string name="monitoring_clock_running">讀取主要 timer 的 MetricStyle 或倒數 chronometer 結束時間。</string>
     <string name="monitoring_clock_paused">讀取 MetricStyle 提供的固定剩餘時間，不讓鏡像通知繼續倒數。</string>
@@ -23,8 +24,6 @@
 
     <string name="monitoring_ipass_entered">同一則通知同時包含「乘車碼交易」與「尚未出站」。</string>
     <string name="monitoring_ipass_exited">同一則通知同時包含「乘車碼交易」與「出站交易已完成」。</string>
-    <string name="taiwan_pay_title">乘車碼狀態</string>
-    <string name="taiwan_pay_description">偵測台灣行動支付的捷運上、下車通知；上車後顯示乘車碼捷徑，下車時自動移除。</string>
     <string name="taiwan_pay_simulate_boarding">模擬上車，顯示提醒  ↑</string>
     <string name="taiwan_pay_simulate_alighting">模擬下車，移除提醒  ✓</string>
     <string name="monitoring_taiwan_pay_boarding">通知標題或內文符合「[站名] 上車通知」。</string>
