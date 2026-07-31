@@ -110,39 +110,56 @@ internal fun IpassCard(
 }
 
 @Composable
-internal fun TaiwanPayDebugCard(
+internal fun TaiwanPayCard(
     installed: Boolean,
+    enabled: Boolean,
     interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
     onOpenDebug: () -> Unit,
 ) {
     val colors = LocalAppColors.current
+    val context = LocalContext.current
     AppCard(
         appName = "台灣 Pay",
         appPackageName = TAIWAN_PAY_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
-        title = stringResource(R.string.taiwan_pay_debug_title),
-        description = stringResource(R.string.taiwan_pay_debug_description),
-        supportedLanguages = listOf("文案待實測"),
+        title = stringResource(R.string.taiwan_pay_title),
+        description = stringResource(R.string.taiwan_pay_description),
+        supportedLanguages = listOf("繁中"),
         installed = installed,
-        enabled = false,
+        enabled = enabled,
         interactionEnabled = interactionEnabled,
-        onEnabledChange = {},
-        showEnabledSwitch = false,
+        onEnabledChange = onEnabledChange,
         cardColor = colors.taiwanPayContainer,
         labelColor = colors.taiwanPaySecondaryContainer,
         foregroundColor = colors.onSurface,
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.taiwan_pay_debug_notice_title),
-            description = stringResource(R.string.taiwan_pay_debug_notice_description),
-        )
         AppActionDivider(colors.onSurface)
         AppCardActionButton(
-            stringResource(R.string.taiwan_pay_debug_open_payload),
+            stringResource(R.string.taiwan_pay_simulate_boarding),
             colors.taiwanPayPrimary,
             colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_taiwan_pay_boarding),
+            enabled = enabled,
         ) {
-            onOpenDebug()
+            LiveStatusReminder.showTaiwanPay(context)
+        }
+        AppCardActionButton(
+            stringResource(R.string.taiwan_pay_simulate_alighting),
+            colors.taiwanPayPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_taiwan_pay_alighting),
+        ) {
+            LiveStatusReminder.clearTaiwanPay(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.taiwan_pay_debug_open_payload),
+                colors.taiwanPayPrimary,
+                colors.onSurface,
+            ) {
+                onOpenDebug()
+            }
         }
     }
 }

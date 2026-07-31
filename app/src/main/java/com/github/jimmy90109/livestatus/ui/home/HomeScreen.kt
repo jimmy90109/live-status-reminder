@@ -48,7 +48,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
-import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.CancellationException
@@ -328,15 +327,9 @@ private fun NotificationAccessDisclosureDialog(
         onDismissRequest = onDismiss,
         title = { Text("允許讀取通知前，請先了解") },
         text = {
-            val debugSourceDisclosure = if (BuildConfig.DEBUG) {
-                "；debug build 另會把台灣 Pay 的原始通知暫存在程序記憶體，供乘車文案實測"
-            } else {
-                ""
-            }
             Text(
-                "即時狀態提醒會讀取 Clock、iPASS MONEY、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
-                    "用來辨識倒數計時、乘車、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒" +
-                    "$debugSourceDisclosure。\n\n" +
+                "即時狀態提醒會讀取 Clock、iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                    "用來辨識倒數計時、乘車、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
                     "也不會永久儲存通知內容或 PIN。您隨時可以在系統設定中關閉通知存取權限。",
             )

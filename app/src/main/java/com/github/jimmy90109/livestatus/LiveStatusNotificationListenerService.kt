@@ -58,15 +58,28 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             IPASS_PACKAGE -> if (AppReminderPreferences.App.IPASS.isEnabled(this)) {
                 handleRideNotification(notificationText)
             }
-            TAIWAN_PAY_PACKAGE -> if (BuildConfig.DEBUG) {
-                NotificationDebugPayloadStore.recordTaiwanPay(
-                    this,
-                    statusBarNotification,
+            TAIWAN_PAY_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = LiveStatusNotificationParser.parseTaiwanPay(
+                    notificationTitle,
+                    notificationContentText,
                     notificationText,
-                    readNotificationTitle(notification),
-                    readNotificationContentText(notification),
-                    "POSTED_UNPARSED",
                 )
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordTaiwanPay(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        "POSTED",
+                        update,
+                    )
+                }
+                if (AppReminderPreferences.App.TAIWAN_PAY.isEnabled(this)) {
+                    handleTaiwanPayRideNotification(update)
+                }
             }
             FOODPANDA_PACKAGE -> {
                 val notificationTitle = readNotificationTitle(notification)
@@ -156,13 +169,19 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             statusBarNotification.packageName == TAIWAN_PAY_PACKAGE
         ) {
             val notification = statusBarNotification.notification
+            val notificationTitle = readNotificationTitle(notification)
+            val notificationContentText = readNotificationContentText(notification)
             NotificationDebugPayloadStore.recordTaiwanPay(
                 this,
                 statusBarNotification,
                 readNotificationText(this, statusBarNotification.packageName, notification),
-                readNotificationTitle(notification),
-                readNotificationContentText(notification),
+                notificationTitle,
+                notificationContentText,
                 "REMOVED",
+                LiveStatusNotificationParser.parseTaiwanPay(
+                    notificationTitle,
+                    notificationContentText,
+                ),
             )
             return
         }
@@ -234,6 +253,18 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         when (LiveStatusNotificationParser.parse(notificationText)) {
             LiveStatusNotificationParser.RideEvent.ENTERED -> LiveStatusReminder.show(this)
             LiveStatusNotificationParser.RideEvent.EXITED -> LiveStatusReminder.clear(this)
+            LiveStatusNotificationParser.RideEvent.NONE -> Unit
+        }
+    }
+
+    private fun handleTaiwanPayRideNotification(
+        update: LiveStatusNotificationParser.TaiwanPayRideUpdate,
+    ) {
+        when (update.event) {
+            LiveStatusNotificationParser.RideEvent.ENTERED ->
+                LiveStatusReminder.showTaiwanPay(this)
+            LiveStatusNotificationParser.RideEvent.EXITED ->
+                LiveStatusReminder.clearTaiwanPay(this)
             LiveStatusNotificationParser.RideEvent.NONE -> Unit
         }
     }

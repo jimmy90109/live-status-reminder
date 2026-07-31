@@ -22,6 +22,18 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun taiwanPayRidePayloadMatchesIpassWordingAndUsesTaiwanPayAppName() {
+        val payload = LiveStatusReminder.taiwanPayRidePayload()
+
+        assertEquals(R.drawable.ic_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_notification, payload.leftIconRes)
+        assertEquals("台灣 Pay", payload.appName)
+        assertEquals("乘車中", payload.criticalText)
+        assertEquals("乘車中：準備下車時開啟乘車碼", payload.title)
+        assertEquals("點一下立即開啟台灣 Pay", payload.contentText)
+    }
+
+    @Test
     fun foodpandaPayloadUsesDeliveryIconAppNameAndCriticalText() {
         val onTheWay = LiveStatusReminder.foodpandaPayload(FoodpandaEvent.COURIER_ON_THE_WAY)
         val arriving = LiveStatusReminder.foodpandaPayload(FoodpandaEvent.COURIER_ARRIVING)

@@ -62,7 +62,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
-import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.ClockTimerSource
 import com.github.jimmy90109.livestatus.ClockTimerState
@@ -217,13 +216,15 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.IPASS, it)
                             },
                         )
-                        if (BuildConfig.DEBUG) {
-                            TaiwanPayDebugCard(
-                                installed = status.taiwanPayInstalled,
-                                interactionEnabled = status.requiredSettingsComplete,
-                                onOpenDebug = onOpenTaiwanPayDebug,
-                            )
-                        }
+                        TaiwanPayCard(
+                            installed = status.taiwanPayInstalled,
+                            enabled = status.taiwanPayEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TAIWAN_PAY, it)
+                            },
+                            onOpenDebug = onOpenTaiwanPayDebug,
+                        )
                     }
                 }
             }

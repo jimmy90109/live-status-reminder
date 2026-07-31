@@ -34,6 +34,7 @@ object NotificationDebugPayloadStore {
         notificationTitle: String?,
         notificationContentText: String?,
         lifecycle: String,
+        update: LiveStatusNotificationParser.TaiwanPayRideUpdate,
     ) {
         val payload = createPayload(
             context = context,
@@ -42,9 +43,12 @@ object NotificationDebugPayloadStore {
             shortCriticalText = null,
             notificationTitle = notificationTitle,
             notificationContentText = notificationContentText,
-            parsedEvent = lifecycle,
+            parsedEvent = if (lifecycle == "REMOVED") lifecycle else update.event.name,
             parsedPin = null,
-            parsedDetails = emptyMap(),
+            parsedDetails = linkedMapOf(
+                "lifecycle" to lifecycle,
+                "parsedStationName" to update.stationName.orEmpty(),
+            ),
         )
         _taiwanPayPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
     }

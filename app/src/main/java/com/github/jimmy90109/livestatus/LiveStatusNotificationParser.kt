@@ -7,6 +7,7 @@ object LiveStatusNotificationParser {
     private val separatedPinDigits = Regex(
         """(?m)(?:^|\n)\s*(\d)\s*\n\s*(\d)\s*\n\s*(\d)\s*\n\s*(\d)\s*(?:\n|$)""",
     )
+    private val taiwanPayRideLine = Regex("""^(.+?站)\s*(上車|下車)通知$""")
 
     enum class RideEvent {
         NONE,
@@ -61,6 +62,11 @@ object LiveStatusNotificationParser {
         val pin: String?,
     )
 
+    data class TaiwanPayRideUpdate(
+        val event: RideEvent,
+        val stationName: String? = null,
+    )
+
     data class UberRideUpdate(
         val event: UberRideEvent,
         val rideType: UberRideType = UberRideType.STANDARD,
@@ -84,6 +90,26 @@ object LiveStatusNotificationParser {
         if (normalized.contains("出站交易已完成")) return RideEvent.EXITED
         if (normalized.contains("尚未出站")) return RideEvent.ENTERED
         return RideEvent.NONE
+    }
+
+    @JvmStatic
+    fun parseTaiwanPay(vararg notificationTexts: String?): TaiwanPayRideUpdate {
+        val matches = notificationTexts
+            .asSequence()
+            .filterNotNull()
+            .flatMap { text -> text.lineSequence() }
+            .map { line -> line.trim() }
+            .filter { line -> line.isNotEmpty() }
+            .mapNotNull { line -> taiwanPayRideLine.matchEntire(line) }
+            .toList()
+
+        val match = matches.firstOrNull { it.groupValues[2] == "下車" }
+            ?: matches.firstOrNull { it.groupValues[2] == "上車" }
+            ?: return TaiwanPayRideUpdate(RideEvent.NONE)
+        return TaiwanPayRideUpdate(
+            event = if (match.groupValues[2] == "下車") RideEvent.EXITED else RideEvent.ENTERED,
+            stationName = match.groupValues[1].trim(),
+        )
     }
 
     @JvmStatic

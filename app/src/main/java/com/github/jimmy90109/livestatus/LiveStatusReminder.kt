@@ -18,6 +18,7 @@ object LiveStatusReminder {
     private const val PIKMIN_BLOOM_NOTIFICATION_ID = 1004
     private const val UBER_RIDE_NOTIFICATION_ID = 1005
     private const val CLOCK_TIMER_NOTIFICATION_ID = 1006
+    private const val TAIWAN_PAY_NOTIFICATION_ID = 1007
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -77,6 +78,49 @@ object LiveStatusReminder {
     @JvmStatic
     fun clear(context: Context) {
         notificationManager(context).cancel(RIDE_NOTIFICATION_ID)
+    }
+
+    @JvmStatic
+    fun showTaiwanPay(context: Context) {
+        createChannel(context)
+        val openTaiwanPay = PendingIntent.getActivity(
+            context,
+            6,
+            HomeScreenHostActivity.createOpenTaiwanPayIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = taiwanPayRidePayload(openTaiwanPay)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    "開啟乘車碼",
+                    openTaiwanPay,
+                ).build(),
+            )
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setStyle(
+                Notification.BigTextStyle().bigText(
+                    "抵達目的地前，點一下立即開啟台灣 Pay，準備出示乘車碼。",
+                ),
+            )
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(TAIWAN_PAY_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearTaiwanPay(context: Context) {
+        notificationManager(context).cancel(TAIWAN_PAY_NOTIFICATION_ID)
     }
 
     @JvmStatic
@@ -393,6 +437,20 @@ object LiveStatusReminder {
             criticalText = "乘車中",
             title = "乘車中：準備下車時開啟乘車碼",
             contentText = "點一下立即開啟 iPASS MONEY",
+            contentIntent = contentIntent,
+        )
+
+    internal fun taiwanPayRidePayload(
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload =
+        LiveStatusPayload(
+            id = TAIWAN_PAY_NOTIFICATION_ID,
+            appName = "台灣 Pay",
+            smallIconRes = R.drawable.ic_notification,
+            leftIconRes = R.drawable.ic_notification,
+            criticalText = "乘車中",
+            title = "乘車中：準備下車時開啟乘車碼",
+            contentText = "點一下立即開啟台灣 Pay",
             contentIntent = contentIntent,
         )
 

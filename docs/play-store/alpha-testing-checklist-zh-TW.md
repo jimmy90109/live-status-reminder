@@ -36,6 +36,8 @@ Alpha 審查狀態：已通過（2026-07-10）
 - [ ] Android 16 chronometer 與 Android 17 MetricStyle 路徑皆完成實機驗證。
 - [ ] iPASS MONEY 進站通知可建立乘車提醒。
 - [ ] iPASS MONEY 出站通知可結束乘車提醒。
+- [ ] 台灣 Pay 上車通知可建立乘車提醒。
+- [ ] 台灣 Pay 下車通知可結束乘車提醒。
 - [ ] foodpanda 外送中通知可建立外送提醒。
 - [ ] foodpanda 即將抵達通知可更新狀態。
 - [ ] foodpanda 送達或取消後可結束提醒。
