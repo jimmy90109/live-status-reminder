@@ -33,9 +33,10 @@
 - [x] Alpha 審查通過（2026-07-10）。
 - [x] Alpha 已上傳下一版 signed AAB：`2607101 (1.0.0-beta3)`（2026-07-10）。
 - [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2607290 (1.0.1)`（2026-07-28）。
-- [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2607310 (1.0.2)`（2026-07-31），目前審查中。
+- [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2607310 (1.0.2)`（2026-07-31），同日通過審查並可供測試人員使用。
 - [x] 已取得 Production access，準備正式版 `2607280 (1.0.0)` 送審。
 - [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2607290 (1.0.1)` 並送審（2026-07-28），於 2026-07-29 通過審查並 100% 全面推出。
+- [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2607310 (1.0.2)`，設定 100% 全面推出並送審（2026-07-31），目前審查中。
 - [ ] 檢查並處理 Play Console Pre-launch report 問題。
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
@@ -51,14 +52,16 @@
 
 - 發布軌道：Production。
 - 推出狀態：開始全面推出。
-- Alpha 審查狀態：已通過（2026-07-10）。
-- 已審查通過版本：`2607090 (1.0.0-beta)`。
-- 最新 Alpha 上傳版本：`2607310 (1.0.2)`，已於 2026-07-31 送審，目前審查中；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
+- Alpha 審查狀態：`2607310 (1.0.2)` 已通過（2026-07-31），可供所選測試人員使用。
+- 已審查通過版本：`2607310 (1.0.2)`。
+- 最新 Alpha 上傳版本：`2607310 (1.0.2)`，已於 2026-07-31 通過審查；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
 - 最新 Alpha AAB SHA-256：`6a38a228910bb42e6767246a8bffa2f6a4ec55013742826435c9e6672b1a1fdc`。
 - 最新正式版：`2607290 (1.0.1)`。
-- Production 狀態：已公開，100% 推出（2026-07-29）。
+- Production 待審版本：`2607310 (1.0.2)`，已於 2026-07-31 設定 100% 全面推出並送審。
+- Production 狀態：`2607310 (1.0.2)` 審查中；目前公開版本仍為 `2607290 (1.0.1)`。
 - Play 商店網址：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>。
 - Play Console 發布總覽：沒有取消發布的變更。
+- Production 待審 AAB SHA-256：`6a38a228910bb42e6767246a8bffa2f6a4ec55013742826435c9e6672b1a1fdc`。
 - 正式版 AAB SHA-256：`7dcfae208e4bc7b3c2ada8769db1b7c9052ff98ae7db8f7e272e5a5cb3cb410a`。
 - Play 可接受的 native debug symbols：`app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip`。
 - Native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。

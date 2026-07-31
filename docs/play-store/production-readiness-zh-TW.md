@@ -19,9 +19,10 @@
 | --- | --- |
 | 測試群組 | `livestatus--app@googlegroups.com` |
 | 已審查通過版本 | `2607090 (1.0.0-beta)` |
-| 最新 Alpha 上傳版本 | `2607310 (1.0.2)`，審查中（2026-07-31） |
+| 最新 Alpha 上傳版本 | `2607310 (1.0.2)`，已通過審查並可供測試人員使用（2026-07-31） |
 | 最新正式版 | `2607290 (1.0.1)` |
-| Production 狀態 | 已公開，100% 推出（2026-07-29） |
+| Production 狀態 | `2607310 (1.0.2)` 已設定 100% 全面推出並送審，目前審查中（2026-07-31） |
+| Production 待審 AAB SHA-256 | `6a38a228910bb42e6767246a8bffa2f6a4ec55013742826435c9e6672b1a1fdc` |
 | Play 商店網址 | <https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus> |
 | 正式版 AAB SHA-256 | `7dcfae208e4bc7b3c2ada8769db1b7c9052ff98ae7db8f7e272e5a5cb3cb410a` |
 | Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
