@@ -86,22 +86,16 @@ Production release 前請確認：
 - [x] 確認 `app/build/outputs/bundle/release/app-release.aab` 是要上傳的最新檔案。
 - [x] 若 Play Console 要求 native debug symbols，使用 `native-debug-symbols-play.zip`；不要使用根目錄含 `lib/` 的 Gradle 原始 zip。
 
-## Production release note 草稿
+## Production release note
 
-若正式版使用 `1.0.0`，可貼：
+`1.0.2`：
 
 ```text
-1.0.0 首個正式版本：
+1.0.2 更新：
 
-- 支援 iPASS MONEY 乘車進出站提醒。
-- 支援台灣 Pay 捷運上下車提醒。
-- 支援 foodpanda 外送進度提醒。
-- 支援 Uber 乘車進度與 PIN 顯示。
-- 支援 Uber Eats 訂單進度與交付 PIN 顯示。
-- 支援 Google 時鐘倒數計時備援 Live Update，並避免與原生 Live Update 重複。
-- 支援 Pikmin Bloom 背景種花提醒。
-- 支援 Android 16 Live Update。
-- 通知內容僅在裝置上處理，不上傳或分享。
+- 新增台灣 Pay 捷運上下車通知的 Live Update 支援。
+- 首頁設定改以倒數、交通、外送與活動類別分組，更容易找到各來源設定。
+- 改善通知解析與提醒結束流程的可靠性。
 ```
 
 ## 送出 Production 前最後確認
