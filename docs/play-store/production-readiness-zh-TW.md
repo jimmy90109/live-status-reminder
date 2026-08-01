@@ -42,6 +42,7 @@
 | 待填 | 待填 | 通知存取流程 | 待填 | 待填 |
 | 待填 | 待填 | iPASS MONEY 提醒 | 待填 | 待填 |
 | 待填 | 待填 | 台灣 Pay 提醒 | 待填 | 待填 |
+| 待填 | 待填 | YouBike 2.0／2.0E 費用追蹤 | 待填 | 待填 |
 | 待填 | 待填 | foodpanda 提醒 | 待填 | 待填 |
 | 待填 | 待填 | Uber Eats 提醒 | 待填 | 待填 |
 
@@ -51,7 +52,7 @@
 
 ### App 用途
 
-「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、外送與種花狀態。
+「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、騎乘費用、外送與種花狀態。
 
 ### 測試方式
 
@@ -61,6 +62,9 @@
 - 使用者可拒絕或撤銷通知存取權限。
 - iPASS MONEY 進出站通知可建立與結束乘車提醒。
 - 台灣 Pay 上下車通知可建立與結束乘車提醒。
+- YouBike 2.0／2.0E 借還車通知可建立與結束費用追蹤；驗證依車號辨識車種、全臺服務區域一般會員估價、嘉義補助期限、臺東專屬費率、未知站點地區 Dialog、其他地區與車號不符還車。
+- YouBike 卡片可由使用者主動開啟 `SCHEDULE_EXACT_ALARM`；授權後在下一個費用變更邊界使用 exact alarm 更新，拒絕或撤銷後降級且不影響其他功能。
+- YouBike 未知／同名站點經手動選區且正常還車後，會顯示可忽略的靜音回報通知；只有使用者在外部 Email App 確認寄出後，去識別化站點回報才會離開裝置。
 - foodpanda 外送通知可更新外送狀態。
 - Uber 乘車通知可更新行程狀態，乘車 PIN 僅在裝置上處理。
 - Uber Eats 訂單通知可更新進度，交付 PIN 僅在裝置上處理。
@@ -73,6 +77,8 @@
 - App 不上傳、出售或分享通知內容、PIN 或其他使用者資料。
 - 通知內容僅在裝置上即時解析，不永久儲存。
 - 使用者可隨時在 Android 系統設定撤銷通知存取權限。
+- `SCHEDULE_EXACT_ALARM` 只用於已開始的 YouBike 騎乘，不使用受限的 `USE_EXACT_ALARM`，也不用於網路、聲音、廣告、分析或背景同步。
+- YouBike 站點回報不自動寄送；本機去重紀錄只保存索引版本與站名雜湊，不保存站名明文。Email 不含車號、車柱、時間、通知全文或付款資料。
 
 ## 正式版前版本設定
 

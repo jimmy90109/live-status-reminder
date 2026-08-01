@@ -206,21 +206,25 @@ internal fun AppActionDivider(color: Color) {
 internal fun AppWarningNotice(
     title: String,
     description: String,
+    containerColor: Color? = null,
+    contentColor: Color? = null,
 ) {
     val colors = LocalAppColors.current
-    CardSurface(colors.warningContainer, 14, 14) {
+    val resolvedContainerColor = containerColor ?: colors.warningContainer
+    val resolvedContentColor = contentColor ?: colors.warningText
+    CardSurface(resolvedContainerColor, 14, 14) {
         Row(verticalAlignment = Alignment.Top) {
             Icon(
                 imageVector = Icons.Rounded.WarningAmber,
                 contentDescription = null,
-                tint = colors.warningText,
+                tint = resolvedContentColor,
                 modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.width(9.dp))
             Column {
-                AppText(title, 14, colors.warningText, true)
+                AppText(title, 14, resolvedContentColor, true)
                 Spacer(Modifier.height(4.dp))
-                AppText(description, 13, colors.warningText)
+                AppText(description, 13, resolvedContentColor)
             }
         }
     }

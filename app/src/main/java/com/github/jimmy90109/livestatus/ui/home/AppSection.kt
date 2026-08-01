@@ -66,6 +66,7 @@ internal fun AppsSection(
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
     onOpenTaiwanPayDebug: () -> Unit,
     onOpenClockDebug: () -> Unit,
+    onOpenYouBikeDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
@@ -174,6 +175,16 @@ internal fun AppsSection(
                         },
                         onOpenDebug = onOpenUberDebug,
                     )
+                    CATEGORY_RENTAL -> YouBikeCard(
+                        installed = status.youBikeInstalled,
+                        enabled = status.youBikeEnabled,
+                        exactAlarmAllowed = status.youBikeExactAlarmAllowed,
+                        interactionEnabled = status.requiredSettingsComplete,
+                        onEnabledChange = {
+                            onAppEnabledChange(AppReminderPreferences.App.YOUBIKE, it)
+                        },
+                        onOpenDebug = onOpenYouBikeDebug,
+                    )
                     CATEGORY_GAME -> PikminBloomCard(
                         installed = status.pikminBloomInstalled,
                         enabled = status.pikminBloomEnabled,
@@ -182,15 +193,17 @@ internal fun AppsSection(
                             onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
                         },
                     )
-                    CATEGORY_TOOL -> ClockCard(
-                        installed = status.clockInstalled,
-                        enabled = status.clockEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
-                        },
-                        onOpenDebug = onOpenClockDebug,
-                    )
+                    CATEGORY_TOOL -> {
+                        ClockCard(
+                            installed = status.clockInstalled,
+                            enabled = status.clockEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
+                            },
+                            onOpenDebug = onOpenClockDebug,
+                        )
+                    }
                     else -> {
                         TransitCodeInfo()
                         IpassCard(
@@ -293,6 +306,14 @@ private fun AppTabs(
                 onSelect,
             )
             AppTab(
+                stringResource(R.string.app_category_rental),
+                CATEGORY_RENTAL,
+                selectedTab,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
                 stringResource(R.string.app_category_game),
                 CATEGORY_GAME,
                 selectedTab,
@@ -373,9 +394,10 @@ private fun AppTab(
 private const val CATEGORY_TRANSIT_CODE = 0
 private const val CATEGORY_DELIVERY = 1
 private const val CATEGORY_RIDE = 2
-private const val CATEGORY_GAME = 3
-private const val CATEGORY_TOOL = 4
-private const val APP_CATEGORY_PAGE_COUNT = 5
+private const val CATEGORY_RENTAL = 3
+private const val CATEGORY_GAME = 4
+private const val CATEGORY_TOOL = 5
+private const val APP_CATEGORY_PAGE_COUNT = 6
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
 private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

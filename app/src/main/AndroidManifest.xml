@@ -2,11 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <queries>
         <package android:name="com.google.android.deskclock" />
         <package android:name="com.ipass.ipassmoney" />
         <package android:name="tw.com.twmp.twhcewallet" />
+        <package android:name="tw.com.youbike.plus" />
         <package android:name="com.global.foodpanda.android" />
         <package android:name="com.ubercab" />
         <package android:name="com.ubercab.eats" />
@@ -29,6 +31,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.home.YouBikeRegionPickerActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:finishOnTaskLaunch="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.LiveStatusReminder.Dialog" />
+
+        <receiver
+            android:name=".YouBikeFareAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".LiveStatusNotificationListenerService"

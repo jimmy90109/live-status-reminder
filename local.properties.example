@@ -1,0 +1,7 @@
+# Android SDK path. Copy this file to local.properties and update the value.
+sdk.dir=/path/to/Android/sdk
+
+# Optional: development-only credentials for refreshing the bundled YouBike
+# station index. Never commit real credentials.
+TDX_CLIENT_ID=
+TDX_CLIENT_SECRET=

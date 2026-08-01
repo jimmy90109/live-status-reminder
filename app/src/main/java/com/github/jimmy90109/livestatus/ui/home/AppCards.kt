@@ -1,9 +1,13 @@
 package com.github.jimmy90109.livestatus.ui.home
 
+import android.content.Intent
 import android.os.SystemClock
+import android.provider.Settings
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -14,6 +18,11 @@ import com.github.jimmy90109.livestatus.ClockTimerSource
 import com.github.jimmy90109.livestatus.ClockTimerState
 import com.github.jimmy90109.livestatus.ClockTimerUpdate
 import com.github.jimmy90109.livestatus.LiveStatusReminder
+import com.github.jimmy90109.livestatus.YouBikeNotificationParser
+import com.github.jimmy90109.livestatus.YouBikeEvent
+import com.github.jimmy90109.livestatus.YouBikeRideManager
+import com.github.jimmy90109.livestatus.YouBikeRideSessionStore
+import com.github.jimmy90109.livestatus.YouBikeRideUpdate
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
@@ -44,7 +53,7 @@ internal fun IpassCard(
     ) {
         Spacer(Modifier.height(4.dp))
         AppCardActionButton(
-            "模擬上車，顯示提醒  ↑",
+            "模擬上車，顯示提醒",
             colors.ipassPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_ipass_entered),
@@ -53,7 +62,7 @@ internal fun IpassCard(
             LiveStatusReminder.show(context)
         }
         AppCardActionButton(
-            "模擬下車，移除提醒  ✓",
+            "模擬下車，移除提醒",
             colors.ipassPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_ipass_exited),
@@ -183,7 +192,7 @@ internal fun ClockCard(
             )
         }
         AppCardActionButton(
-            "清除 Clock 倒數  ✓",
+            "清除 Clock 倒數",
             colors.clockPrimary,
             colors.clockText,
             supportingText = stringResource(R.string.monitoring_clock_ended),
@@ -198,7 +207,150 @@ internal fun ClockCard(
     }
 }
 
+@Composable
+internal fun YouBikeCard(
+    installed: Boolean,
+    enabled: Boolean,
+    exactAlarmAllowed: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "YouBike",
+        appPackageName = YOU_BIKE_PACKAGE,
+        fallbackIconRes = R.drawable.ic_bicycle_notification,
+        title = stringResource(R.string.you_bike_tracking_title),
+        description = stringResource(R.string.you_bike_tracking_description),
+        supportedLanguages = listOf("繁中"),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.youBikeContainer,
+        labelColor = colors.youBikeSecondaryContainer,
+        foregroundColor = colors.youBikeText,
+    ) {
+        AppActionDivider(colors.youBikeText)
+        if (enabled && !exactAlarmAllowed) {
+            AppWarningNotice(
+                title = stringResource(R.string.you_bike_exact_alarm_disabled_title),
+                description = stringResource(R.string.you_bike_exact_alarm_disabled_description),
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            AppCardActionButton(
+                stringResource(R.string.you_bike_exact_alarm_allow_action),
+                MaterialTheme.colorScheme.error,
+                MaterialTheme.colorScheme.onError,
+            ) {
+                context.startActivity(
+                    Intent(
+                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        "package:${context.packageName}".toUri(),
+                    ),
+                )
+            }
+            AppActionDivider(colors.youBikeText)
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_borrow),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_borrowed),
+            enabled = enabled,
+        ) {
+            YouBikeRideManager.handle(
+                context,
+                YouBikeNotificationParser.parse(
+                    "借車成功！您於${youBikeTestTimestamp()}在龍江錦州街口 09車柱,使用掃碼-信用卡(20) 0000,租借車號0102751。",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_electric_borrow),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_borrowed),
+            enabled = enabled,
+        ) {
+            YouBikeRideManager.handle(
+                context,
+                YouBikeNotificationParser.parse(
+                    "借車成功！您於${youBikeTestTimestamp()}在龍江錦州街口 09車柱,使用掃碼-信用卡(20) 0000,租借車號0162898。",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_unknown_borrow),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_borrowed),
+            enabled = enabled,
+        ) {
+            YouBikeRideManager.handle(
+                context,
+                YouBikeNotificationParser.parse(
+                    "借車成功！您於${youBikeTestTimestamp()}在測試未知站 01車柱,使用掃碼 0000,租借車號TEST200。",
+                ),
+            )
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.you_bike_simulate_near_boundary),
+                colors.youBikePrimary,
+                colors.youBikeText,
+                supportingText = stringResource(R.string.you_bike_simulate_near_boundary_description),
+                enabled = enabled,
+            ) {
+                YouBikeRideManager.handle(
+                    context,
+                    YouBikeNotificationParser.parse(
+                        "借車成功！您於${youBikeTestTimestamp(29 * 60L + 50L)}在龍江錦州街口 09車柱,使用掃碼 0000,租借車號TEST030。",
+                    ),
+                )
+            }
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_return),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_returned),
+        ) {
+            val session = YouBikeRideSessionStore.load(context)
+            if (session == null) {
+                YouBikeRideManager.clear(context)
+            } else {
+                YouBikeRideManager.handle(
+                    context,
+                    YouBikeRideUpdate(
+                        event = YouBikeEvent.RETURNED,
+                        occurredAt = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei")),
+                        bikeNumber = session.bikeNumber,
+                    ),
+                )
+            }
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.you_bike_debug_open_payload),
+                colors.youBikePrimary,
+                colors.youBikeText,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
+
 
 private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
 private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
 private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
+private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
+
+private fun youBikeTestTimestamp(secondsAgo: Long = 0): String =
+    java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei"))
+        .minusSeconds(secondsAgo)
+        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))

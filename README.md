@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽 Google 時鐘、iPASS MONEY、台灣 Pay、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽 Google 時鐘、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -24,6 +24,22 @@
 - 點擊提醒可開啟台灣行動支付，準備出示乘車碼。
 - 偵測到「[站名] 下車通知」後自動移除提醒。
 - Debug build 另會在程序記憶體保留最近 30 筆原始通知 payload，供後續文案校正。
+
+### YouBike 2.0／2.0E
+
+- 偵測官方「借車成功」通知後，顯示騎乘時間、目前預估費用與下一次費用變更時間；收到相同車號的「還車扣款成功」通知後自動移除。
+- 支援目前全臺 YouBike 服務區域的 YouBike 2.0／2.0E 一般會員費率，包含嘉義縣市、臺南、高雄、屏東與臺東的地區費率及地方政府騎乘補助。
+- 臺東採 2.0 `12/24/48`、2.0E `25/50` 費率；嘉義縣市補助依借車日期套用至 2026-12-31，之後自動恢復原價。
+- 車種由官方通知中的七位數車號在本機判斷；第三碼為 `6` 或 `9` 時視為 2.0E，無法符合此規則時以一般 2.0 估算。
+- 不包含 TPASS、敬老／愛心／學生、臺南市民卡等特殊身分或票卡、轉乘優惠及跨區調度費，實際金額以 YouBike 官方結果為準。
+- 費率最後查核日期為 2026-08-01；地方政府補助異動後需隨 App 更新。
+- 站點服務區域優先使用開發時由 TDX 產生的內建索引判斷；無法判斷時才會在提醒提供地區選擇。
+- App 不連線查詢站點。只在本機保存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時；不保存原始通知或付款識別碼。
+- 若使用者從 YouBike 卡片允許「鬧鐘與提醒」，App 會使用 exact alarm 在下一個費用變更邊界盡可能準時更新；未授權時仍可使用，但 Doze 期間金額可能延後更新。
+- Exact alarm 只重新計算本機通知，不連網、不播放聲音、不顯示鬧鐘，也不用於分析或背景同步。裝置強制停止 App 或廠牌極端省電時仍可能延遲。
+- 若站點原本無法辨識或有同名候選，使用者手動選擇支援地區並正常還車後，App 會顯示一則可忽略的靜音回報通知。只有點擊「寄送回報」並在 Email App 確認寄出後，預填的站名、選擇地區、辨識類型、車種、App 版本與站點索引版本才會離開裝置；不包含車號、車柱、借還時間、通知全文或付款資料。
+- 為避免同一問題重複提醒，App 只在本機保存目前站點索引版本與正規化站名的 SHA-256 雜湊，不保存回報站名明文。索引版本更新後會自動重置去重紀錄。
+- Debug build 會在程序記憶體保留最近 30 筆 YouBike 原始 payload，正式版不提供此入口。
 
 ### foodpanda
 
@@ -65,6 +81,7 @@
 
 - Android 16（API 36）以上。
 - 需授予通知存取權限與通知顯示權限。
+- YouBike 的「鬧鐘與提醒」特殊存取為選用；用於提高計費邊界更新準確度，不影響其他功能。
 - 若要顯示為系統 Live Update，裝置系統也需允許第三方 App 顯示 promoted notifications。
 
 ## 使用方式
@@ -101,3 +118,12 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 Uber 與 Uber Eats 的截圖評估及實機待驗證項目分別位於
 [`docs/uber-audit/`](docs/uber-audit/README.md) 與
 [`docs/ubereats-audit/`](docs/ubereats-audit/README.md)。
+
+更新 YouBike 站點索引前，先在環境或未追蹤的 `local.properties` 中設定
+`TDX_CLIENT_ID`、`TDX_CLIENT_SECRET`（可複製 `local.properties.example`），再執行：
+
+```bash
+python3 tools/update_youbike_station_index.py
+```
+
+憑證與 TDX 原始回應不會寫入 repository；產生器遇到流量限制時會退避重試，產出的 YouBike 2.0 精簡索引位於 `app/src/main/res/raw/youbike_stations.tsv`。

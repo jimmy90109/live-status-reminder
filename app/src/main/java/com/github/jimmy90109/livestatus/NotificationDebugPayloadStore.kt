@@ -20,12 +20,35 @@ object NotificationDebugPayloadStore {
     private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _clockPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _taiwanPayPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _youBikePayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val foodpandaPayloads: StateFlow<List<NotificationDebugPayload>> = _foodpandaPayloads
     val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
     val clockPayloads: StateFlow<List<NotificationDebugPayload>> = _clockPayloads
     val taiwanPayPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanPayPayloads
+    val youBikePayloads: StateFlow<List<NotificationDebugPayload>> = _youBikePayloads
+
+    internal fun recordYouBike(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = "RAW",
+            parsedPin = null,
+            parsedDetails = emptyMap(),
+        )
+        _youBikePayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
 
     internal fun recordTaiwanPay(
         context: Context,
@@ -177,6 +200,10 @@ object NotificationDebugPayloadStore {
 
     fun clearTaiwanPay() {
         _taiwanPayPayloads.value = emptyList()
+    }
+
+    fun clearYouBike() {
+        _youBikePayloads.value = emptyList()
     }
 
     private fun createPayload(

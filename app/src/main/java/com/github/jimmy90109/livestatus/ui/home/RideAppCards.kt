@@ -150,7 +150,7 @@ internal fun UberRideCard(
             enabled = enabled,
         )
         AppCardActionButton(
-            "模擬完成，清除狀態  ✓",
+            "模擬完成，清除狀態",
             colors.commonPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_uber_ended),
@@ -200,7 +200,7 @@ internal fun UberRideCard(
             enabled = enabled,
         )
         AppCardActionButton(
-            "模擬小黃行程完成，清除狀態  ✓",
+            "模擬小黃行程完成，清除狀態",
             colors.commonPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_uber_taxi_ended),
@@ -286,7 +286,7 @@ internal fun PikminBloomCard(
             LiveStatusReminder.showPikminBloom(context)
         }
         AppCardActionButton(
-            "清除 Pikmin Bloom 狀態  ✓",
+            "清除 Pikmin Bloom 狀態",
             colors.pikminPrimary,
             colors.pikminText,
             supportingText = stringResource(R.string.monitoring_pikmin_stopped),

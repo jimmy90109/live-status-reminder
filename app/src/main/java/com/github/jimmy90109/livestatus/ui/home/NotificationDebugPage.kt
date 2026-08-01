@@ -178,7 +178,7 @@ private fun NotificationDebugPayloadRow(
         AnimatedVisibility(visible = expanded) {
             SelectionContainer {
                 Text(
-                    text = payload.toDebugText(),
+                    text = payload.toDebugText(showPinDetails),
                     color = colors.onSurfaceVariant,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
@@ -192,7 +192,7 @@ private fun NotificationDebugPayloadRow(
     }
 }
 
-private fun NotificationDebugPayload.toDebugText(): String = buildString {
+private fun NotificationDebugPayload.toDebugText(showPinDetails: Boolean): String = buildString {
     appendLine("capturedAt=$capturedAt")
     appendLine("appLabel=$appLabel")
     appendLine("postTime=$postTime")
@@ -200,9 +200,9 @@ private fun NotificationDebugPayload.toDebugText(): String = buildString {
     appendLine("tag=${tag.orEmpty()}")
     appendLine("key=$key")
     appendLine("parsedEvent=$parsedEvent")
-    appendLine("parsedPin=${parsedPin.orEmpty()}")
+    if (showPinDetails) appendLine("parsedPin=${parsedPin.orEmpty()}")
     parsedDetails.forEach { (key, value) -> appendLine("$key=${value.lineSafe()}") }
-    appendLine("pinCandidates=${pinCandidates.joinToString()}")
+    if (showPinDetails) appendLine("pinCandidates=${pinCandidates.joinToString()}")
     appendLine()
     appendLine("[notification]")
     fields.forEach { (key, value) -> appendLine("$key=${value.lineSafe()}") }

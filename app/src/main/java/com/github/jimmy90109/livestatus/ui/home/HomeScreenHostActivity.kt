@@ -62,6 +62,7 @@ import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
+import com.github.jimmy90109.livestatus.YouBikeRideManager
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
 import kotlinx.coroutines.CancellationException
@@ -79,6 +80,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_CLOCK -> openClock()
             ACTION_OPEN_IPASS -> openIpass()
             ACTION_OPEN_TAIWAN_PAY -> openTaiwanPay()
+            ACTION_OPEN_YOU_BIKE -> openYouBike()
             ACTION_OPEN_FOODPANDA -> openFoodpanda()
             ACTION_OPEN_UBER -> openUber()
             ACTION_OPEN_UBER_EATS -> openUberEats()
@@ -106,12 +108,14 @@ open class HomeScreenHostActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         refreshStatus()
+        YouBikeRideManager.restore(this)
     }
 
     private fun refreshStatus() {
         val clockInstalled = isPackageInstalled(CLOCK_PACKAGE)
         val ipassInstalled = isPackageInstalled(IPASS_PACKAGE)
         val taiwanPayInstalled = isPackageInstalled(TAIWAN_PAY_PACKAGE)
+        val youBikeInstalled = isPackageInstalled(YOU_BIKE_PACKAGE)
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
@@ -123,6 +127,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             clockInstalled = clockInstalled,
             ipassInstalled = ipassInstalled,
             taiwanPayInstalled = taiwanPayInstalled,
+            youBikeInstalled = youBikeInstalled,
             foodpandaInstalled = foodpandaInstalled,
             uberInstalled = uberInstalled,
             uberEatsInstalled = uberEatsInstalled,
@@ -134,6 +139,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
             taiwanPayEnabled =
                 AppReminderPreferences.App.TAIWAN_PAY.isEnabled(this, taiwanPayInstalled),
+            youBikeEnabled =
+                AppReminderPreferences.App.YOUBIKE.isEnabled(this, youBikeInstalled),
+            youBikeExactAlarmAllowed = YouBikeRideManager.canScheduleExactAlarms(this),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
             uberEnabled = AppReminderPreferences.App.UBER_RIDE.isEnabled(this, uberInstalled),
             uberEatsEnabled = AppReminderPreferences.App.UBER_EATS.isEnabled(this, uberEatsInstalled),
@@ -206,6 +214,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openClock() = openPackage(CLOCK_PACKAGE, "Clock")
 
+    private fun openYouBike() = openPackage(YOU_BIKE_PACKAGE, "YouBike")
+
     private fun openFoodpanda() = openPackage(FOODPANDA_PACKAGE, "foodpanda")
 
     private fun openUber() = openPackage(UBER_PACKAGE, "Uber")
@@ -236,6 +246,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.CLOCK -> LiveStatusReminder.clearClockTimer(this)
             AppReminderPreferences.App.IPASS -> LiveStatusReminder.clear(this)
             AppReminderPreferences.App.TAIWAN_PAY -> LiveStatusReminder.clearTaiwanPay(this)
+            AppReminderPreferences.App.YOUBIKE -> YouBikeRideManager.clear(this)
             AppReminderPreferences.App.FOODPANDA -> LiveStatusReminder.clearFoodpanda(this)
             AppReminderPreferences.App.UBER_RIDE -> LiveStatusReminder.clearUberRide(this)
             AppReminderPreferences.App.UBER_EATS -> LiveStatusReminder.clearUberEats(this)
@@ -256,6 +267,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_IPASS"
         private const val ACTION_OPEN_TAIWAN_PAY =
             "com.github.jimmy90109.livestatus.action.OPEN_TAIWAN_PAY"
+        private const val ACTION_OPEN_YOU_BIKE =
+            "com.github.jimmy90109.livestatus.action.OPEN_YOUBIKE"
         private const val ACTION_OPEN_FOODPANDA =
             "com.github.jimmy90109.livestatus.action.OPEN_FOODPANDA"
         private const val ACTION_OPEN_UBER =
@@ -267,6 +280,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
+        private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
@@ -287,6 +301,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
         @JvmStatic
         fun createOpenTaiwanPayIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_TAIWAN_PAY)
+
+        @JvmStatic
+        fun createOpenYouBikeIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_YOU_BIKE)
 
         @JvmStatic
         fun createOpenFoodpandaIntent(context: Context): Intent =
@@ -317,6 +335,7 @@ internal data class StatusSnapshot(
     val clockInstalled: Boolean = false,
     val ipassInstalled: Boolean = false,
     val taiwanPayInstalled: Boolean = false,
+    val youBikeInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
@@ -326,6 +345,8 @@ internal data class StatusSnapshot(
     val clockEnabled: Boolean = false,
     val ipassEnabled: Boolean = false,
     val taiwanPayEnabled: Boolean = false,
+    val youBikeEnabled: Boolean = false,
+    val youBikeExactAlarmAllowed: Boolean = false,
     val foodpandaEnabled: Boolean = false,
     val uberEnabled: Boolean = false,
     val uberEatsEnabled: Boolean = false,
