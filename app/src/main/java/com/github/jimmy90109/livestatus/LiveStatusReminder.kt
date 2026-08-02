@@ -357,7 +357,8 @@ object LiveStatusReminder {
             session.region == YouBikeRegion.UNSUPPORTED -> "此服務區域尚未支援費率"
             else -> "選擇服務區域以估算費用"
         }
-        val criticalText = estimate?.let { "NT$${it.amount}" } ?: "騎乘中"
+        val shortCriticalText = youBikeShortCriticalText(estimate)
+        val criticalText = shortCriticalText ?: "騎乘中"
         val contentText = "${session.vehicleType.displayName}・借自 ${session.stationName}"
         val openYouBike = PendingIntent.getActivity(
             context,
@@ -385,7 +386,7 @@ object LiveStatusReminder {
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setColor(Color.rgb(245, 130, 32))
-            .setShortCriticalText(criticalText)
+            .setShortCriticalText(shortCriticalText)
             .also { YouBikeNotificationStyle.apply(it, session, estimate, nowMillis) }
             .also(::requestPromotedOngoing)
             .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
@@ -660,6 +661,9 @@ object LiveStatusReminder {
             "%02d:%02d".format(minutes, seconds)
         }
     }
+
+    internal fun youBikeShortCriticalText(estimate: YouBikeFareEstimate?): String? =
+        estimate?.let { "NT$${it.amount}" }
 
     internal fun formatClockTimerCriticalText(
         remainingMillis: Long,

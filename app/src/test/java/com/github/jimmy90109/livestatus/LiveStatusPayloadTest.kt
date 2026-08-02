@@ -327,6 +327,18 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun youBikeShortCriticalTextUsesFareOnlyWhenEstimateIsAvailable() {
+        val estimate = YouBikeFareEstimate(
+            amount = 20,
+            nextBoundaryMillis = 1_800_000L,
+            nextAmount = 30,
+        )
+
+        assertEquals("NT$20", LiveStatusReminder.youBikeShortCriticalText(estimate))
+        assertEquals(null, LiveStatusReminder.youBikeShortCriticalText(null))
+    }
+
+    @Test
     fun clockCriticalTextUsesMinutesAtOneMinuteAndSecondsBelowIt() {
         assertEquals("2 min", LiveStatusReminder.formatClockTimerCriticalText(60_001L))
         assertEquals("1 min", LiveStatusReminder.formatClockTimerCriticalText(60_000L))
