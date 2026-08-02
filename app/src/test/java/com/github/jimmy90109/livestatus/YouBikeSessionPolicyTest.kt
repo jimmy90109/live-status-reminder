@@ -29,6 +29,34 @@ class YouBikeSessionPolicyTest {
     }
 
     @Test
+    fun duplicateBorrowKeepsHiddenStateButNewRideReturnsToVisible() {
+        assertTrue(
+            YouBikeTrackingVisibilityPolicy.hiddenAfterBorrow(
+                current = session,
+                isCurrentlyHidden = true,
+                borrowedAtMillis = session.borrowedAtMillis,
+                bikeNumber = session.bikeNumber,
+            ),
+        )
+        assertFalse(
+            YouBikeTrackingVisibilityPolicy.hiddenAfterBorrow(
+                current = session,
+                isCurrentlyHidden = true,
+                borrowedAtMillis = session.borrowedAtMillis + 1L,
+                bikeNumber = "9999999",
+            ),
+        )
+    }
+
+    @Test
+    fun hiddenTrackingSkipsDisplayUntilMatchingSessionIsRestored() {
+        assertFalse(YouBikeTrackingVisibilityPolicy.shouldDisplay(isHidden = true))
+        assertTrue(YouBikeTrackingVisibilityPolicy.shouldDisplay(isHidden = false))
+        assertTrue(YouBikeTrackingVisibilityPolicy.matchesSession(session, session.id))
+        assertFalse(YouBikeTrackingVisibilityPolicy.matchesSession(session, "stale-session"))
+    }
+
+    @Test
     fun updatesLegacyUnsupportedSessionWithNewResolution() {
         val legacySession = session.copy(region = YouBikeRegion.UNSUPPORTED)
 

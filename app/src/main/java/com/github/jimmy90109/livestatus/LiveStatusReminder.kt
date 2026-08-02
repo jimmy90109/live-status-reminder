@@ -381,6 +381,7 @@ object LiveStatusReminder {
             .setContentTitle(payload.title)
             .setContentText(payload.contentText)
             .setContentIntent(openYouBike)
+            .setDeleteIntent(YouBikeTrackingActionReceiver.hidePendingIntent(context, session.id))
             .setCategory(Notification.CATEGORY_NAVIGATION)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

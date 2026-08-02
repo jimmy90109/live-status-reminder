@@ -25,6 +25,10 @@
     <string name="monitoring_you_bike_borrowed">通知內文符合「借車成功」，並包含借車時間、站名、車柱與車號。</string>
     <string name="monitoring_you_bike_returned">通知內文符合「還車扣款成功」，且歸還車號與目前騎乘相同。</string>
     <string name="you_bike_choose_region_action">選擇服務區域</string>
+    <string name="you_bike_tracking_controls_channel_name">YouBike 追蹤控制</string>
+    <string name="you_bike_tracking_controls_channel_description">顯示短效且靜音的 YouBike 費用追蹤復原操作。</string>
+    <string name="you_bike_tracking_hidden_title">已隱藏 YouBike 費用追蹤</string>
+    <string name="you_bike_tracking_hidden_description">點擊通知即可恢復顯示</string>
     <string name="you_bike_region_picker_title">選擇服務區域</string>
     <string name="you_bike_region_picker_description">此選擇只套用於目前這趟騎乘。</string>
     <string name="you_bike_region_taipei">臺北市</string>
