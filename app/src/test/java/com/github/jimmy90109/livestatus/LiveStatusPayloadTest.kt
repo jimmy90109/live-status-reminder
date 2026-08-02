@@ -66,6 +66,19 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun uberEatsPrivatePayloadUsesPinAsCriticalText() {
+        val payload = LiveStatusReminder.uberEatsPayload(UberEatsEvent.ARRIVING)
+        val privatePayload = LiveStatusReminder.uberEatsPrivatePayload(
+            UberEatsEvent.ARRIVING,
+            payload,
+            "7616",
+        )
+
+        assertEquals("7616", privatePayload.criticalText)
+        assertEquals("外送夥伴即將抵達，請準備取餐。 · PIN 7616", privatePayload.contentText)
+    }
+
+    @Test
     fun uberEatsOnTheWayPrivateTextKeepsOfficialDetailsWithoutDuplicateStatus() {
         val text = LiveStatusReminder.uberEatsPrivateText(
             UberEatsEvent.ON_THE_WAY,

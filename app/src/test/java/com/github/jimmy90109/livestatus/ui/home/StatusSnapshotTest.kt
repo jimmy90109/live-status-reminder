@@ -37,6 +37,7 @@ class StatusSnapshotTest {
             clockEnabled = true,
             ipassInstalled = false,
             ipassEnabled = false,
+            youBikeExactAlarmAllowed = false,
         )
 
         assertFalse(status.requiredSettingsComplete)
@@ -44,5 +45,7 @@ class StatusSnapshotTest {
         assertTrue(status.clockEnabled)
         assertFalse(status.ipassInstalled)
         assertFalse(status.ipassEnabled)
+        assertFalse(status.youBikeExactAlarmAllowed)
+        assertFalse(status.requiredSettingsComplete)
     }
 }

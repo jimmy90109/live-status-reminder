@@ -34,9 +34,11 @@
 - [x] Alpha 已上傳下一版 signed AAB：`2607101 (1.0.0-beta3)`（2026-07-10）。
 - [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2607290 (1.0.1)`（2026-07-28）。
 - [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2607310 (1.0.2)`（2026-07-31），同日通過審查並可供測試人員使用。
+- [x] Alpha／公開測試已提供 `2608021 (1.0.3)`（2026-08-02）。
 - [x] 已取得 Production access，準備正式版 `2607280 (1.0.0)` 送審。
 - [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2607290 (1.0.1)` 並送審（2026-07-28），於 2026-07-29 通過審查並 100% 全面推出。
 - [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2607310 (1.0.2)`，設定 100% 全面推出並送審（2026-07-31），同日於 23:12 通過審查並完成推出。
+- [x] 使用測試軌道的 `2608021 (1.0.3)` 建立 Production，設定 100% 全面推出並送審（2026-08-02），同日通過審查並上架。
 - [ ] 檢查並處理 Play Console Pre-launch report 問題。
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
@@ -52,22 +54,26 @@
 
 - 發布軌道：Production。
 - 推出狀態：開始全面推出。
-- Alpha 審查狀態：`2607310 (1.0.2)` 已通過（2026-07-31），可供所選測試人員使用。
-- 已審查通過版本：`2607310 (1.0.2)`。
-- 最新 Alpha 上傳版本：`2607310 (1.0.2)`，已於 2026-07-31 通過審查；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
-- 最新 Alpha AAB SHA-256：`6a38a228910bb42e6767246a8bffa2f6a4ec55013742826435c9e6672b1a1fdc`。
-- 最新正式版：`2607310 (1.0.2)`。
+- Alpha 審查狀態：`2608021 (1.0.3)` 已通過並可供測試人員使用（2026-08-02）。
+- 已審查通過版本：`2608021 (1.0.3)`。
+- 最新 Alpha／公開測試版本：`2608021 (1.0.3)`。
+- 最新 Alpha AAB SHA-256：`fd3022adc1ff96d35e853f6b9487d608e1f17cad97bd38efcc3c1679dacb086d`。
+- 最新本機候選包：`2608022 (1.0.3)`，尚未上傳；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
+- 最新本機候選 AAB SHA-256：`67805d408c848417805f844f06060c399bcc97c1c13c027ff2e80c78555e4aee`。
+- 最新正式版：`2608021 (1.0.3)`。
 - Production 待審版本：無。
-- Production 狀態：`2607310 (1.0.2)` 已於 2026-07-31 23:12 在 Google Play 上架，100% 全面推出已完成。
+- Production 狀態：`2608021 (1.0.3)` 已於 2026-08-02 通過審查並上架；Play Console 顯示為有效的最新正式版，100% 全面推出。
 - Play 商店網址：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>。
-- Play Console 發布總覽：沒有取消發布的變更。
-- 最新正式版 AAB SHA-256：`6a38a228910bb42e6767246a8bffa2f6a4ec55013742826435c9e6672b1a1fdc`。
+- Play Console 正式版頁面：`2608021 (1.0.3)` 為有效的最新版本，已有安裝紀錄（2026-08-02 複核）。
+- 最新正式版 AAB SHA-256：`fd3022adc1ff96d35e853f6b9487d608e1f17cad97bd38efcc3c1679dacb086d`。
+- 最新正式版 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
 - Play 可接受的 native debug symbols：`app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip`。
-- Native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
+- 最新 Alpha native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
+- 最新本機候選 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
 - 應用程式名稱：LiveStatus 即時狀態提醒。
 - Package name：`com.github.jimmy90109.livestatus`。
 - 目標年齡層：13 歲以上。
 - 隱私權政策：<https://jimmy90109.github.io/live-status-reminder/>。
 - 廣告聲明：無廣告。
-- 資料安全性：不收集或分享使用者資料；通知內容僅在裝置上處理。
+- 資料安全性：自動通知處理不收集或分享使用者資料；選用的 YouBike 站點回報只有在使用者於外部 Email App 確認寄出後才離開裝置，送審時依 user-initiated action 規則再次核對。
 - App 存取權：不需特殊帳號即可使用完整功能；審查人員需授予通知存取權限以測試核心功能。

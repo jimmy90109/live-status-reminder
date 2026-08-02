@@ -34,7 +34,6 @@
 
 - PIN 與完整通知內容視為敏感資料。正式流程不可將 PIN 寫入檔案、SharedPreferences、分析服務或正式日誌。
 - Uber／Uber Eats PIN 只接受目前明確支援的來源：剛好四位數的 `shortCriticalText`，或通知 view text 中四個各自成行的數字。不可把 ETA、年份、訂單編號或車牌尾碼當成 PIN。
-- 完整 PIN 只可在裝置解鎖後顯示；鎖定畫面的公開版通知不可包含 PIN。
 - Debug payload 功能若需變更，必須維持僅限 debug build，並避免讓敏感資料進入 release 行為或一般日誌。
 - 來源通知移除、訂單完成／取消或行程結束時，應確實清除對應提醒；新增狀態時也要驗證終止路徑。
 

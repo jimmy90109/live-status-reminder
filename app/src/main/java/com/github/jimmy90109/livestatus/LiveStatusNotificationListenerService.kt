@@ -81,6 +81,28 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     handleTaiwanPayRideNotification(update)
                 }
             }
+            YOU_BIKE_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordYouBike(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                    )
+                }
+                if (AppReminderPreferences.App.YOUBIKE.isEnabled(this)) {
+                    val update = YouBikeNotificationParser.parse(
+                        notificationContentText,
+                        notificationText,
+                    )
+                    YouBikeRideManager.handle(this, update)
+                } else {
+                    YouBikeRideManager.clear(this)
+                }
+            }
             FOODPANDA_PACKAGE -> {
                 val notificationTitle = readNotificationTitle(notification)
                 val notificationContentText = readNotificationContentText(notification)
@@ -203,6 +225,11 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     override fun onDestroy() {
         stopClockTimerRefresh()
         super.onDestroy()
+    }
+
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        YouBikeRideManager.restore(this)
     }
 
     private fun handleClockTimerDecision(decision: ClockTimerDecision) {
@@ -417,6 +444,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
+        private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"

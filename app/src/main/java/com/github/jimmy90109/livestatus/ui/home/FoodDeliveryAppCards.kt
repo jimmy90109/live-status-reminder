@@ -114,7 +114,7 @@ internal fun FoodpandaCard(
             LiveStatusReminder.showFoodpanda(context, LiveStatusNotificationParser.FoodpandaEvent.COURIER_ARRIVING)
         }
         AppCardActionButton(
-            "清除 foodpanda 狀態  ✓",
+            "清除 foodpanda 狀態",
             colors.foodpandaPrimary,
             colors.foodpandaText,
             supportingText = stringResource(R.string.monitoring_foodpanda_ended),
@@ -201,7 +201,7 @@ internal fun UberEatsCard(
             enabled = enabled,
         )
         AppCardActionButton(
-            "模擬送達，清除狀態  ✓",
+            "模擬送達，清除狀態",
             colors.uberEatsPrimary,
             colors.uberEatsText,
             supportingText = stringResource(R.string.monitoring_uber_eats_ended),

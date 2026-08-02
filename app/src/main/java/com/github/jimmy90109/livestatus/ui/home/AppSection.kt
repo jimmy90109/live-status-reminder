@@ -1,15 +1,9 @@
 package com.github.jimmy90109.livestatus.ui.home
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.Drawable
-import android.os.SystemClock
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,7 +11,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,8 +25,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,13 +42,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -62,12 +52,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
-import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
-import com.github.jimmy90109.livestatus.ClockTimerSource
-import com.github.jimmy90109.livestatus.ClockTimerState
-import com.github.jimmy90109.livestatus.ClockTimerUpdate
-import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
-import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.launch
@@ -82,6 +66,7 @@ internal fun AppsSection(
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
     onOpenTaiwanPayDebug: () -> Unit,
     onOpenClockDebug: () -> Unit,
+    onOpenYouBikeDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
@@ -190,6 +175,16 @@ internal fun AppsSection(
                         },
                         onOpenDebug = onOpenUberDebug,
                     )
+                    CATEGORY_RENTAL -> YouBikeCard(
+                        installed = status.youBikeInstalled,
+                        enabled = status.youBikeEnabled,
+                        exactAlarmAllowed = status.youBikeExactAlarmAllowed,
+                        interactionEnabled = status.requiredSettingsComplete,
+                        onEnabledChange = {
+                            onAppEnabledChange(AppReminderPreferences.App.YOUBIKE, it)
+                        },
+                        onOpenDebug = onOpenYouBikeDebug,
+                    )
                     CATEGORY_GAME -> PikminBloomCard(
                         installed = status.pikminBloomInstalled,
                         enabled = status.pikminBloomEnabled,
@@ -198,16 +193,19 @@ internal fun AppsSection(
                             onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
                         },
                     )
-                    CATEGORY_TOOL -> ClockCard(
-                        installed = status.clockInstalled,
-                        enabled = status.clockEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
-                        },
-                        onOpenDebug = onOpenClockDebug,
-                    )
+                    CATEGORY_TOOL -> {
+                        ClockCard(
+                            installed = status.clockInstalled,
+                            enabled = status.clockEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
+                            },
+                            onOpenDebug = onOpenClockDebug,
+                        )
+                    }
                     else -> {
+                        TransitCodeInfo()
                         IpassCard(
                             installed = status.ipassInstalled,
                             enabled = status.ipassEnabled,
@@ -229,6 +227,31 @@ internal fun AppsSection(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TransitCodeInfo() {
+    val colors = LocalAppColors.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            tint = colors.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        AppText(
+            stringResource(R.string.transit_code_status_description),
+            15,
+            colors.onSurfaceVariant,
+        )
     }
 }
 
@@ -277,6 +300,14 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_ride),
                 CATEGORY_RIDE,
+                selectedTab,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
+                stringResource(R.string.app_category_rental),
+                CATEGORY_RENTAL,
                 selectedTab,
                 colors.commonPrimary,
                 colors.commonOnPrimary,
@@ -363,9 +394,10 @@ private fun AppTab(
 private const val CATEGORY_TRANSIT_CODE = 0
 private const val CATEGORY_DELIVERY = 1
 private const val CATEGORY_RIDE = 2
-private const val CATEGORY_GAME = 3
-private const val CATEGORY_TOOL = 4
-private const val APP_CATEGORY_PAGE_COUNT = 5
+private const val CATEGORY_RENTAL = 3
+private const val CATEGORY_GAME = 4
+private const val CATEGORY_TOOL = 5
+private const val APP_CATEGORY_PAGE_COUNT = 6
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
 private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

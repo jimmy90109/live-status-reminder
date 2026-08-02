@@ -1,67 +1,30 @@
 package com.github.jimmy90109.livestatus.ui.home
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.Drawable
+import android.content.Intent
 import android.os.SystemClock
-import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
+import android.provider.Settings
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.ClockTimerSource
 import com.github.jimmy90109.livestatus.ClockTimerState
 import com.github.jimmy90109.livestatus.ClockTimerUpdate
-import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
+import com.github.jimmy90109.livestatus.YouBikeNotificationParser
+import com.github.jimmy90109.livestatus.YouBikeEvent
+import com.github.jimmy90109.livestatus.YouBikeRideManager
+import com.github.jimmy90109.livestatus.YouBikeRideSessionStore
+import com.github.jimmy90109.livestatus.YouBikeRideUpdate
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -77,8 +40,8 @@ internal fun IpassCard(
         appName = "iPASS MONEY",
         appPackageName = IPASS_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
-        title = "乘車碼狀態",
-        description = "進站後顯示乘車碼捷徑，準備下車時快速開啟。",
+        title = null,
+        description = null,
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
@@ -88,9 +51,9 @@ internal fun IpassCard(
         labelColor = colors.ipassSecondaryContainer,
         foregroundColor = colors.onSurface,
     ) {
-        AppActionDivider(colors.onSurface)
+        Spacer(Modifier.height(4.dp))
         AppCardActionButton(
-            "模擬上車，顯示提醒  ↑",
+            "模擬上車，顯示提醒",
             colors.ipassPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_ipass_entered),
@@ -99,7 +62,7 @@ internal fun IpassCard(
             LiveStatusReminder.show(context)
         }
         AppCardActionButton(
-            "模擬下車，移除提醒  ✓",
+            "模擬下車，移除提醒",
             colors.ipassPrimary,
             colors.onSurface,
             supportingText = stringResource(R.string.monitoring_ipass_exited),
@@ -123,8 +86,8 @@ internal fun TaiwanPayCard(
         appName = "台灣 Pay",
         appPackageName = TAIWAN_PAY_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
-        title = stringResource(R.string.taiwan_pay_title),
-        description = stringResource(R.string.taiwan_pay_description),
+        title = null,
+        description = null,
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
@@ -134,7 +97,7 @@ internal fun TaiwanPayCard(
         labelColor = colors.taiwanPaySecondaryContainer,
         foregroundColor = colors.onSurface,
     ) {
-        AppActionDivider(colors.onSurface)
+        Spacer(Modifier.height(4.dp))
         AppCardActionButton(
             stringResource(R.string.taiwan_pay_simulate_boarding),
             colors.taiwanPayPrimary,
@@ -229,7 +192,7 @@ internal fun ClockCard(
             )
         }
         AppCardActionButton(
-            "清除 Clock 倒數  ✓",
+            "清除 Clock 倒數",
             colors.clockPrimary,
             colors.clockText,
             supportingText = stringResource(R.string.monitoring_clock_ended),
@@ -244,7 +207,151 @@ internal fun ClockCard(
     }
 }
 
+@Composable
+internal fun YouBikeCard(
+    installed: Boolean,
+    enabled: Boolean,
+    exactAlarmAllowed: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "YouBike",
+        appPackageName = YOU_BIKE_PACKAGE,
+        fallbackIconRes = R.drawable.ic_bicycle_notification,
+        title = stringResource(R.string.you_bike_tracking_title),
+        description = stringResource(R.string.you_bike_tracking_description),
+        supportedLanguages = listOf("繁中"),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.youBikeContainer,
+        labelColor = colors.youBikeSecondaryContainer,
+        foregroundColor = colors.youBikeText,
+    ) {
+        if (enabled && !exactAlarmAllowed) {
+            AppWarningNotice(
+                title = stringResource(R.string.you_bike_exact_alarm_disabled_title),
+                description = stringResource(R.string.you_bike_exact_alarm_disabled_description),
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            ActionButton(
+                label = stringResource(R.string.you_bike_exact_alarm_allow_action),
+                background = MaterialTheme.colorScheme.error,
+                foreground = MaterialTheme.colorScheme.onError,
+            ) {
+                context.startActivity(
+                    Intent(
+                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        "package:${context.packageName}".toUri(),
+                    ),
+                )
+            }
+            AppActionDivider(colors.youBikeText)
+        } else {
+            AppActionDivider(colors.youBikeText)
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_borrow),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_borrowed),
+            enabled = enabled,
+        ) {
+            YouBikeRideManager.handle(
+                context,
+                YouBikeNotificationParser.parse(
+                    "借車成功！您於${youBikeTestTimestamp()}在龍江錦州街口 09車柱,使用掃碼-信用卡(20) 0000,租借車號0102751。",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_electric_borrow),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_borrowed),
+            enabled = enabled,
+        ) {
+            YouBikeRideManager.handle(
+                context,
+                YouBikeNotificationParser.parse(
+                    "借車成功！您於${youBikeTestTimestamp()}在龍江錦州街口 09車柱,使用掃碼-信用卡(20) 0000,租借車號0162898。",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_unknown_borrow),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_borrowed),
+            enabled = enabled,
+        ) {
+            YouBikeRideManager.handle(
+                context,
+                YouBikeNotificationParser.parse(
+                    "借車成功！您於${youBikeTestTimestamp()}在測試未知站 01車柱,使用掃碼 0000,租借車號TEST200。",
+                ),
+            )
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.you_bike_simulate_near_boundary),
+                colors.youBikePrimary,
+                colors.youBikeText,
+                supportingText = stringResource(R.string.you_bike_simulate_near_boundary_description),
+                enabled = enabled,
+            ) {
+                YouBikeRideManager.handle(
+                    context,
+                    YouBikeNotificationParser.parse(
+                        "借車成功！您於${youBikeTestTimestamp(29 * 60L + 50L)}在龍江錦州街口 09車柱,使用掃碼 0000,租借車號TEST030。",
+                    ),
+                )
+            }
+        }
+        AppCardActionButton(
+            stringResource(R.string.you_bike_simulate_return),
+            colors.youBikePrimary,
+            colors.youBikeText,
+            supportingText = stringResource(R.string.monitoring_you_bike_returned),
+        ) {
+            val session = YouBikeRideSessionStore.load(context)
+            if (session == null) {
+                YouBikeRideManager.clear(context)
+            } else {
+                YouBikeRideManager.handle(
+                    context,
+                    YouBikeRideUpdate(
+                        event = YouBikeEvent.RETURNED,
+                        occurredAt = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei")),
+                        bikeNumber = session.bikeNumber,
+                    ),
+                )
+            }
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.you_bike_debug_open_payload),
+                colors.youBikePrimary,
+                colors.youBikeText,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
+
 
 private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
 private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
 private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
+private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
+
+private fun youBikeTestTimestamp(secondsAgo: Long = 0): String =
+    java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei"))
+        .minusSeconds(secondsAgo)
+        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))

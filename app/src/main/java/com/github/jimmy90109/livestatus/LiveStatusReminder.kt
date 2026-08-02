@@ -7,8 +7,13 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.os.SystemClock
 import com.github.jimmy90109.livestatus.ui.home.HomeScreenHostActivity
+import com.github.jimmy90109.livestatus.ui.home.YouBikeRegionPickerActivity
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 object LiveStatusReminder {
     private const val CHANNEL_ID = "live_status"
@@ -19,6 +24,7 @@ object LiveStatusReminder {
     private const val UBER_RIDE_NOTIFICATION_ID = 1005
     private const val CLOCK_TIMER_NOTIFICATION_ID = 1006
     private const val TAIWAN_PAY_NOTIFICATION_ID = 1007
+    private const val YOU_BIKE_NOTIFICATION_ID = 1008
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -181,8 +187,7 @@ object LiveStatusReminder {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val payload = uberEatsPayload(event, officialTitle, officialText, openUberEats)
-        val privateText = uberEatsPrivateText(event, payload.contentText, pin)
-        val privatePayload = payload.copy(contentText = privateText)
+        val privatePayload = uberEatsPrivatePayload(event, payload, pin)
 
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(privatePayload.smallIconRes)
@@ -331,6 +336,82 @@ object LiveStatusReminder {
         notificationManager(context).cancel(CLOCK_TIMER_NOTIFICATION_ID)
     }
 
+    @JvmStatic
+    fun showYouBike(
+        context: Context,
+        session: YouBikeRideSession,
+        nowMillis: Long = System.currentTimeMillis(),
+    ) {
+        createChannel(context)
+        val estimate = YouBikeFarePolicy.estimate(
+            session.borrowedAtMillis,
+            nowMillis,
+            session.region,
+            session.vehicleType,
+        )
+        val nextTime = estimate?.nextBoundaryMillis?.let {
+            Instant.ofEpochMilli(it).atZone(ZoneId.of("Asia/Taipei")).format(DateTimeFormatter.ofPattern("HH:mm"))
+        }
+        val title = when {
+            estimate != null -> "$nextTime 後預估 NT$${estimate.nextAmount}"
+            session.region == YouBikeRegion.UNSUPPORTED -> "此服務區域尚未支援費率"
+            else -> "選擇服務區域以估算費用"
+        }
+        val criticalText = estimate?.let { "NT$${it.amount}" } ?: "騎乘中"
+        val contentText = "${session.vehicleType.displayName}・借自 ${session.stationName}"
+        val openYouBike = PendingIntent.getActivity(
+            context,
+            8,
+            HomeScreenHostActivity.createOpenYouBikeIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = LiveStatusPayload(
+            id = YOU_BIKE_NOTIFICATION_ID,
+            appName = "YouBike",
+            smallIconRes = R.drawable.ic_bicycle_notification,
+            leftIconRes = R.drawable.ic_bicycle_notification,
+            criticalText = criticalText,
+            title = title,
+            contentText = contentText,
+            contentIntent = openYouBike,
+        )
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(openYouBike)
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setColor(Color.rgb(245, 130, 32))
+            .setShortCriticalText(criticalText)
+            .also { YouBikeNotificationStyle.apply(it, session, estimate, nowMillis) }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+        if (session.region == YouBikeRegion.UNRESOLVED) {
+            val chooseRegion = PendingIntent.getActivity(
+                context,
+                session.id.hashCode(),
+                YouBikeRegionPickerActivity.createIntent(context, session.id),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            builder.addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, R.drawable.ic_bicycle_notification),
+                    context.getString(R.string.you_bike_choose_region_action),
+                    chooseRegion,
+                ).build(),
+            )
+        }
+        notificationManager(context).notify(YOU_BIKE_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearYouBike(context: Context) {
+        notificationManager(context).cancel(YOU_BIKE_NOTIFICATION_ID)
+    }
+
     private fun applyUberEatsStyle(
         builder: Notification.Builder,
         event: LiveStatusNotificationParser.UberEatsEvent,
@@ -394,6 +475,16 @@ object LiveStatusReminder {
         val officialDetails = uberEatsOfficialDetails(event, contentText)
         return pin?.let { "$officialDetails · PIN $it" } ?: officialDetails
     }
+
+    internal fun uberEatsPrivatePayload(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        payload: LiveStatusPayload,
+        pin: String?,
+    ): LiveStatusPayload =
+        payload.copy(
+            criticalText = pin ?: payload.criticalText,
+            contentText = uberEatsPrivateText(event, payload.contentText, pin),
+        )
 
     private fun uberEatsOfficialDetails(
         event: LiveStatusNotificationParser.UberEatsEvent,
@@ -712,4 +803,41 @@ object LiveStatusReminder {
 
     private fun notificationManager(context: Context): NotificationManager =
         context.getSystemService(NotificationManager::class.java)
+}
+
+internal object YouBikeNotificationStyle {
+    fun apply(
+        builder: Notification.Builder,
+        session: YouBikeRideSession,
+        estimate: YouBikeFareEstimate?,
+        nowMillis: Long,
+    ) {
+        val borrowedElapsedRealtime = SystemClock.elapsedRealtime() -
+            (nowMillis - session.borrowedAtMillis).coerceAtLeast(0L)
+        if (Build.VERSION.SDK_INT >= 37) {
+            val stopwatch = Notification.Metric(
+                Notification.Metric.TimeDifference.forStopwatch(
+                    borrowedElapsedRealtime,
+                    Notification.Metric.TimeDifference.FORMAT_CHRONOMETER,
+                ),
+                "騎乘時間",
+            )
+            val style = Notification.MetricStyle()
+            if (estimate != null) {
+                style
+                    .addMetric(Notification.Metric(Notification.Metric.FixedInt(estimate.amount, "元"), "預估費用"))
+                    .addMetric(stopwatch)
+                    .setCriticalMetric(0)
+            } else {
+                style.addMetric(stopwatch).setCriticalMetric(0)
+            }
+            builder.setStyle(style)
+        } else {
+            builder
+                .setWhen(session.borrowedAtMillis)
+                .setShowWhen(true)
+                .setUsesChronometer(true)
+                .setChronometerCountDown(false)
+        }
+    }
 }
