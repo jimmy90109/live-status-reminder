@@ -1,8 +1,15 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽 Google 時鐘、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
+
+### 媒體播放
+
+- 監聽所有提供 Android MediaSession 與媒體通知的 App，不需要逐一加入來源白名單。
+- 只追蹤系統優先順位最高且真正處於播放中的工作階段；暫停、停止、錯誤、工作階段或來源通知消失後立即清除。
+- 來源通知尚未成為 Live Update 時，另外顯示曲名、作者、來源 App 與來源支援的上一首、暫停、下一首控制。
+- Android 不允許修改其他 App 的通知，因此原始媒體通知仍會保留；若來源已由系統提升，則不建立備援提醒。
 
 ### Google 時鐘
 
@@ -92,6 +99,8 @@
 3. 允許 App 顯示通知。
 4. 在各 App 分頁使用模擬按鈕驗證狀態與進度。
 
+「媒體播放」功能在 Google／Pixel 預設開啟；Samsung、小米及其他 OEM 因通常已有系統媒體即時介面而預設關閉，仍可在工具分頁手動開啟。手動設定後會保留使用者選擇。媒體備援通知使用靜音頻道，切歌或 metadata 更新不會主動發出提示音。
+
 Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 [Samsung Now Bar 疑難排解](https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html)。
 
@@ -103,6 +112,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 - 可可靠辨識時，PIN 會顯示在即時通知／Live Update 中，方便核對行程或外送。
 - 第一版分別只追蹤一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
 - Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
+- 媒體播放只讀取目前活躍工作階段的曲名、作者、播放狀態與控制能力；不會保存完整來源通知或媒體 metadata。
 
 ## 建置與驗證
 

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
     <string name="app_name">即時狀態提醒</string>
     <string name="notification_channel_name">即時狀態提醒</string>
     <string name="notification_channel_description">持續顯示倒數計時、乘車、YouBike 騎乘費用、外送訂單與種花狀態</string>
+    <string name="media_notification_channel_name">媒體播放即時通知</string>
+    <string name="media_notification_channel_description">在來源媒體通知未成為 Live Update 時，靜音顯示目前播放內容。</string>
     <string name="home_intro_show">顯示首頁介紹</string>
     <string name="home_intro_hide">隱藏首頁介紹</string>
     <string name="home_intro_collapsed">首頁介紹已收合</string>
@@ -14,6 +17,19 @@
     <string name="app_category_game">遊戲</string>
     <string name="app_category_tool">工具</string>
     <string name="transit_code_status_description">進站後顯示乘車碼捷徑，準備下車時快速開啟。</string>
+
+    <string name="media_playback_card_app_name">媒體播放</string>
+    <string name="media_playback_card_title">正在播放 Live Update</string>
+    <string name="media_playback_card_description">監聽系統首選的活躍媒體工作階段；來源通知尚未被提升時，顯示曲名、作者與可用的播放控制。</string>
+    <string name="media_playback_language_independent">不依賴語言</string>
+    <string name="media_playback_limitation_title">優先使用系統原生媒體介面</string>
+    <string name="media_playback_limitation_description">Pixel 預設開啟；Samsung、小米及其他 OEM 通常已有媒體即時介面，因此預設關閉，但仍可手動開啟。手動設定後會保留您的選擇。</string>
+    <string name="media_playback_unknown_title">正在播放媒體</string>
+    <string name="media_playback_generic_app_name">媒體 App</string>
+    <string name="media_playback_now_playing">正在播放</string>
+    <string name="media_playback_previous">Previous</string>
+    <string name="media_playback_pause">Pause</string>
+    <string name="media_playback_next">Next</string>
 
     <string name="you_bike_tracking_title">YouBike 騎乘費用追蹤</string>
     <string name="you_bike_tracking_description">YouBike 騎乘中顯示目前預估費用與下一次費用變更時間。目前支援全臺 YouBike 服務區域的一般會員費率；站點無法辨識時，可在還車後選擇寄送回報。</string>

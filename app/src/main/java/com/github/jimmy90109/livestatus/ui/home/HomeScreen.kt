@@ -335,8 +335,8 @@ private fun NotificationAccessDisclosureDialog(
         title = { Text("允許讀取通知前，請先了解") },
         text = {
             Text(
-                "即時狀態提醒會讀取 Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
-                    "用來辨識倒數計時、乘車、YouBike 騎乘費用、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
+                "即時狀態提醒會讀取媒體播放、Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                    "用來辨識曲名與作者、倒數計時、乘車、YouBike 騎乘費用、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
                     "也不會永久儲存通知內容或 PIN。YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
             )

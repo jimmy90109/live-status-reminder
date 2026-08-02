@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter
 
 object LiveStatusReminder {
     private const val CHANNEL_ID = "live_status"
+    private const val MEDIA_CHANNEL_ID = "media_live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
     private const val FOODPANDA_NOTIFICATION_ID = 1002
     private const val UBER_EATS_NOTIFICATION_ID = 1003
@@ -25,6 +26,7 @@ object LiveStatusReminder {
     private const val CLOCK_TIMER_NOTIFICATION_ID = 1006
     private const val TAIWAN_PAY_NOTIFICATION_ID = 1007
     private const val YOU_BIKE_NOTIFICATION_ID = 1008
+    private const val MEDIA_PLAYBACK_NOTIFICATION_ID = 1009
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -40,6 +42,21 @@ object LiveStatusReminder {
         ).apply {
             description = context.getString(R.string.notification_channel_description)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+        notificationManager(context).createNotificationChannel(channel)
+    }
+
+    @JvmStatic
+    fun createMediaChannel(context: Context) {
+        val channel = NotificationChannel(
+            MEDIA_CHANNEL_ID,
+            context.getString(R.string.media_notification_channel_name),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            description = context.getString(R.string.media_notification_channel_description)
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            setSound(null, null)
+            enableVibration(false)
         }
         notificationManager(context).createNotificationChannel(channel)
     }
@@ -334,6 +351,73 @@ object LiveStatusReminder {
     @JvmStatic
     fun clearClockTimer(context: Context) {
         notificationManager(context).cancel(CLOCK_TIMER_NOTIFICATION_ID)
+    }
+
+    @JvmStatic
+    internal fun showMediaPlayback(context: Context, update: MediaPlaybackUpdate) {
+        createMediaChannel(context)
+        val contentText = listOfNotNull(update.artist, update.appName.takeIf { it.isNotBlank() })
+            .joinToString(" · ")
+            .ifBlank { context.getString(R.string.media_playback_now_playing) }
+        val smallIcon = update.smallIcon
+            ?: Icon.createWithResource(context, R.drawable.ic_music_notification)
+        val builder = Notification.Builder(context, MEDIA_CHANNEL_ID)
+            .setSmallIcon(smallIcon)
+            .setContentTitle(update.title)
+            .setContentText(contentText)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(update.visibility.normalizedNotificationVisibility())
+            .setColorized(false)
+            .setStyle(Notification.BigTextStyle().bigText(contentText))
+            .setShortCriticalText(mediaShortCriticalText(update.title))
+            .also(::requestPromotedOngoing)
+        if (Build.VERSION.SDK_INT >= 37) {
+            builder.extras.putBoolean(Notification.EXTRA_PREFER_SMALL_ICON, true)
+        }
+        update.contentIntent?.let(builder::setContentIntent)
+        update.artwork?.let(builder::setLargeIcon)
+        val token = update.sessionToken
+        if (token != null) {
+            if (update.canSkipPrevious) {
+                builder.addAction(
+                    mediaAction(
+                        context = context,
+                        title = context.getString(R.string.media_playback_previous),
+                        pendingIntent = MediaPlaybackActionReceiver.previousPendingIntent(context, token),
+                        semanticAction = Notification.Action.SEMANTIC_ACTION_NONE,
+                    ),
+                )
+            }
+            if (update.canPause) {
+                builder.addAction(
+                    mediaAction(
+                        context = context,
+                        title = context.getString(R.string.media_playback_pause),
+                        pendingIntent = MediaPlaybackActionReceiver.pausePendingIntent(context, token),
+                        semanticAction = Notification.Action.SEMANTIC_ACTION_PAUSE,
+                    ),
+                )
+            }
+            if (update.canSkipNext) {
+                builder.addAction(
+                    mediaAction(
+                        context = context,
+                        title = context.getString(R.string.media_playback_next),
+                        pendingIntent = MediaPlaybackActionReceiver.nextPendingIntent(context, token),
+                        semanticAction = Notification.Action.SEMANTIC_ACTION_NONE,
+                    ),
+                )
+            }
+        }
+
+        notificationManager(context).notify(MEDIA_PLAYBACK_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearMediaPlayback(context: Context) {
+        notificationManager(context).cancel(MEDIA_PLAYBACK_NOTIFICATION_ID)
     }
 
     @JvmStatic
@@ -806,8 +890,40 @@ object LiveStatusReminder {
         builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
     }
 
+    internal fun mediaShortCriticalText(title: String): String {
+        val characterCount = title.codePointCount(0, title.length)
+        if (characterCount <= MEDIA_SHORT_CRITICAL_TEXT_MAX_CHARACTERS) return title
+        val endIndex = title.offsetByCodePoints(0, MEDIA_SHORT_CRITICAL_TEXT_MAX_CHARACTERS)
+        return title.substring(0, endIndex)
+    }
+
+    private fun mediaAction(
+        context: Context,
+        title: String,
+        pendingIntent: PendingIntent,
+        semanticAction: Int,
+    ): Notification.Action {
+        val builder = Notification.Action.Builder(
+            Icon.createWithResource(context, R.drawable.ic_music_notification),
+            title,
+            pendingIntent,
+        )
+        if (Build.VERSION.SDK_INT >= 37) builder.setSemanticAction(semanticAction)
+        return builder.build()
+    }
+
+    private fun Int.normalizedNotificationVisibility(): Int = when (this) {
+        Notification.VISIBILITY_PUBLIC,
+        Notification.VISIBILITY_PRIVATE,
+        Notification.VISIBILITY_SECRET,
+        -> this
+        else -> Notification.VISIBILITY_PRIVATE
+    }
+
     private fun notificationManager(context: Context): NotificationManager =
         context.getSystemService(NotificationManager::class.java)
+
+    private const val MEDIA_SHORT_CRITICAL_TEXT_MAX_CHARACTERS = 7
 }
 
 internal object YouBikeNotificationStyle {

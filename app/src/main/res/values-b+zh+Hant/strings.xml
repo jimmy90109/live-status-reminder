@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="media_playback_previous">上一首</string>
+    <string name="media_playback_pause">暫停</string>
+    <string name="media_playback_next">下一首</string>
+</resources>
