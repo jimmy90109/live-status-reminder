@@ -18,11 +18,11 @@
 | 項目 | 紀錄 |
 | --- | --- |
 | 測試群組 | `livestatus--app@googlegroups.com` |
-| 已審查通過版本 | `2607090 (1.0.0-beta)` |
-| 最新 Alpha 上傳版本 | `2607310 (1.0.2)`，已通過審查並可供測試人員使用（2026-07-31） |
-| 最新正式版 | `2607310 (1.0.2)` |
-| Production 狀態 | `2607310 (1.0.2)` 已於 2026-07-31 23:12 在 Google Play 上架，100% 全面推出已完成 |
-| 最新正式版 AAB SHA-256 | `6a38a228910bb42e6767246a8bffa2f6a4ec55013742826435c9e6672b1a1fdc` |
+| 已審查通過版本 | `2608021 (1.0.3)` |
+| 最新 Alpha 上傳版本 | `2608021 (1.0.3)`，已通過審查並可供測試人員使用（2026-08-02） |
+| 最新正式版 | `2608021 (1.0.3)` |
+| Production 狀態 | `2608021 (1.0.3)` 已於 2026-08-02 通過審查並上架；Play Console 顯示為有效的最新正式版，100% 全面推出 |
+| 最新正式版 AAB SHA-256 | `fd3022adc1ff96d35e853f6b9487d608e1f17cad97bd38efcc3c1679dacb086d` |
 | Play 商店網址 | <https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus> |
 | Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
 | Native debug symbols SHA-256 | `528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a` |
@@ -94,14 +94,15 @@ Production release 前請確認：
 
 ## Production release note
 
-`1.0.2`：
+`1.0.3`：
 
 ```text
-1.0.2 更新：
+1.0.3 更新：
 
-- 新增台灣 Pay 捷運上下車通知的 Live Update 支援。
-- 首頁設定改以倒數、交通、外送與活動類別分組，更容易找到各來源設定。
-- 改善通知解析與提醒結束流程的可靠性。
+- 新增 YouBike 2.0／2.0E 騎乘時間、預估費用與下一次計費時間提醒。
+- 支援全臺服務區域、地方補助與不明站點的手動地區選擇。
+- 可可靠辨識時，在 Live Update 顯示 Uber 與 Uber Eats 的四位數 PIN。
+- 改善交通類 App 設定卡片與狀態文案。
 ```
 
 ## 送出 Production 前最後確認
