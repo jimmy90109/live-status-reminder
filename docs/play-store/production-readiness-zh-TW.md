@@ -5,6 +5,7 @@
 ## Alpha 審查通過後
 
 - [x] Alpha `2608022 (1.0.4)` 審查已通過並可供測試人員使用（2026-08-02 18:13）。
+- [x] Alpha `2608030 (1.0.4)` 已於 2026-08-03 01:12 通過審查並可供測試人員使用。
 - [ ] 確認 Play Console 顯示 `2607090 (1.0.0-beta)` 已可供 Alpha 測試人員安裝。
 - [ ] 使用測試者帳號從 Google Play 安裝，而不是使用本機 ADB 或 sideload。
 - [ ] 完成 [Alpha 驗證清單](alpha-testing-checklist-zh-TW.md)。
@@ -18,11 +19,11 @@
 | 項目 | 紀錄 |
 | --- | --- |
 | 測試群組 | `livestatus--app@googlegroups.com` |
-| 已審查通過版本 | `2608022 (1.0.4)` |
-| 最新 Alpha 上傳版本 | `2608022 (1.0.4)`，已通過審查並可供測試人員使用（2026-08-02 18:13） |
-| 最新正式版 | `2608022 (1.0.4)` |
-| Production 狀態 | `2608022 (1.0.4)` 已於 2026-08-02 18:39 通過審查並上架；Play Console 顯示為有效的最新正式版，100% 全面推出 |
-| 最新正式版 AAB SHA-256 | `ae6340e58f74e95d1adb5ad41f464ea0d00876e397ef9250cfd634f520f2fa47` |
+| 已審查通過版本 | `2608030 (1.0.4)` |
+| 最新 Alpha 上傳版本 | `2608030 (1.0.4)`，已於 2026-08-03 01:12 通過審查並可供測試人員使用 |
+| 最新正式版 | `2608030 (1.0.4)` |
+| Production 狀態 | `2608030 (1.0.4)` 已於 2026-08-03 01:35 通過審查並上架；Play Console 顯示為有效的最新正式版，100% 全面推出 |
+| 最新正式版 AAB SHA-256 | `c6e64f1874eabdb0691a1ccd4c81c6cdccafd3375a0e4f81ebb3a330a24e6a1c` |
 | Play 商店網址 | <https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus> |
 | Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
 | Native debug symbols SHA-256 | `528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a` |
@@ -99,10 +100,9 @@ Production release 前請確認：
 ```text
 1.0.4 更新：
 
-- 新增媒體播放 Live Update，可顯示曲名、作者、專輯與來源支援的播放控制。
-- YouBike Live Update 滑除後可在 90 秒內從靜音通知恢復追蹤。
-- 修正 YouBike 關鍵狀態文字，清楚顯示目前預估費用。
-- 改善 Uber 乘車卡片的預設圖示。
+- 媒體播放 Live Update 新增播放進度、專輯資訊及 Podcast 倒退／快轉控制。
+- 媒體暫停後保留提醒 1 分鐘，可直接恢復播放。
+- Pikmin Bloom 新增英文種花通知辨識與英文提醒文案。
 ```
 
 ## 送出 Production 前最後確認
