@@ -2,6 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="MissingTranslation">
     <string name="app_name">即時狀態提醒</string>
+    <string name="notification_app_name">LiveStatus</string>
     <string name="notification_channel_name">即時狀態提醒</string>
     <string name="notification_channel_description">持續顯示倒數計時、乘車、YouBike 騎乘費用、外送訂單與種花狀態</string>
     <string name="media_notification_channel_name">媒體播放即時通知</string>
@@ -25,10 +26,14 @@
     <string name="media_playback_limitation_title">優先使用系統原生媒體介面</string>
     <string name="media_playback_limitation_description">Pixel 預設開啟；Samsung、小米及其他 OEM 通常已有媒體即時介面，因此預設關閉，但仍可手動開啟。手動設定後會保留您的選擇。</string>
     <string name="media_playback_unknown_title">正在播放媒體</string>
-    <string name="media_playback_generic_app_name">媒體 App</string>
     <string name="media_playback_now_playing">正在播放</string>
     <string name="media_playback_previous">Previous</string>
+    <string name="media_playback_back_15_seconds">- 15 sec</string>
+    <string name="media_playback_rewind">Rewind</string>
+    <string name="media_playback_play">Play</string>
     <string name="media_playback_pause">Pause</string>
+    <string name="media_playback_forward_15_seconds">+15 sec</string>
+    <string name="media_playback_fast_forward">Fast forward</string>
     <string name="media_playback_next">Next</string>
 
     <string name="you_bike_tracking_title">YouBike 騎乘費用追蹤</string>

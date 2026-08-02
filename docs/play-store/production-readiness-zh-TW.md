@@ -99,7 +99,7 @@ Production release 前請確認：
 ```text
 1.0.4 更新：
 
-- 新增媒體播放 Live Update，可顯示曲名、作者與來源支援的播放控制。
+- 新增媒體播放 Live Update，可顯示曲名、作者、專輯與來源支援的播放控制。
 - YouBike Live Update 滑除後可在 90 秒內從靜音通知恢復追蹤。
 - 修正 YouBike 關鍵狀態文字，清楚顯示目前預估費用。
 - 改善 Uber 乘車卡片的預設圖示。
