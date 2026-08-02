@@ -58,6 +58,8 @@
 - 已審查通過版本：`2608021 (1.0.3)`。
 - 最新 Alpha／公開測試版本：`2608021 (1.0.3)`。
 - 最新 Alpha AAB SHA-256：`fd3022adc1ff96d35e853f6b9487d608e1f17cad97bd38efcc3c1679dacb086d`。
+- 最新本機候選包：`2608022 (1.0.3)`，尚未上傳；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
+- 最新本機候選 AAB SHA-256：`67805d408c848417805f844f06060c399bcc97c1c13c027ff2e80c78555e4aee`。
 - 最新正式版：`2608021 (1.0.3)`。
 - Production 待審版本：無。
 - Production 狀態：`2608021 (1.0.3)` 已於 2026-08-02 通過審查並上架；Play Console 顯示為有效的最新正式版，100% 全面推出。
@@ -67,6 +69,7 @@
 - 最新正式版 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
 - Play 可接受的 native debug symbols：`app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip`。
 - 最新 Alpha native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
+- 最新本機候選 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
 - 應用程式名稱：LiveStatus 即時狀態提醒。
 - Package name：`com.github.jimmy90109.livestatus`。
 - 目標年齡層：13 歲以上。

@@ -28,7 +28,7 @@ android {
         applicationId = "com.github.jimmy90109.livestatus"
         minSdk = 36
         targetSdk = 37
-        versionCode = 2608021
+        versionCode = 2608022
         versionName = "1.0.3"
 
         ndk {
