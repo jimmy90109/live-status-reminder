@@ -20,6 +20,7 @@ object YouBikeRideSessionStore {
     private const val KEY_CANDIDATES = "candidate_regions"
     private const val KEY_MANUAL_REGION = "manual_region"
     private const val KEY_RESOLUTION_ISSUE = "resolution_issue"
+    private const val KEY_LIVE_UPDATE_HIDDEN = "live_update_hidden"
 
     fun load(context: Context): YouBikeRideSession? {
         val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
@@ -53,6 +54,16 @@ object YouBikeRideSessionStore {
             .putStringSet(KEY_CANDIDATES, session.candidateRegions.mapTo(mutableSetOf()) { it.name })
             .putString(KEY_MANUAL_REGION, session.manuallySelectedRegion?.name)
             .putString(KEY_RESOLUTION_ISSUE, session.originalResolutionIssue?.name)
+            .apply()
+    }
+
+    internal fun isLiveUpdateHidden(context: Context): Boolean =
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            .getBoolean(KEY_LIVE_UPDATE_HIDDEN, false)
+
+    internal fun setLiveUpdateHidden(context: Context, hidden: Boolean) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_LIVE_UPDATE_HIDDEN, hidden)
             .apply()
     }
 
@@ -111,14 +122,43 @@ object YouBikeRideManager {
             clear(context)
             return
         }
+        val isHidden = YouBikeRideSessionStore.isLiveUpdateHidden(context)
+        if (!YouBikeTrackingVisibilityPolicy.shouldDisplay(isHidden)) {
+            cancelAlarm(context, session.id)
+            return
+        }
         LiveStatusReminder.showYouBike(context, session, nowMillis)
         schedule(context, session, nowMillis)
+    }
+
+    internal fun hideLiveUpdate(context: Context, expectedSessionId: String): Boolean {
+        val session = YouBikeRideSessionStore.load(context) ?: return false
+        if (!YouBikeTrackingVisibilityPolicy.matchesSession(session, expectedSessionId)) return false
+        YouBikeRideSessionStore.setLiveUpdateHidden(context, true)
+        cancelAlarm(context, session.id)
+        LiveStatusReminder.clearYouBike(context)
+        YouBikeTrackingNotifier.showHidden(context, session.id)
+        return true
+    }
+
+    internal fun restoreLiveUpdate(context: Context, expectedSessionId: String): Boolean {
+        val session = YouBikeRideSessionStore.load(context) ?: return false
+        if (!YouBikeTrackingVisibilityPolicy.matchesSession(session, expectedSessionId)) return false
+        if (session.isExpired(System.currentTimeMillis())) {
+            clear(context)
+            return false
+        }
+        YouBikeRideSessionStore.setLiveUpdateHidden(context, false)
+        YouBikeTrackingNotifier.clearHidden(context)
+        refresh(context, session.id)
+        return true
     }
 
     fun clear(context: Context) {
         YouBikeRideSessionStore.load(context)?.let { cancelAlarm(context, it.id) }
         YouBikeRideSessionStore.clear(context)
         LiveStatusReminder.clearYouBike(context)
+        YouBikeTrackingNotifier.clearHidden(context)
     }
 
     private fun start(context: Context, update: YouBikeRideUpdate, nowMillis: Long) {
@@ -128,8 +168,15 @@ object YouBikeRideManager {
         val borrowedAt = occurredAt.toEpochMillis()
         if (borrowedAt > nowMillis + 5 * 60_000L || nowMillis - borrowedAt >= 24 * 60 * 60_000L) return
         val current = YouBikeRideSessionStore.load(context)
-        if (current?.borrowedAtMillis == borrowedAt && current.bikeNumber == bike) {
-            refresh(context, current.id, nowMillis)
+        val hiddenAfterBorrow = YouBikeTrackingVisibilityPolicy.hiddenAfterBorrow(
+            current = current,
+            isCurrentlyHidden = YouBikeRideSessionStore.isLiveUpdateHidden(context),
+            borrowedAtMillis = borrowedAt,
+            bikeNumber = bike,
+        )
+        if (YouBikeTrackingVisibilityPolicy.isSameRide(current, borrowedAt, bike)) {
+            YouBikeRideSessionStore.setLiveUpdateHidden(context, hiddenAfterBorrow)
+            refresh(context, requireNotNull(current).id, nowMillis)
             return
         }
         if (!YouBikeSessionPolicy.shouldReplace(current, borrowedAt, bike)) return
@@ -160,6 +207,8 @@ object YouBikeRideManager {
             },
         )
         YouBikeRideSessionStore.save(context, session)
+        YouBikeRideSessionStore.setLiveUpdateHidden(context, hiddenAfterBorrow)
+        YouBikeTrackingNotifier.clearHidden(context)
         refresh(context, session.id, nowMillis)
     }
 
@@ -294,6 +343,26 @@ internal object YouBikeSessionPolicy {
         returnedAtMillis: Long,
     ): Boolean = returnedBikeNumber == current.bikeNumber &&
         returnedAtMillis >= current.borrowedAtMillis
+}
+
+internal object YouBikeTrackingVisibilityPolicy {
+    fun isSameRide(
+        current: YouBikeRideSession?,
+        borrowedAtMillis: Long,
+        bikeNumber: String,
+    ): Boolean = current?.borrowedAtMillis == borrowedAtMillis && current.bikeNumber == bikeNumber
+
+    fun matchesSession(current: YouBikeRideSession, expectedSessionId: String): Boolean =
+        current.id == expectedSessionId
+
+    fun hiddenAfterBorrow(
+        current: YouBikeRideSession?,
+        isCurrentlyHidden: Boolean,
+        borrowedAtMillis: Long,
+        bikeNumber: String,
+    ): Boolean = isCurrentlyHidden && isSameRide(current, borrowedAtMillis, bikeNumber)
+
+    fun shouldDisplay(isHidden: Boolean): Boolean = !isHidden
 }
 
 internal enum class YouBikeAlarmMode {

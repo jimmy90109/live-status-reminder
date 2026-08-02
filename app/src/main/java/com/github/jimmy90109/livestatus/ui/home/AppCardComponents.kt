@@ -56,6 +56,7 @@ internal fun AppCard(
     interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     showEnabledSwitch: Boolean = true,
+    usePackageIcon: Boolean = true,
     cardColor: Color,
     labelColor: Color,
     foregroundColor: Color,
@@ -78,6 +79,7 @@ internal fun AppCard(
                     label = appName,
                     packageName = appPackageName,
                     installed = installed,
+                    usePackageIcon = usePackageIcon,
                     fallbackIconRes = fallbackIconRes,
                     background = labelColor,
                     foreground = foregroundColor,
@@ -135,13 +137,14 @@ private fun AppLabelPill(
     label: String,
     packageName: String,
     installed: Boolean,
+    usePackageIcon: Boolean,
     @DrawableRes fallbackIconRes: Int,
     background: Color,
     foreground: Color,
 ) {
     val context = LocalContext.current
-    val appIcon = remember(packageName, installed) {
-        if (!installed) {
+    val appIcon = remember(packageName, installed, usePackageIcon) {
+        if (!installed || !usePackageIcon) {
             null
         } else {
             runCatching {

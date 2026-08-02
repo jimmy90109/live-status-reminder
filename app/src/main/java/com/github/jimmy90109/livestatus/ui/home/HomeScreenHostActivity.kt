@@ -135,6 +135,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             brandWarning = brandWarning,
             brandWarningDismissed =
                 AppReminderPreferences.isBrandWarningDismissed(this),
+            mediaPlaybackEnabled = AppReminderPreferences.App.MEDIA_PLAYBACK.isEnabled(this),
             clockEnabled = AppReminderPreferences.App.CLOCK.isEnabled(this, clockInstalled),
             ipassEnabled = AppReminderPreferences.App.IPASS.isEnabled(this, ipassInstalled),
             taiwanPayEnabled =
@@ -243,6 +244,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun clearReminder(app: AppReminderPreferences.App) {
         when (app) {
+            AppReminderPreferences.App.MEDIA_PLAYBACK -> LiveStatusReminder.clearMediaPlayback(this)
             AppReminderPreferences.App.CLOCK -> LiveStatusReminder.clearClockTimer(this)
             AppReminderPreferences.App.IPASS -> LiveStatusReminder.clear(this)
             AppReminderPreferences.App.TAIWAN_PAY -> LiveStatusReminder.clearTaiwanPay(this)
@@ -342,6 +344,7 @@ internal data class StatusSnapshot(
     val pikminBloomInstalled: Boolean = false,
     val brandWarning: BrandWarning? = null,
     val brandWarningDismissed: Boolean = false,
+    val mediaPlaybackEnabled: Boolean = false,
     val clockEnabled: Boolean = false,
     val ipassEnabled: Boolean = false,
     val taiwanPayEnabled: Boolean = false,

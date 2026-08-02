@@ -194,6 +194,13 @@ internal fun AppsSection(
                         },
                     )
                     CATEGORY_TOOL -> {
+                        MediaPlaybackCard(
+                            enabled = status.mediaPlaybackEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.MEDIA_PLAYBACK, it)
+                            },
+                        )
                         ClockCard(
                             installed = status.clockInstalled,
                             enabled = status.clockEnabled,

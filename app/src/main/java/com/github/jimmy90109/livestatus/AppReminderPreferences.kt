@@ -1,11 +1,21 @@
 package com.github.jimmy90109.livestatus
 
 import android.content.Context
+import android.os.Build
+
+internal object MediaPlaybackDefaultPolicy {
+    fun isDefaultEnabled(manufacturer: String?, brand: String?): Boolean =
+        manufacturer.isGoogle() || brand.isGoogle()
+
+    private fun String?.isGoogle(): Boolean =
+        this?.trim()?.equals("google", ignoreCase = true) == true
+}
 
 object AppReminderPreferences {
     private const val BRAND_WARNING_DISMISSED = "brand_warning_dismissed"
 
     enum class App(private val preferenceKey: String) {
+        MEDIA_PLAYBACK("media_playback_enabled"),
         CLOCK("clock_enabled"),
         IPASS("ipass_enabled"),
         TAIWAN_PAY("taiwan_pay_enabled"),
@@ -16,8 +26,16 @@ object AppReminderPreferences {
         PIKMIN_BLOOM("pikmin_bloom_enabled"),
         ;
 
-        fun isEnabled(context: Context, installed: Boolean = true): Boolean =
-            installed && preferences(context).getBoolean(preferenceKey, true)
+        fun isEnabled(context: Context, installed: Boolean = true): Boolean {
+            val defaultEnabled = when (this) {
+                MEDIA_PLAYBACK -> MediaPlaybackDefaultPolicy.isDefaultEnabled(
+                    Build.MANUFACTURER,
+                    Build.BRAND,
+                )
+                else -> true
+            }
+            return installed && preferences(context).getBoolean(preferenceKey, defaultEnabled)
+        }
 
         fun setEnabled(context: Context, enabled: Boolean) {
             preferences(context).edit().putBoolean(preferenceKey, enabled).apply()

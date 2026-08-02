@@ -1,7 +1,9 @@
 package com.github.jimmy90109.livestatus
 
 import android.app.Notification
+import android.content.ComponentName
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -17,6 +19,20 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
     private val clockTimerRefreshRunnable = Runnable(::refreshClockTimer)
+    private val mediaPlaybackMonitor by lazy {
+        MediaPlaybackMonitor(
+            context = this,
+            listenerComponent = ComponentName(this, LiveStatusNotificationListenerService::class.java),
+            handler = clockTimerHandler,
+            onUpdate = { update ->
+                if (update == null) {
+                    LiveStatusReminder.clearMediaPlayback(this)
+                } else {
+                    LiveStatusReminder.showMediaPlayback(this, update)
+                }
+            },
+        )
+    }
     private var lastUberRideUpdate =
         LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
     private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
@@ -26,6 +42,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
         if (statusBarNotification.packageName == packageName) return
+        mediaPlaybackMonitor.onNotificationPosted(statusBarNotification)
         val notification = statusBarNotification.notification
         val notificationText = readNotificationText(
             this,
@@ -186,6 +203,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
+        mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
         if (
             BuildConfig.DEBUG &&
             statusBarNotification.packageName == TAIWAN_PAY_PACKAGE
@@ -224,12 +242,24 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         stopClockTimerRefresh()
+        mediaPlaybackMonitor.stop()
         super.onDestroy()
     }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
+        mediaPlaybackMonitor.start(getActiveNotifications())
         YouBikeRideManager.restore(this)
+    }
+
+    override fun onListenerDisconnected() {
+        mediaPlaybackMonitor.stop()
+        super.onListenerDisconnected()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        mediaPlaybackMonitor.refresh()
     }
 
     private fun handleClockTimerDecision(decision: ClockTimerDecision) {

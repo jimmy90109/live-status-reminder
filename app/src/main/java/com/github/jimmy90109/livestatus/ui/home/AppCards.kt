@@ -28,6 +28,38 @@ import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 
 @Composable
+internal fun MediaPlaybackCard(
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.media_playback_card_app_name),
+        appPackageName = context.packageName,
+        fallbackIconRes = R.drawable.ic_music_notification,
+        title = stringResource(R.string.media_playback_card_title),
+        description = stringResource(R.string.media_playback_card_description),
+        supportedLanguages = listOf(stringResource(R.string.media_playback_language_independent)),
+        installed = true,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        usePackageIcon = false,
+        cardColor = colors.commonContainer,
+        labelColor = colors.commonSurface,
+        foregroundColor = colors.onSurface,
+    ) {
+        AppWarningNotice(
+            title = stringResource(R.string.media_playback_limitation_title),
+            description = stringResource(R.string.media_playback_limitation_description),
+        )
+    }
+}
+
+
+@Composable
 internal fun IpassCard(
     installed: Boolean,
     enabled: Boolean,
