@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="media_playback_previous">上一首</string>
+    <string name="media_playback_back_15_seconds">- 15 秒</string>
+    <string name="media_playback_rewind">倒退</string>
+    <string name="media_playback_play">播放</string>
     <string name="media_playback_pause">暫停</string>
+    <string name="media_playback_forward_15_seconds">+15 秒</string>
+    <string name="media_playback_fast_forward">快轉</string>
     <string name="media_playback_next">下一首</string>
 </resources>

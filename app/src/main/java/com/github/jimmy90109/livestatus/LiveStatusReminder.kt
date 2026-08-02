@@ -11,9 +11,11 @@ import android.os.Build
 import android.os.SystemClock
 import com.github.jimmy90109.livestatus.ui.home.HomeScreenHostActivity
 import com.github.jimmy90109.livestatus.ui.home.YouBikeRegionPickerActivity
+import java.text.BreakIterator
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 object LiveStatusReminder {
     private const val CHANNEL_ID = "live_status"
@@ -278,7 +280,11 @@ object LiveStatusReminder {
     }
 
     @JvmStatic
-    fun showPikminBloom(context: Context) {
+    fun showPikminBloom(
+        context: Context,
+        language: LiveStatusNotificationParser.PikminLanguage =
+            LiveStatusNotificationParser.PikminLanguage.CHINESE,
+    ) {
         createChannel(context)
         val openPikminBloom = PendingIntent.getActivity(
             context,
@@ -286,7 +292,7 @@ object LiveStatusReminder {
             HomeScreenHostActivity.createOpenPikminBloomIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val payload = pikminBloomPayload(openPikminBloom)
+        val payload = pikminBloomPayload(language, openPikminBloom)
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(payload.smallIconRes)
             .setContentTitle(payload.title)
@@ -295,7 +301,11 @@ object LiveStatusReminder {
             .addAction(
                 Notification.Action.Builder(
                     Icon.createWithResource(context, payload.leftIconRes),
-                    "開啟 Pikmin Bloom",
+                    if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                        "Open Pikmin Bloom"
+                    } else {
+                        "開啟 Pikmin Bloom"
+                    },
                     openPikminBloom,
                 ).build(),
             )
@@ -356,9 +366,8 @@ object LiveStatusReminder {
     @JvmStatic
     internal fun showMediaPlayback(context: Context, update: MediaPlaybackUpdate) {
         createMediaChannel(context)
-        val contentText = listOfNotNull(update.artist, update.appName.takeIf { it.isNotBlank() })
-            .joinToString(" · ")
-            .ifBlank { context.getString(R.string.media_playback_now_playing) }
+        val contentText = MediaPlaybackText.artistAndAlbum(update.artist, update.album)
+            ?: context.getString(R.string.media_playback_now_playing)
         val smallIcon = update.smallIcon
             ?: Icon.createWithResource(context, R.drawable.ic_music_notification)
         val builder = Notification.Builder(context, MEDIA_CHANNEL_ID)
@@ -370,9 +379,20 @@ object LiveStatusReminder {
             .setOnlyAlertOnce(true)
             .setVisibility(update.visibility.normalizedNotificationVisibility())
             .setColorized(false)
-            .setStyle(Notification.BigTextStyle().bigText(contentText))
             .setShortCriticalText(mediaShortCriticalText(update.title))
             .also(::requestPromotedOngoing)
+        val progressPercent = update.progressPercent
+        if (progressPercent != null) {
+            val progressStyle = Notification.ProgressStyle()
+                .setStyledByProgress(true)
+                .setProgress(progressPercent)
+                .addProgressSegment(
+                    Notification.ProgressStyle.Segment(100).setId(1),
+                )
+            builder.setStyle(progressStyle)
+        } else {
+            builder.setStyle(Notification.BigTextStyle().bigText(contentText))
+        }
         if (Build.VERSION.SDK_INT >= 37) {
             builder.extras.putBoolean(Notification.EXTRA_PREFER_SMALL_ICON, true)
         }
@@ -380,12 +400,16 @@ object LiveStatusReminder {
         update.artwork?.let(builder::setLargeIcon)
         val token = update.sessionToken
         if (token != null) {
-            if (update.canSkipPrevious) {
+            update.leftControl?.let { control ->
                 builder.addAction(
                     mediaAction(
                         context = context,
-                        title = context.getString(R.string.media_playback_previous),
-                        pendingIntent = MediaPlaybackActionReceiver.previousPendingIntent(context, token),
+                        title = context.getString(control.titleResource),
+                        pendingIntent = MediaPlaybackActionReceiver.controlPendingIntent(
+                            context,
+                            token,
+                            control,
+                        ),
                         semanticAction = Notification.Action.SEMANTIC_ACTION_NONE,
                     ),
                 )
@@ -399,13 +423,26 @@ object LiveStatusReminder {
                         semanticAction = Notification.Action.SEMANTIC_ACTION_PAUSE,
                     ),
                 )
-            }
-            if (update.canSkipNext) {
+            } else if (update.canPlay) {
                 builder.addAction(
                     mediaAction(
                         context = context,
-                        title = context.getString(R.string.media_playback_next),
-                        pendingIntent = MediaPlaybackActionReceiver.nextPendingIntent(context, token),
+                        title = context.getString(R.string.media_playback_play),
+                        pendingIntent = MediaPlaybackActionReceiver.playPendingIntent(context, token),
+                        semanticAction = Notification.Action.SEMANTIC_ACTION_PLAY,
+                    ),
+                )
+            }
+            update.rightControl?.let { control ->
+                builder.addAction(
+                    mediaAction(
+                        context = context,
+                        title = context.getString(control.titleResource),
+                        pendingIntent = MediaPlaybackActionReceiver.controlPendingIntent(
+                            context,
+                            token,
+                            control,
+                        ),
                         semanticAction = Notification.Action.SEMANTIC_ACTION_NONE,
                     ),
                 )
@@ -686,15 +723,31 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
 
-    internal fun pikminBloomPayload(contentIntent: PendingIntent? = null): LiveStatusPayload =
+    internal fun pikminBloomPayload(
+        language: LiveStatusNotificationParser.PikminLanguage =
+            LiveStatusNotificationParser.PikminLanguage.CHINESE,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload =
         LiveStatusPayload(
             id = PIKMIN_BLOOM_NOTIFICATION_ID,
             appName = "Pikmin Bloom",
             smallIconRes = R.drawable.ic_pikmin_flower_notification,
             leftIconRes = R.drawable.ic_pikmin_flower_notification,
-            criticalText = "種花中",
-            title = "Pikmin Bloom 正在種花",
-            contentText = "記得結束種花，避免花瓣在原地耗盡。",
+            criticalText = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                "Planting"
+            } else {
+                "種花中"
+            },
+            title = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                "Planting flowers in the background"
+            } else {
+                "Pikmin Bloom 正在種花"
+            },
+            contentText = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                "Remember to stop planting flowers so you don't use up petals in one place."
+            } else {
+                "記得結束種花，避免花瓣在原地耗盡。"
+            },
             contentIntent = contentIntent,
         )
 
@@ -891,10 +944,57 @@ object LiveStatusReminder {
     }
 
     internal fun mediaShortCriticalText(title: String): String {
-        val characterCount = title.codePointCount(0, title.length)
-        if (characterCount <= MEDIA_SHORT_CRITICAL_TEXT_MAX_CHARACTERS) return title
-        val endIndex = title.offsetByCodePoints(0, MEDIA_SHORT_CRITICAL_TEXT_MAX_CHARACTERS)
-        return title.substring(0, endIndex)
+        val graphemeIterator = BreakIterator.getCharacterInstance(Locale.ROOT).apply {
+            setText(title)
+        }
+        var graphemeCount = 0
+        var usedWidth = 0
+        var acceptedEnd = graphemeIterator.first()
+        var graphemeEnd = graphemeIterator.next()
+        while (
+            graphemeEnd != BreakIterator.DONE &&
+            graphemeCount < MEDIA_SHORT_CRITICAL_TEXT_MAX_GRAPHEMES
+        ) {
+            val graphemeWidth = mediaCriticalTextGraphemeWidth(
+                title = title,
+                startIndex = acceptedEnd,
+                endIndex = graphemeEnd,
+            )
+            if (usedWidth + graphemeWidth > MEDIA_SHORT_CRITICAL_TEXT_MAX_WIDTH) break
+            usedWidth += graphemeWidth
+            graphemeCount += 1
+            acceptedEnd = graphemeEnd
+            graphemeEnd = graphemeIterator.next()
+        }
+        return title.substring(0, acceptedEnd)
+    }
+
+    private fun mediaCriticalTextGraphemeWidth(
+        title: String,
+        startIndex: Int,
+        endIndex: Int,
+    ): Int {
+        var index = startIndex
+        while (index < endIndex) {
+            val codePoint = title.codePointAt(index)
+            if (codePoint.isWideMediaCharacter()) return MEDIA_SHORT_CRITICAL_TEXT_WIDE_WIDTH
+            index += Character.charCount(codePoint)
+        }
+        return MEDIA_SHORT_CRITICAL_TEXT_NARROW_WIDTH
+    }
+
+    private fun Int.isWideMediaCharacter(): Boolean {
+        val script = Character.UnicodeScript.of(this)
+        return Character.isIdeographic(this) ||
+            script == Character.UnicodeScript.HAN ||
+            script == Character.UnicodeScript.HANGUL ||
+            script == Character.UnicodeScript.HIRAGANA ||
+            script == Character.UnicodeScript.KATAKANA ||
+            this in 0x2E80..0xA4CF ||
+            this in 0xFE10..0xFE6F ||
+            this in 0xFF01..0xFF60 ||
+            this in 0xFFE0..0xFFE6 ||
+            Character.getType(this) == Character.OTHER_SYMBOL.toInt()
     }
 
     private fun mediaAction(
@@ -912,6 +1012,17 @@ object LiveStatusReminder {
         return builder.build()
     }
 
+    private val MediaPlaybackControl.titleResource: Int
+        get() = when (this) {
+            MediaPlaybackControl.SKIP_PREVIOUS -> R.string.media_playback_previous
+            MediaPlaybackControl.SEEK_BACK_15_SECONDS -> R.string.media_playback_back_15_seconds
+            MediaPlaybackControl.REWIND -> R.string.media_playback_rewind
+            MediaPlaybackControl.SKIP_NEXT -> R.string.media_playback_next
+            MediaPlaybackControl.SEEK_FORWARD_15_SECONDS ->
+                R.string.media_playback_forward_15_seconds
+            MediaPlaybackControl.FAST_FORWARD -> R.string.media_playback_fast_forward
+        }
+
     private fun Int.normalizedNotificationVisibility(): Int = when (this) {
         Notification.VISIBILITY_PUBLIC,
         Notification.VISIBILITY_PRIVATE,
@@ -923,7 +1034,10 @@ object LiveStatusReminder {
     private fun notificationManager(context: Context): NotificationManager =
         context.getSystemService(NotificationManager::class.java)
 
-    private const val MEDIA_SHORT_CRITICAL_TEXT_MAX_CHARACTERS = 7
+    private const val MEDIA_SHORT_CRITICAL_TEXT_MAX_GRAPHEMES = 7
+    private const val MEDIA_SHORT_CRITICAL_TEXT_MAX_WIDTH = 8
+    private const val MEDIA_SHORT_CRITICAL_TEXT_NARROW_WIDTH = 1
+    private const val MEDIA_SHORT_CRITICAL_TEXT_WIDE_WIDTH = 2
 }
 
 internal object YouBikeNotificationStyle {

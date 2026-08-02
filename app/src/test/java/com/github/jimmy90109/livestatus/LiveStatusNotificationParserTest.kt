@@ -2,6 +2,7 @@ package com.github.jimmy90109.livestatus
 
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.RideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
@@ -656,7 +657,7 @@ class LiveStatusNotificationParserTest {
             PikminEvent.FLOWER_PLANTING,
             LiveStatusNotificationParser.parsePikminBloom(
                 "Pikmin Bloom\n正在背景執行時種花。。 · 1m",
-            ),
+            ).event,
         )
     }
 
@@ -666,7 +667,27 @@ class LiveStatusNotificationParserTest {
             PikminEvent.FLOWER_PLANTING,
             LiveStatusNotificationParser.parsePikminBloom(
                 "Pikmin Bloom\n正在背景执行时种花。。 · 1m",
-            ),
+            ).event,
+        )
+    }
+
+    @Test
+    fun pikminBloomEnglishFlowerPlantingNotificationStartsReminder() {
+        val update = LiveStatusNotificationParser.parsePikminBloom(
+            "Pikmin Bloom\nPlanting flowers in the background... · now",
+        )
+
+        assertEquals(PikminEvent.FLOWER_PLANTING, update.event)
+        assertEquals(PikminLanguage.ENGLISH, update.language)
+    }
+
+    @Test
+    fun similarEnglishPikminBloomNotificationIsIgnored() {
+        assertEquals(
+            PikminEvent.NONE,
+            LiveStatusNotificationParser.parsePikminBloom(
+                "Pikmin Bloom\nPlanting flowers around your neighborhood",
+            ).event,
         )
     }
 
@@ -674,7 +695,7 @@ class LiveStatusNotificationParserTest {
     fun unrelatedPikminBloomNotificationsAreIgnored() {
         assertEquals(
             PikminEvent.NONE,
-            LiveStatusNotificationParser.parsePikminBloom("Pikmin Bloom\n探險完成了！"),
+            LiveStatusNotificationParser.parsePikminBloom("Pikmin Bloom\n探險完成了！").event,
         )
     }
 

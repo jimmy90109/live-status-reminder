@@ -233,7 +233,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
         val notificationText = readNotificationText(statusBarNotification.notification)
         if (
-            LiveStatusNotificationParser.parsePikminBloom(notificationText) ==
+            LiveStatusNotificationParser.parsePikminBloom(notificationText).event ==
             LiveStatusNotificationParser.PikminEvent.FLOWER_PLANTING
         ) {
             LiveStatusReminder.clearPikminBloom(this)
@@ -406,9 +406,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     private fun handlePikminBloomNotification(notificationText: String) {
-        when (LiveStatusNotificationParser.parsePikminBloom(notificationText)) {
+        val update = LiveStatusNotificationParser.parsePikminBloom(notificationText)
+        when (update.event) {
             LiveStatusNotificationParser.PikminEvent.FLOWER_PLANTING ->
-                LiveStatusReminder.showPikminBloom(this)
+                LiveStatusReminder.showPikminBloom(this, update.language)
             LiveStatusNotificationParser.PikminEvent.NONE ->
                 LiveStatusReminder.clearPikminBloom(this)
         }

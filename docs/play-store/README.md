@@ -36,11 +36,13 @@
 - [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2607310 (1.0.2)`（2026-07-31），同日通過審查並可供測試人員使用。
 - [x] Alpha／公開測試已提供 `2608021 (1.0.3)`（2026-08-02）。
 - [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2608022 (1.0.4)`（2026-08-02），同日於 18:13 通過審查並可供測試人員使用。
+- [x] Alpha 已上傳 signed AAB、native debug symbols 並送審：`2608030 (1.0.4)`（2026-08-03），同日於 01:12 通過審查並可供測試人員使用。
 - [x] 已取得 Production access，準備正式版 `2607280 (1.0.0)` 送審。
 - [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2607290 (1.0.1)` 並送審（2026-07-28），於 2026-07-29 通過審查並 100% 全面推出。
 - [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2607310 (1.0.2)`，設定 100% 全面推出並送審（2026-07-31），同日於 23:12 通過審查並完成推出。
 - [x] 使用測試軌道的 `2608021 (1.0.3)` 建立 Production，設定 100% 全面推出並送審（2026-08-02），同日通過審查並上架。
 - [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2608022 (1.0.4)`，設定 100% 全面推出並送審（2026-08-02），同日於 18:39 通過審查並上架。
+- [x] 使用 Alpha 已驗證的 signed AAB 與 native debug symbols 建立 Production `2608030 (1.0.4)`，設定 100% 全面推出並送審（2026-08-03），同日於 01:35 通過審查並上架。
 - [ ] 檢查並處理 Play Console Pre-launch report 問題。
 - [ ] 使用測試帳號從 Google Play 安裝 Alpha 版並驗證通知存取流程。
 - [ ] 若為 2023-11-13 後建立的個人開發者帳號：完成至少 12 位測試者連續 14 天加入 Closed testing。
@@ -56,21 +58,22 @@
 
 - 發布軌道：Production。
 - 推出狀態：開始全面推出。
-- Alpha 審查狀態：`2608022 (1.0.4)` 已通過並可供測試人員使用（2026-08-02 18:13）。
-- 已審查通過版本：`2608022 (1.0.4)`。
-- 最新 Alpha 上傳版本：`2608022 (1.0.4)`。
-- 最新 Alpha AAB SHA-256：`ae6340e58f74e95d1adb5ad41f464ea0d00876e397ef9250cfd634f520f2fa47`。
-- 最新本機發版包：`2608022 (1.0.4)`，已用於 Alpha 與 Production；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
-- 最新本機發版 AAB SHA-256：`ae6340e58f74e95d1adb5ad41f464ea0d00876e397ef9250cfd634f520f2fa47`。
-- 最新正式版：`2608022 (1.0.4)`。
+- Alpha 審查狀態：`2608030 (1.0.4)` 已於 2026-08-03 01:12 通過審查並可供測試人員使用。
+- 已審查通過版本：`2608030 (1.0.4)`。
+- 最新 Alpha 上傳版本：`2608030 (1.0.4)`。
+- 最新 Alpha AAB SHA-256：`c6e64f1874eabdb0691a1ccd4c81c6cdccafd3375a0e4f81ebb3a330a24e6a1c`。
+- 最新本機發版包：`2608030 (1.0.4)`（2026-08-03），已用於 Alpha 與 Production；AAB 路徑 `app/build/outputs/bundle/release/app-release.aab`。
+- 最新本機發版 AAB SHA-256：`c6e64f1874eabdb0691a1ccd4c81c6cdccafd3375a0e4f81ebb3a330a24e6a1c`。
+- 最新 YouBike 站點索引：`generatedAt=2026-08-02T16:29:05+00:00`、TDX 來源 9,406 筆；與前版相比站點內容無差異。
+- 最新正式版：`2608030 (1.0.4)`。
 - Production 待審版本：無。
-- Production 狀態：`2608022 (1.0.4)` 已於 2026-08-02 18:39 通過審查並上架；Play Console 顯示為有效的最新正式版，100% 全面推出，適用 2 個國家／地區及 1,515 個裝置。
+- Production 狀態：`2608030 (1.0.4)` 已於 2026-08-03 01:35 通過審查並上架；Play Console 顯示為有效的最新正式版，100% 全面推出，適用 2 個國家／地區及 1,515 個裝置。
 - Play 商店網址：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>。
-- Play Console 正式版頁面：`2608022 (1.0.4)` 為有效的最新版本（2026-08-02 複核）。
-- 最新正式版 AAB SHA-256：`ae6340e58f74e95d1adb5ad41f464ea0d00876e397ef9250cfd634f520f2fa47`。
+- Play Console 正式版頁面：`2608030 (1.0.4)` 為有效的最新版本（2026-08-03 複核）。
+- 最新正式版 AAB SHA-256：`c6e64f1874eabdb0691a1ccd4c81c6cdccafd3375a0e4f81ebb3a330a24e6a1c`。
 - 最新正式版 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
 - Play 可接受的 native debug symbols：`app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip`。
-- 最新 Alpha native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
+- 最新 Alpha native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`（`2608030` 已上傳）。
 - 最新本機候選 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`。
 - 應用程式名稱：LiveStatus 即時狀態提醒。
 - Package name：`com.github.jimmy90109.livestatus`。

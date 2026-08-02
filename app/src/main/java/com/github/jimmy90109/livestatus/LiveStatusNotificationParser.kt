@@ -57,6 +57,16 @@ object LiveStatusNotificationParser {
         FLOWER_PLANTING,
     }
 
+    enum class PikminLanguage {
+        CHINESE,
+        ENGLISH,
+    }
+
+    data class PikminUpdate(
+        val event: PikminEvent,
+        val language: PikminLanguage = PikminLanguage.CHINESE,
+    )
+
     data class UberEatsUpdate(
         val event: UberEatsEvent,
         val pin: String?,
@@ -306,17 +316,17 @@ object LiveStatusNotificationParser {
     }
 
     @JvmStatic
-    fun parsePikminBloom(notificationText: String?): PikminEvent {
-        if (notificationText == null) return PikminEvent.NONE
+    fun parsePikminBloom(notificationText: String?): PikminUpdate {
+        if (notificationText == null) return PikminUpdate(PikminEvent.NONE)
 
         val normalized = notificationText.lowercase(Locale.ROOT)
-        return if (
+        return when {
             normalized.contains("正在背景執行時種花") ||
-            normalized.contains("正在背景执行时种花")
-        ) {
-            PikminEvent.FLOWER_PLANTING
-        } else {
-            PikminEvent.NONE
+                normalized.contains("正在背景执行时种花") ->
+                PikminUpdate(PikminEvent.FLOWER_PLANTING)
+            normalized.contains("planting flowers in the background") ->
+                PikminUpdate(PikminEvent.FLOWER_PLANTING, PikminLanguage.ENGLISH)
+            else -> PikminUpdate(PikminEvent.NONE)
         }
     }
 
