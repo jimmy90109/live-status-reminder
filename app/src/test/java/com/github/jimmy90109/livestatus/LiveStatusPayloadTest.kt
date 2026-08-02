@@ -1,6 +1,7 @@
 package com.github.jimmy90109.livestatus
 
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideLanguage
@@ -279,6 +280,18 @@ class LiveStatusPayloadTest {
         assertEquals("Pikmin Bloom 正在種花", payload.title)
         assertEquals("記得結束種花，避免花瓣在原地耗盡。", payload.contentText)
         assertEquals(null, payload.progress)
+    }
+
+    @Test
+    fun englishPikminBloomPayloadUsesEnglishWording() {
+        val payload = LiveStatusReminder.pikminBloomPayload(PikminLanguage.ENGLISH)
+
+        assertEquals("Planting", payload.criticalText)
+        assertEquals("Planting flowers in the background", payload.title)
+        assertEquals(
+            "Remember to stop planting flowers so you don't use up petals in one place.",
+            payload.contentText,
+        )
     }
 
     @Test

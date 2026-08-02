@@ -278,7 +278,11 @@ object LiveStatusReminder {
     }
 
     @JvmStatic
-    fun showPikminBloom(context: Context) {
+    fun showPikminBloom(
+        context: Context,
+        language: LiveStatusNotificationParser.PikminLanguage =
+            LiveStatusNotificationParser.PikminLanguage.CHINESE,
+    ) {
         createChannel(context)
         val openPikminBloom = PendingIntent.getActivity(
             context,
@@ -286,7 +290,7 @@ object LiveStatusReminder {
             HomeScreenHostActivity.createOpenPikminBloomIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val payload = pikminBloomPayload(openPikminBloom)
+        val payload = pikminBloomPayload(language, openPikminBloom)
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(payload.smallIconRes)
             .setContentTitle(payload.title)
@@ -295,7 +299,11 @@ object LiveStatusReminder {
             .addAction(
                 Notification.Action.Builder(
                     Icon.createWithResource(context, payload.leftIconRes),
-                    "開啟 Pikmin Bloom",
+                    if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                        "Open Pikmin Bloom"
+                    } else {
+                        "開啟 Pikmin Bloom"
+                    },
                     openPikminBloom,
                 ).build(),
             )
@@ -686,15 +694,31 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
 
-    internal fun pikminBloomPayload(contentIntent: PendingIntent? = null): LiveStatusPayload =
+    internal fun pikminBloomPayload(
+        language: LiveStatusNotificationParser.PikminLanguage =
+            LiveStatusNotificationParser.PikminLanguage.CHINESE,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload =
         LiveStatusPayload(
             id = PIKMIN_BLOOM_NOTIFICATION_ID,
             appName = "Pikmin Bloom",
             smallIconRes = R.drawable.ic_pikmin_flower_notification,
             leftIconRes = R.drawable.ic_pikmin_flower_notification,
-            criticalText = "種花中",
-            title = "Pikmin Bloom 正在種花",
-            contentText = "記得結束種花，避免花瓣在原地耗盡。",
+            criticalText = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                "Planting"
+            } else {
+                "種花中"
+            },
+            title = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                "Planting flowers in the background"
+            } else {
+                "Pikmin Bloom 正在種花"
+            },
+            contentText = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
+                "Remember to stop planting flowers so you don't use up petals in one place."
+            } else {
+                "記得結束種花，避免花瓣在原地耗盡。"
+            },
             contentIntent = contentIntent,
         )
 

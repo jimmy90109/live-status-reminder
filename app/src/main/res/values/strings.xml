@@ -111,6 +111,6 @@
     <string name="monitoring_uber_eats_on_the_way">包含「正前往您所在位置」、「正在前往您所在位置」或「即將抵達」。</string>
     <string name="monitoring_uber_eats_arriving">包含「快到了」。</string>
     <string name="monitoring_uber_eats_ended">包含「訂單已送達」、「已送達」、「訂單已取消」、「已取消」或「訂單取消」。</string>
-    <string name="monitoring_pikmin_started">包含繁體「正在背景執行時種花」或簡體「正在背景执行时种花」。</string>
+    <string name="monitoring_pikmin_started">包含繁體「正在背景執行時種花」、簡體「正在背景执行时种花」或英文「Planting flowers in the background」。</string>
     <string name="monitoring_pikmin_stopped">來源種花通知被移除，或後續 Pikmin Bloom 通知不再符合種花文案。</string>
 </resources>

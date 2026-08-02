@@ -218,7 +218,7 @@ internal fun PikminBloomCard(
         fallbackIconRes = R.drawable.ic_pikmin_flower_notification,
         title = "種花背景提醒",
         description = "偵測到背景種花通知時，立刻升級成即時提醒。",
-        supportedLanguages = listOf("中文"),
+        supportedLanguages = listOf("中文 / En"),
         installed = installed,
         enabled = enabled,
         interactionEnabled = interactionEnabled,
