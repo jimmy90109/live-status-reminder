@@ -233,7 +233,6 @@ internal fun YouBikeCard(
         labelColor = colors.youBikeSecondaryContainer,
         foregroundColor = colors.youBikeText,
     ) {
-        AppActionDivider(colors.youBikeText)
         if (enabled && !exactAlarmAllowed) {
             AppWarningNotice(
                 title = stringResource(R.string.you_bike_exact_alarm_disabled_title),
@@ -241,10 +240,10 @@ internal fun YouBikeCard(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
             )
-            AppCardActionButton(
-                stringResource(R.string.you_bike_exact_alarm_allow_action),
-                MaterialTheme.colorScheme.error,
-                MaterialTheme.colorScheme.onError,
+            ActionButton(
+                label = stringResource(R.string.you_bike_exact_alarm_allow_action),
+                background = MaterialTheme.colorScheme.error,
+                foreground = MaterialTheme.colorScheme.onError,
             ) {
                 context.startActivity(
                     Intent(
@@ -253,6 +252,8 @@ internal fun YouBikeCard(
                     ),
                 )
             }
+            AppActionDivider(colors.youBikeText)
+        } else {
             AppActionDivider(colors.youBikeText)
         }
         AppCardActionButton(
