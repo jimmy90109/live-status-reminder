@@ -218,15 +218,6 @@ internal fun AppsSection(
                 ) {
                     when (page) {
                     CATEGORY_DELIVERY -> {
-                        FoodpandaCard(
-                            installed = status.foodpandaInstalled,
-                            enabled = status.foodpandaEnabled,
-                            interactionEnabled = status.requiredSettingsComplete,
-                            onEnabledChange = {
-                                onAppEnabledChange(AppReminderPreferences.App.FOODPANDA, it)
-                            },
-                            onOpenDebug = onOpenFoodpandaDebug,
-                        )
                         UberEatsCard(
                             installed = status.uberEatsInstalled,
                             enabled = status.uberEatsEnabled,
@@ -235,6 +226,15 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.UBER_EATS, it)
                             },
                             onOpenDebug = onOpenUberEatsDebug,
+                        )
+                        FoodpandaCard(
+                            installed = status.foodpandaInstalled,
+                            enabled = status.foodpandaEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.FOODPANDA, it)
+                            },
+                            onOpenDebug = onOpenFoodpandaDebug,
                         )
                     }
                     CATEGORY_RIDE -> {
