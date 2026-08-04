@@ -129,12 +129,14 @@ internal fun CardSurface(
     background: Color,
     radius: Int,
     padding: Int = 22,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(background, RoundedCornerShape(radius.dp))
+            .then(modifier)
             .padding(padding.dp),
         content = content,
     )
@@ -193,6 +195,8 @@ internal fun AppCardActionButton(
     )
 }
 
+internal val AppActionShape = RoundedCornerShape(12.dp)
+
 @Composable
 internal fun ActionButton(
     label: String,
@@ -203,7 +207,7 @@ internal fun ActionButton(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = AppActionShape
     Box(
         modifier = Modifier
             .fillMaxWidth()

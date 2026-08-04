@@ -41,11 +41,14 @@ internal fun TaiwanTaxiCard(
         cardColor = colors.taiwanTaxiContainer,
         labelColor = colors.taiwanTaxiSecondaryContainer,
         foregroundColor = colors.taiwanTaxiText,
+        actionColor = colors.taiwanTaxiPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.platform_special_status_warning_title),
+                description = stringResource(R.string.platform_special_status_warning_description),
+            )
+        },
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.platform_special_status_warning_title),
-            description = stringResource(R.string.platform_special_status_warning_description),
-        )
         AppActionDivider(colors.taiwanTaxiText)
         AppCardActionButton(
             stringResource(R.string.taiwan_taxi_simulate_driver_found),
@@ -110,7 +113,7 @@ internal fun UberRideCard(
         appName = "Uber",
         appPackageName = UBER_PACKAGE,
         fallbackIconRes = R.drawable.ic_car_notification,
-        title = "乘車進度",
+        title = "叫車進度",
         description = "一般行程顯示上車點、車輛與 PIN；優步小黃顯示職業駕駛接近進度。",
         supportedLanguages = listOf("繁中 / En"),
         installed = installed,
@@ -120,11 +123,14 @@ internal fun UberRideCard(
         cardColor = colors.commonContainer,
         labelColor = colors.commonSurface,
         foregroundColor = colors.onSurface,
+        actionColor = colors.commonPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.platform_special_status_warning_title),
+                description = stringResource(R.string.platform_special_status_warning_description),
+            )
+        },
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.platform_special_status_warning_title),
-            description = stringResource(R.string.platform_special_status_warning_description),
-        )
         AppActionDivider(colors.onSurface)
         UberRideSectionHeader(
             title = "標準型優步",
@@ -305,6 +311,7 @@ internal fun PikminBloomCard(
         cardColor = colors.pikminContainer,
         labelColor = colors.pikminSecondaryContainer,
         foregroundColor = colors.pikminText,
+        actionColor = colors.pikminPrimary,
     ) {
         AppActionDivider(colors.pikminText)
         AppCardActionButton(

@@ -89,11 +89,14 @@ internal fun FoodpandaCard(
         cardColor = colors.foodpandaContainer,
         labelColor = colors.foodpandaSecondaryContainer,
         foregroundColor = colors.foodpandaText,
+        actionColor = colors.foodpandaPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.platform_special_status_warning_title),
+                description = stringResource(R.string.platform_special_status_warning_description),
+            )
+        },
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.platform_special_status_warning_title),
-            description = stringResource(R.string.platform_special_status_warning_description),
-        )
         AppActionDivider(colors.foodpandaText)
         AppCardActionButton(
             "模擬外送中",
@@ -154,11 +157,14 @@ internal fun UberEatsCard(
         cardColor = colors.uberEatsContainer,
         labelColor = colors.uberEatsSecondaryContainer,
         foregroundColor = colors.uberEatsText,
+        actionColor = colors.uberEatsPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.platform_special_status_warning_title),
+                description = stringResource(R.string.platform_special_status_warning_description),
+            )
+        },
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.platform_special_status_warning_title),
-            description = stringResource(R.string.platform_special_status_warning_description),
-        )
         AppActionDivider(colors.uberEatsText)
         UberEatsTestButton(
             label = "模擬訂單已收到",
