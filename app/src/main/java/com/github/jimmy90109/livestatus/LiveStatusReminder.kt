@@ -29,6 +29,7 @@ object LiveStatusReminder {
     private const val TAIWAN_PAY_NOTIFICATION_ID = 1007
     private const val YOU_BIKE_NOTIFICATION_ID = 1008
     private const val MEDIA_PLAYBACK_NOTIFICATION_ID = 1009
+    private const val TAIWAN_TAXI_NOTIFICATION_ID = 1010
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -188,6 +189,48 @@ object LiveStatusReminder {
     @JvmStatic
     fun clearFoodpanda(context: Context) {
         notificationManager(context).cancel(FOODPANDA_NOTIFICATION_ID)
+    }
+
+    @JvmStatic
+    fun showTaiwanTaxi(
+        context: Context,
+        update: LiveStatusNotificationParser.TaiwanTaxiUpdate,
+    ) {
+        createChannel(context)
+        val openTaiwanTaxi = PendingIntent.getActivity(
+            context,
+            8,
+            HomeScreenHostActivity.createOpenTaiwanTaxiIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = taiwanTaxiPayload(update, openTaiwanTaxi)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    "開啟 55688",
+                    openTaiwanTaxi,
+                ).build(),
+            )
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(TAIWAN_TAXI_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearTaiwanTaxi(context: Context) {
+        notificationManager(context).cancel(TAIWAN_TAXI_NOTIFICATION_ID)
     }
 
     @JvmStatic
@@ -722,6 +765,30 @@ object LiveStatusReminder {
             progress = uberRideProgress(update),
             contentIntent = contentIntent,
         )
+
+    internal fun taiwanTaxiPayload(
+        update: LiveStatusNotificationParser.TaiwanTaxiUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val arrived = update.event == LiveStatusNotificationParser.TaiwanTaxiEvent.VEHICLE_ARRIVED
+        val plate = update.plate
+        return LiveStatusPayload(
+            id = TAIWAN_TAXI_NOTIFICATION_ID,
+            appName = "55688",
+            smallIconRes = R.drawable.ic_car_notification,
+            leftIconRes = R.drawable.ic_car_notification,
+            criticalText = if (arrived) "已抵達" else "已找到司機",
+            title = if (arrived) "55688 車輛已抵達" else "55688 已找到司機",
+            contentText = when {
+                arrived && plate != null -> "車牌 $plate 已抵達上車位置，請儘快上車。"
+                arrived -> "司機已抵達上車位置，請儘快上車。"
+                plate != null -> "車牌 $plate，請留意司機抵達時間。"
+                else -> "請留意司機抵達時間。"
+            },
+            progress = if (arrived) 60 else 25,
+            contentIntent = contentIntent,
+        )
+    }
 
     internal fun pikminBloomPayload(
         language: LiveStatusNotificationParser.PikminLanguage =

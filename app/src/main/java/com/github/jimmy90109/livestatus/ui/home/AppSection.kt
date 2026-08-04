@@ -68,6 +68,7 @@ internal fun AppsSection(
     onOpenClockDebug: () -> Unit,
     onOpenYouBikeDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
+    onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
@@ -166,15 +167,26 @@ internal fun AppsSection(
                             onOpenDebug = onOpenUberEatsDebug,
                         )
                     }
-                    CATEGORY_RIDE -> UberRideCard(
-                        installed = status.uberInstalled,
-                        enabled = status.uberEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.UBER_RIDE, it)
-                        },
-                        onOpenDebug = onOpenUberDebug,
-                    )
+                    CATEGORY_RIDE -> {
+                        TaiwanTaxiCard(
+                            installed = status.taiwanTaxiInstalled,
+                            enabled = status.taiwanTaxiEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TAIWAN_TAXI, it)
+                            },
+                            onOpenDebug = onOpenTaiwanTaxiDebug,
+                        )
+                        UberRideCard(
+                            installed = status.uberInstalled,
+                            enabled = status.uberEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.UBER_RIDE, it)
+                            },
+                            onOpenDebug = onOpenUberDebug,
+                        )
+                    }
                     CATEGORY_RENTAL -> YouBikeCard(
                         installed = status.youBikeInstalled,
                         enabled = status.youBikeEnabled,

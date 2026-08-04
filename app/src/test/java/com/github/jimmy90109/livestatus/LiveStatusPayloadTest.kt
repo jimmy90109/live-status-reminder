@@ -8,6 +8,7 @@ import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideLan
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -118,6 +119,49 @@ class LiveStatusPayloadTest {
         assertEquals("Meet at Demo Transit Center", payload.contentText)
         assertEquals("14 min", payload.criticalText)
         assertEquals(25, payload.progress)
+    }
+
+    @Test
+    fun taiwanTaxiPayloadUsesIndependentBrandPlateAndProgress() {
+        val found = LiveStatusReminder.taiwanTaxiPayload(
+            LiveStatusNotificationParser.TaiwanTaxiUpdate(
+                event = LiveStatusNotificationParser.TaiwanTaxiEvent.DRIVER_FOUND,
+                plate = "ABC-1234",
+            ),
+        )
+        val arrived = LiveStatusReminder.taiwanTaxiPayload(
+            LiveStatusNotificationParser.TaiwanTaxiUpdate(
+                event = LiveStatusNotificationParser.TaiwanTaxiEvent.VEHICLE_ARRIVED,
+                plate = "ABC-1234",
+            ),
+        )
+        val uber = LiveStatusReminder.uberRidePayload(
+            LiveStatusNotificationParser.UberRideUpdate(UberRideEvent.ARRIVED),
+        )
+
+        assertEquals("55688", found.appName)
+        assertEquals(R.drawable.ic_car_notification, found.smallIconRes)
+        assertEquals(R.drawable.ic_car_notification, found.leftIconRes)
+        assertEquals("已找到司機", found.criticalText)
+        assertEquals("55688 已找到司機", found.title)
+        assertEquals("車牌 ABC-1234，請留意司機抵達時間。", found.contentText)
+        assertEquals(25, found.progress)
+        assertEquals("已抵達", arrived.criticalText)
+        assertEquals("55688 車輛已抵達", arrived.title)
+        assertEquals("車牌 ABC-1234 已抵達上車位置，請儘快上車。", arrived.contentText)
+        assertEquals(60, arrived.progress)
+        assertNotEquals(uber.id, found.id)
+    }
+
+    @Test
+    fun taiwanTaxiArrivedPayloadIsSafeWithoutRestoredPlate() {
+        val payload = LiveStatusReminder.taiwanTaxiPayload(
+            LiveStatusNotificationParser.TaiwanTaxiUpdate(
+                LiveStatusNotificationParser.TaiwanTaxiEvent.VEHICLE_ARRIVED,
+            ),
+        )
+
+        assertEquals("司機已抵達上車位置，請儘快上車。", payload.contentText)
     }
 
     @Test

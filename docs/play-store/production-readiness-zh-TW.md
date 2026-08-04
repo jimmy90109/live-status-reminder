@@ -45,6 +45,7 @@
 | 待填 | 待填 | 台灣 Pay 提醒 | 待填 | 待填 |
 | 待填 | 待填 | YouBike 2.0／2.0E 費用追蹤 | 待填 | 待填 |
 | 待填 | 待填 | foodpanda 提醒 | 待填 | 待填 |
+| 待填 | 待填 | 55688 乘車提醒 | 待填 | 待填 |
 | 待填 | 待填 | Uber Eats 提醒 | 待填 | 待填 |
 
 ## Production access 申請素材
@@ -53,7 +54,7 @@
 
 ### App 用途
 
-「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、騎乘費用、外送與種花狀態。
+「LiveStatus 即時狀態提醒」是一款工具型 App，將使用者已收到的 iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 通知，在裝置上整理成 Android Live Update，協助使用者更容易掌握乘車、騎乘費用、外送與種花狀態。
 
 ### 測試方式
 
@@ -67,6 +68,7 @@
 - YouBike 卡片可由使用者主動開啟 `SCHEDULE_EXACT_ALARM`；授權後在下一個費用變更邊界使用 exact alarm 更新，拒絕或撤銷後降級且不影響其他功能。
 - YouBike 未知／同名站點經手動選區且正常還車後，會顯示可忽略的靜音回報通知；只有使用者在外部 Email App 確認寄出後，去識別化站點回報才會離開裝置。
 - foodpanda 外送通知可更新外送狀態。
+- 55688 叫車通知可顯示車牌、更新車輛抵達狀態，並在行程完成後清除；車牌僅在裝置上處理。
 - Uber 乘車通知可更新行程狀態，乘車 PIN 僅在裝置上處理。
 - Uber Eats 訂單通知可更新進度，交付 PIN 僅在裝置上處理。
 - Pikmin Bloom 背景種花通知可建立提醒，來源通知消失後自動結束。

@@ -106,6 +106,7 @@ internal fun HomeContentWide(
     onOpenClockDebug: () -> Unit,
     onOpenYouBikeDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
+    onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
@@ -150,6 +151,7 @@ internal fun HomeContentWide(
                 onOpenClockDebug = onOpenClockDebug,
                 onOpenYouBikeDebug = onOpenYouBikeDebug,
                 onOpenFoodpandaDebug = onOpenFoodpandaDebug,
+                onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
                 onOpenUberDebug = onOpenUberDebug,
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
             )
@@ -174,6 +176,7 @@ internal fun HomeContentNarrow(
     onOpenClockDebug: () -> Unit,
     onOpenYouBikeDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
+    onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
@@ -325,6 +328,7 @@ internal fun HomeContentNarrow(
                 onOpenClockDebug = onOpenClockDebug,
                 onOpenYouBikeDebug = onOpenYouBikeDebug,
                 onOpenFoodpandaDebug = onOpenFoodpandaDebug,
+                onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
                 onOpenUberDebug = onOpenUberDebug,
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
             )

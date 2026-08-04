@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -55,6 +55,13 @@
 - 外送夥伴接近時更新為「即將抵達」。
 - 訂單送達或取消後自動移除提醒。
 
+### 55688
+
+- 收到「已找到司機」時顯示叫車提醒，並從官方通知的「已替您找到車輛」文字後讀取車牌。
+- 收到「車輛已抵達」時更新提醒，並在目前 App 程序期間沿用已取得的車牌。
+- 收到「行程已完成」時自動移除提醒；目前不推測尚未觀察到的尋車中、取消或行程中狀態。
+- 點擊提醒可開啟 55688。Debug build 只在程序記憶體保留最近 30 筆 payload。
+
 ### Uber Eats
 
 - 從訂單成立到外送員即將抵達，顯示五階段進度：
@@ -108,11 +115,12 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 
 點擊提醒會開啟對應 App。若尚未安裝，則前往 Google Play。iPASS MONEY 與台灣 Pay 目前沒有公開乘車碼頁面的 deep link，因此只能開啟 App 首頁。
 
-## PIN 隱私
+## 敏感通知資料
 
 - PIN 只保留在記憶體中，不會寫入檔案、偏好設定或正式日誌。
+- 55688 車牌只保留在目前 App 程序記憶體與本機提醒，不會上傳或永久儲存。
 - 可可靠辨識時，PIN 會顯示在即時通知／Live Update 中，方便核對行程或外送。
-- 第一版分別只追蹤一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
+- 第一版分別只追蹤一筆 55688 行程、一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
 - Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
 - 媒體播放只讀取目前活躍工作階段的曲名、作者、專輯、播放狀態與控制能力；不會保存完整來源通知或媒體 metadata。
 

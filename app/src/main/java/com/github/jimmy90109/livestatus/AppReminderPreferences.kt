@@ -21,6 +21,7 @@ object AppReminderPreferences {
         TAIWAN_PAY("taiwan_pay_enabled"),
         YOUBIKE("you_bike_enabled"),
         FOODPANDA("foodpanda_enabled"),
+        TAIWAN_TAXI("taiwan_taxi_enabled"),
         UBER_RIDE("uber_ride_enabled"),
         UBER_EATS("uber_eats_enabled"),
         PIKMIN_BLOOM("pikmin_bloom_enabled"),

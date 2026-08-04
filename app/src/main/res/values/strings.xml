@@ -110,6 +110,18 @@
     <string name="monitoring_uber_taxi_pickup_nearby">標題為「職業駕駛即將抵達」；有提供時一併讀取車款與括號內車牌。</string>
     <string name="monitoring_uber_taxi_ended">標題為「為您的行程評分」。</string>
 
+    <string name="taiwan_taxi_app_name">55688</string>
+    <string name="taiwan_taxi_card_title">叫車進度</string>
+    <string name="taiwan_taxi_card_description">找到司機後顯示車牌，車輛抵達時更新提醒。</string>
+    <string name="taiwan_taxi_language">繁中</string>
+    <string name="taiwan_taxi_simulate_driver_found">模擬已找到司機</string>
+    <string name="taiwan_taxi_simulate_vehicle_arrived">模擬車輛已抵達</string>
+    <string name="taiwan_taxi_simulate_trip_ended">模擬行程完成，清除狀態</string>
+    <string name="monitoring_taiwan_taxi_driver_found">標題為「已找到司機」；有提供時一併讀取「已替您找到車輛」後的車牌。</string>
+    <string name="monitoring_taiwan_taxi_vehicle_arrived">標題為「車輛已抵達」，並沿用目前行程的車牌。</string>
+    <string name="monitoring_taiwan_taxi_trip_ended">標題為「行程已完成」時清除提醒。</string>
+    <string name="taiwan_taxi_debug_open_payload">查看通知 payload</string>
+
     <string name="monitoring_uber_eats_received">包含「訂單已收到」或「已收到您的訂單」。</string>
     <string name="monitoring_uber_eats_preparing">包含「正在準備訂單」或「準備訂單」。</string>
     <string name="monitoring_uber_eats_picking_up">包含「正在取餐」。</string>

@@ -14,8 +14,87 @@ import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.R
+import com.github.jimmy90109.livestatus.TaiwanTaxiRideManager
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
+@Composable
+internal fun TaiwanTaxiCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.taiwan_taxi_app_name),
+        appPackageName = TAIWAN_TAXI_PACKAGE,
+        fallbackIconRes = R.drawable.ic_car_notification,
+        title = stringResource(R.string.taiwan_taxi_card_title),
+        description = stringResource(R.string.taiwan_taxi_card_description),
+        supportedLanguages = listOf(stringResource(R.string.taiwan_taxi_language)),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.commonContainer,
+        labelColor = colors.commonSurface,
+        foregroundColor = colors.onSurface,
+    ) {
+        AppWarningNotice(
+            title = stringResource(R.string.platform_special_status_warning_title),
+            description = stringResource(R.string.platform_special_status_warning_description),
+        )
+        AppActionDivider(colors.onSurface)
+        AppCardActionButton(
+            stringResource(R.string.taiwan_taxi_simulate_driver_found),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_taiwan_taxi_driver_found),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showTaiwanTaxi(
+                context,
+                LiveStatusNotificationParser.TaiwanTaxiUpdate(
+                    event = LiveStatusNotificationParser.TaiwanTaxiEvent.DRIVER_FOUND,
+                    plate = "ABC-1234",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.taiwan_taxi_simulate_vehicle_arrived),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_taiwan_taxi_vehicle_arrived),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showTaiwanTaxi(
+                context,
+                LiveStatusNotificationParser.TaiwanTaxiUpdate(
+                    event = LiveStatusNotificationParser.TaiwanTaxiEvent.VEHICLE_ARRIVED,
+                    plate = "ABC-1234",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.taiwan_taxi_simulate_trip_ended),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_taiwan_taxi_trip_ended),
+        ) {
+            TaiwanTaxiRideManager.clear(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.taiwan_taxi_debug_open_payload),
+                colors.commonPrimary,
+                colors.onSurface,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
 
 @Composable
 internal fun UberRideCard(
@@ -250,4 +329,5 @@ internal fun PikminBloomCard(
 
 
 private const val UBER_PACKAGE = "com.ubercab"
+private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
 private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"

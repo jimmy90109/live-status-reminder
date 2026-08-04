@@ -16,6 +16,7 @@ object NotificationDebugPayloadStore {
     private val fourDigitCandidate = Regex("""(?<!\d)\d{4}(?!\d)""")
     private val timeFormatter = SimpleDateFormat("MM/dd HH:mm:ss", Locale.TAIWAN)
     private val _uberPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _taiwanTaxiPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _foodpandaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _clockPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
@@ -23,6 +24,7 @@ object NotificationDebugPayloadStore {
     private val _youBikePayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
+    val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
     val foodpandaPayloads: StateFlow<List<NotificationDebugPayload>> = _foodpandaPayloads
     val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
     val clockPayloads: StateFlow<List<NotificationDebugPayload>> = _clockPayloads
@@ -137,6 +139,28 @@ object NotificationDebugPayloadStore {
         _uberPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
     }
 
+    fun recordTaiwanTaxi(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        update: LiveStatusNotificationParser.TaiwanTaxiUpdate,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = update.event.name,
+            parsedPin = null,
+            parsedDetails = linkedMapOf("parsedPlate" to update.plate.orEmpty()),
+        )
+        _taiwanTaxiPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
     fun recordFoodpanda(
         context: Context,
         statusBarNotification: StatusBarNotification,
@@ -184,6 +208,10 @@ object NotificationDebugPayloadStore {
 
     fun clearUber() {
         _uberPayloads.value = emptyList()
+    }
+
+    fun clearTaiwanTaxi() {
+        _taiwanTaxiPayloads.value = emptyList()
     }
 
     fun clearFoodpanda() {

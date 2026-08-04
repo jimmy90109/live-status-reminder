@@ -62,6 +62,7 @@ import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
+import com.github.jimmy90109.livestatus.TaiwanTaxiRideManager
 import com.github.jimmy90109.livestatus.YouBikeRideManager
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
@@ -82,6 +83,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_TAIWAN_PAY -> openTaiwanPay()
             ACTION_OPEN_YOU_BIKE -> openYouBike()
             ACTION_OPEN_FOODPANDA -> openFoodpanda()
+            ACTION_OPEN_TAIWAN_TAXI -> openTaiwanTaxi()
             ACTION_OPEN_UBER -> openUber()
             ACTION_OPEN_UBER_EATS -> openUberEats()
             ACTION_OPEN_PIKMIN_BLOOM -> openPikminBloom()
@@ -117,6 +119,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val taiwanPayInstalled = isPackageInstalled(TAIWAN_PAY_PACKAGE)
         val youBikeInstalled = isPackageInstalled(YOU_BIKE_PACKAGE)
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
+        val taiwanTaxiInstalled = isPackageInstalled(TAIWAN_TAXI_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
@@ -129,6 +132,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             taiwanPayInstalled = taiwanPayInstalled,
             youBikeInstalled = youBikeInstalled,
             foodpandaInstalled = foodpandaInstalled,
+            taiwanTaxiInstalled = taiwanTaxiInstalled,
             uberInstalled = uberInstalled,
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
@@ -144,6 +148,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
                 AppReminderPreferences.App.YOUBIKE.isEnabled(this, youBikeInstalled),
             youBikeExactAlarmAllowed = YouBikeRideManager.canScheduleExactAlarms(this),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
+            taiwanTaxiEnabled =
+                AppReminderPreferences.App.TAIWAN_TAXI.isEnabled(this, taiwanTaxiInstalled),
             uberEnabled = AppReminderPreferences.App.UBER_RIDE.isEnabled(this, uberInstalled),
             uberEatsEnabled = AppReminderPreferences.App.UBER_EATS.isEnabled(this, uberEatsInstalled),
             pikminBloomEnabled =
@@ -219,6 +225,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openFoodpanda() = openPackage(FOODPANDA_PACKAGE, "foodpanda")
 
+    private fun openTaiwanTaxi() = openPackage(TAIWAN_TAXI_PACKAGE, "55688")
+
     private fun openUber() = openPackage(UBER_PACKAGE, "Uber")
 
     private fun openUberEats() = openPackage(UBER_EATS_PACKAGE, "Uber Eats")
@@ -250,6 +258,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.TAIWAN_PAY -> LiveStatusReminder.clearTaiwanPay(this)
             AppReminderPreferences.App.YOUBIKE -> YouBikeRideManager.clear(this)
             AppReminderPreferences.App.FOODPANDA -> LiveStatusReminder.clearFoodpanda(this)
+            AppReminderPreferences.App.TAIWAN_TAXI -> TaiwanTaxiRideManager.clear(this)
             AppReminderPreferences.App.UBER_RIDE -> LiveStatusReminder.clearUberRide(this)
             AppReminderPreferences.App.UBER_EATS -> LiveStatusReminder.clearUberEats(this)
             AppReminderPreferences.App.PIKMIN_BLOOM -> LiveStatusReminder.clearPikminBloom(this)
@@ -273,6 +282,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_YOUBIKE"
         private const val ACTION_OPEN_FOODPANDA =
             "com.github.jimmy90109.livestatus.action.OPEN_FOODPANDA"
+        private const val ACTION_OPEN_TAIWAN_TAXI =
+            "com.github.jimmy90109.livestatus.action.OPEN_TAIWAN_TAXI"
         private const val ACTION_OPEN_UBER =
             "com.github.jimmy90109.livestatus.action.OPEN_UBER"
         private const val ACTION_OPEN_UBER_EATS =
@@ -284,6 +295,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
         private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+        private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
         private const val UBER_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
@@ -313,6 +325,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             openAppIntent(context, ACTION_OPEN_FOODPANDA)
 
         @JvmStatic
+        fun createOpenTaiwanTaxiIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_TAIWAN_TAXI)
+
+        @JvmStatic
         fun createOpenUberIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_UBER)
 
@@ -339,6 +355,7 @@ internal data class StatusSnapshot(
     val taiwanPayInstalled: Boolean = false,
     val youBikeInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
+    val taiwanTaxiInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val pikminBloomInstalled: Boolean = false,
@@ -351,6 +368,7 @@ internal data class StatusSnapshot(
     val youBikeEnabled: Boolean = false,
     val youBikeExactAlarmAllowed: Boolean = false,
     val foodpandaEnabled: Boolean = false,
+    val taiwanTaxiEnabled: Boolean = false,
     val uberEnabled: Boolean = false,
     val uberEatsEnabled: Boolean = false,
     val pikminBloomEnabled: Boolean = false,

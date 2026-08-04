@@ -139,6 +139,30 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     handleFoodpandaNotification(event)
                 }
             }
+            TAIWAN_TAXI_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = LiveStatusNotificationParser.parseTaiwanTaxi(
+                    notificationTitle,
+                    notificationContentText,
+                    notificationText,
+                )
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordTaiwanTaxi(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        update,
+                    )
+                }
+                if (AppReminderPreferences.App.TAIWAN_TAXI.isEnabled(this)) {
+                    TaiwanTaxiRideManager.handle(this, update)
+                } else {
+                    TaiwanTaxiRideManager.clear(this)
+                }
+            }
             UBER_RIDE_PACKAGE -> {
                 val shortCriticalText = readShortCriticalText(notification)
                 val notificationTitle = readNotificationTitle(notification)
@@ -477,6 +501,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
         private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+        private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"

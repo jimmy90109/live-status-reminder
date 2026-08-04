@@ -10,6 +10,7 @@
         <package android:name="tw.com.twmp.twhcewallet" />
         <package android:name="tw.com.youbike.plus" />
         <package android:name="com.global.foodpanda.android" />
+        <package android:name="dbx.taiwantaxi" />
         <package android:name="com.ubercab" />
         <package android:name="com.ubercab.eats" />
         <package android:name="com.nianticlabs.pikmin" />
