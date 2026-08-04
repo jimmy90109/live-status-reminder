@@ -1,5 +1,6 @@
 package com.github.jimmy90109.livestatus.ui.home
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -25,19 +26,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -47,10 +50,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 internal fun AppsSection(
@@ -72,7 +79,12 @@ internal fun AppsSection(
         APP_CATEGORY_PAGE_COUNT
     }
     val coroutineScope = rememberCoroutineScope()
-    var selectedTab by remember { mutableIntStateOf(CATEGORY_TRANSIT_CODE) }
+    val tabTransitionProgress = remember { Animatable(1f) }
+    var tabTransitionFromPage by remember { mutableIntStateOf(CATEGORY_TRANSIT_CODE) }
+    var tabTransitionToPage by remember { mutableIntStateOf(CATEGORY_TRANSIT_CODE) }
+    var tabTransitionActive by remember { mutableStateOf(false) }
+    var pageTransitionActive by remember { mutableStateOf(false) }
+    var pageAnimationJob by remember { mutableStateOf<Job?>(null) }
     val containingScrollConnection = remember(containingScrollState) {
         object : NestedScrollConnection {
             override fun onPreScroll(
@@ -86,10 +98,6 @@ internal fun AppsSection(
                 return Offset(x = 0f, y = -consumed)
             }
         }
-    }
-
-    LaunchedEffect(pagerState.settledPage) {
-        selectedTab = pagerState.settledPage
     }
 
     Column(
@@ -106,18 +114,62 @@ internal fun AppsSection(
         }
         Spacer(Modifier.height(12.dp))
         AppTabs(
-            selectedTab = selectedTab,
+            currentPage = pagerState.currentPage,
+            currentPageOffsetFraction = pagerState.currentPageOffsetFraction,
+            transitionFromPage = tabTransitionFromPage,
+            transitionToPage = tabTransitionToPage,
+            transitionProgress = tabTransitionProgress.value,
+            transitionActive = tabTransitionActive,
             horizontalContentPadding = horizontalContentPadding,
             onSelect = { page ->
-                selectedTab = page
-                coroutineScope.launch {
-                    pagerState.animateScrollToPage(
-                        page = page,
-                        animationSpec = tween(
-                            durationMillis = APP_PAGE_ANIMATION_MILLIS,
-                            easing = FastOutSlowInEasing,
-                        ),
-                    )
+                if (tabTransitionActive && page == tabTransitionToPage) return@AppTabs
+
+                pageAnimationJob?.cancel()
+                pageAnimationJob = coroutineScope.launch {
+                    val fromPage = pagerState.settledPage
+                    if (page == fromPage) return@launch
+
+                    tabTransitionProgress.snapTo(0f)
+                    tabTransitionFromPage = fromPage
+                    tabTransitionToPage = page
+                    tabTransitionActive = true
+                    try {
+                        if (abs(page - fromPage) > 1) {
+                            pagerState.scrollToPage(page)
+                            pageTransitionActive = true
+                            tabTransitionProgress.animateTo(
+                                targetValue = 1f,
+                                animationSpec = tween(
+                                    durationMillis = APP_PAGE_ANIMATION_MILLIS,
+                                    easing = FastOutSlowInEasing,
+                                ),
+                            )
+                        } else {
+                            coroutineScope {
+                                launch {
+                                    pagerState.animateScrollToPage(
+                                        page = page,
+                                        animationSpec = tween(
+                                            durationMillis = APP_PAGE_ANIMATION_MILLIS,
+                                            easing = FastOutSlowInEasing,
+                                        ),
+                                    )
+                                }
+                                tabTransitionProgress.animateTo(
+                                    targetValue = 1f,
+                                    animationSpec = tween(
+                                        durationMillis = APP_PAGE_ANIMATION_MILLIS,
+                                        easing = FastOutSlowInEasing,
+                                    ),
+                                )
+                            }
+                        }
+                    } finally {
+                        if (tabTransitionToPage == page) {
+                            pageTransitionActive = false
+                            tabTransitionActive = false
+                        }
+                    }
                 }
             },
         )
@@ -132,13 +184,36 @@ internal fun AppsSection(
             pageSpacing = 12.dp,
             verticalAlignment = Alignment.Top,
             beyondViewportPageCount = APP_CATEGORY_PAGE_COUNT - 1,
+            userScrollEnabled = !pageTransitionActive,
         ) { page ->
             val pageScrollState = rememberScrollState()
+            val transitionPageStep = (
+                pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing
+            ).toFloat()
+            val transitionDirection = if (tabTransitionToPage > tabTransitionFromPage) 1f else -1f
+            val transitionTranslationX = if (pageTransitionActive) {
+                when (page) {
+                    tabTransitionFromPage ->
+                        (tabTransitionToPage - tabTransitionFromPage) * transitionPageStep -
+                            transitionDirection * transitionPageStep * tabTransitionProgress.value
+                    tabTransitionToPage ->
+                        transitionDirection * transitionPageStep * (1f - tabTransitionProgress.value)
+                    else -> 0f
+                }
+            } else {
+                0f
+            }
 
             Column(
                 Modifier
                     .fillMaxHeight()
                     .fillMaxWidth()
+                    .zIndex(
+                        if (pageTransitionActive && page == tabTransitionFromPage) 1f else 0f,
+                    )
+                    .graphicsLayer {
+                        translationX = transitionTranslationX
+                    }
                     .verticalScroll(pageScrollState)
                     .padding(bottom = pageBottomPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -247,7 +322,12 @@ internal fun AppsSection(
 
 @Composable
 private fun AppTabs(
-    selectedTab: Int,
+    currentPage: Int,
+    currentPageOffsetFraction: Float,
+    transitionFromPage: Int,
+    transitionToPage: Int,
+    transitionProgress: Float,
+    transitionActive: Boolean,
     horizontalContentPadding: Dp,
     onSelect: (Int) -> Unit,
 ) {
@@ -274,7 +354,12 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_transit_code),
                 CATEGORY_TRANSIT_CODE,
-                selectedTab,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
                 colors.commonPrimary,
                 colors.commonOnPrimary,
                 onSelect,
@@ -282,7 +367,12 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_delivery),
                 CATEGORY_DELIVERY,
-                selectedTab,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
                 colors.commonPrimary,
                 colors.commonOnPrimary,
                 onSelect,
@@ -290,7 +380,12 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_ride),
                 CATEGORY_RIDE,
-                selectedTab,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
                 colors.commonPrimary,
                 colors.commonOnPrimary,
                 onSelect,
@@ -298,7 +393,12 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_rental),
                 CATEGORY_RENTAL,
-                selectedTab,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
                 colors.commonPrimary,
                 colors.commonOnPrimary,
                 onSelect,
@@ -306,7 +406,12 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_game),
                 CATEGORY_GAME,
-                selectedTab,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
                 colors.commonPrimary,
                 colors.commonOnPrimary,
                 onSelect,
@@ -314,7 +419,12 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_tool),
                 CATEGORY_TOOL,
-                selectedTab,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
                 colors.commonPrimary,
                 colors.commonOnPrimary,
                 onSelect,
@@ -352,18 +462,34 @@ private fun AppTabs(
 private fun AppTab(
     label: String,
     tab: Int,
-    selectedTab: Int,
+    currentPage: Int,
+    currentPageOffsetFraction: Float,
+    transitionFromPage: Int,
+    transitionToPage: Int,
+    transitionProgress: Float,
+    transitionActive: Boolean,
     selectedColor: Color,
     selectedContentColor: Color,
     onSelect: (Int) -> Unit,
 ) {
     val colors = LocalAppColors.current
-    val selected = tab == selectedTab
+    val selectionFraction = if (transitionActive) {
+        when (tab) {
+            transitionFromPage -> 1f - transitionProgress
+            transitionToPage -> transitionProgress
+            else -> 0f
+        }
+    } else {
+        (1f - abs(currentPage - tab + currentPageOffsetFraction)).coerceIn(0f, 1f)
+    }
     val shape = RoundedCornerShape(100.dp)
     Box(
         modifier = Modifier
             .heightIn(min = 44.dp)
-            .background(if (selected) selectedColor else colors.commonSurface, shape)
+            .background(
+                lerp(colors.commonSurface, selectedColor, selectionFraction),
+                shape,
+            )
             .clip(shape)
             .clickable(role = Role.Tab) { onSelect(tab) }
             .padding(horizontal = 16.dp, vertical = 11.dp),
@@ -371,7 +497,11 @@ private fun AppTab(
     ) {
         androidx.compose.material3.Text(
             text = label,
-            color = if (selected) selectedContentColor else colors.onSurfaceVariant,
+            color = lerp(
+                colors.onSurfaceVariant,
+                selectedContentColor,
+                selectionFraction,
+            ),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
