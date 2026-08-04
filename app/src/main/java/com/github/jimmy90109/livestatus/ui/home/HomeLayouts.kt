@@ -1,9 +1,6 @@
 package com.github.jimmy90109.livestatus.ui.home
 
-import androidx.activity.ExperimentalActivityApi
-import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -17,36 +14,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -68,10 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
-import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
 import com.github.jimmy90109.livestatus.R
-import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -116,20 +96,11 @@ internal fun HomeContentWide(
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
 ) {
-    Row(
+    AppsSection(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(top = scrollTopPadding, bottom = scrollBottomPadding),
-            verticalArrangement = Arrangement.Top,
-        ) {
+        wideLeadingContent = {
             HomeIntroColumn(
                 status = status,
                 settingsExpanded = settingsExpanded,
@@ -140,29 +111,21 @@ internal fun HomeContentWide(
                 onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                 onDismissBrandWarning = onDismissBrandWarning,
             )
-        }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(top = scrollTopPadding),
-            verticalArrangement = Arrangement.Top,
-        ) {
-            AppsSection(
-                modifier = Modifier.fillMaxSize(),
-                pageBottomPadding = appPagerBottomPadding,
-                status = status,
-                horizontalContentPadding = 0.dp,
-                onAppEnabledChange = onAppEnabledChange,
-                onOpenTaiwanPayDebug = onOpenTaiwanPayDebug,
-                onOpenClockDebug = onOpenClockDebug,
-                onOpenYouBikeDebug = onOpenYouBikeDebug,
-                onOpenFoodpandaDebug = onOpenFoodpandaDebug,
-                onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
-                onOpenUberDebug = onOpenUberDebug,
-                onOpenUberEatsDebug = onOpenUberEatsDebug,
-            )
-        }
-    }
+        },
+        wideTopPadding = scrollTopPadding,
+        wideBottomPadding = scrollBottomPadding,
+        pageBottomPadding = appPagerBottomPadding,
+        status = status,
+        horizontalContentPadding = 0.dp,
+        onAppEnabledChange = onAppEnabledChange,
+        onOpenTaiwanPayDebug = onOpenTaiwanPayDebug,
+        onOpenClockDebug = onOpenClockDebug,
+        onOpenYouBikeDebug = onOpenYouBikeDebug,
+        onOpenFoodpandaDebug = onOpenFoodpandaDebug,
+        onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
+        onOpenUberDebug = onOpenUberDebug,
+        onOpenUberEatsDebug = onOpenUberEatsDebug,
+    )
 }
 
 @Composable

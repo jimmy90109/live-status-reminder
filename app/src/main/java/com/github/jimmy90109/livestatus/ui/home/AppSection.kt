@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -62,6 +63,9 @@ import kotlin.math.abs
 internal fun AppsSection(
     modifier: Modifier = Modifier,
     containingScrollState: ScrollState? = null,
+    wideLeadingContent: (@Composable () -> Unit)? = null,
+    wideTopPadding: Dp = 0.dp,
+    wideBottomPadding: Dp = 0.dp,
     pageBottomPadding: Dp,
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
@@ -98,20 +102,60 @@ internal fun AppsSection(
             }
         }
     }
+    val wideLeadingScrollState = rememberScrollState()
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .nestedScroll(containingScrollConnection),
-    ) {
-        Column(Modifier.padding(horizontal = horizontalContentPadding)) {
-            SectionHeader(
-                title = "App",
-                subtitle = "檢查安裝狀態，並分別測試各 App 的即時通知。",
-            )
+    val onSelectPage: (Int) -> Unit = selectPage@{ page ->
+        if (tabTransitionActive && page == tabTransitionToPage) return@selectPage
+
+        pageAnimationJob?.cancel()
+        pageAnimationJob = coroutineScope.launch {
+            val fromPage = pagerState.settledPage
+            if (page == fromPage) return@launch
+
+            tabTransitionProgress.snapTo(0f)
+            tabTransitionFromPage = fromPage
+            tabTransitionToPage = page
+            tabTransitionActive = true
+            try {
+                if (abs(page - fromPage) > 1) {
+                    pagerState.scrollToPage(page)
+                    pageTransitionActive = true
+                    tabTransitionProgress.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(
+                            durationMillis = APP_PAGE_ANIMATION_MILLIS,
+                            easing = FastOutSlowInEasing,
+                        ),
+                    )
+                } else {
+                    coroutineScope {
+                        launch {
+                            pagerState.animateScrollToPage(
+                                page = page,
+                                animationSpec = tween(
+                                    durationMillis = APP_PAGE_ANIMATION_MILLIS,
+                                    easing = FastOutSlowInEasing,
+                                ),
+                            )
+                        }
+                        tabTransitionProgress.animateTo(
+                            targetValue = 1f,
+                            animationSpec = tween(
+                                durationMillis = APP_PAGE_ANIMATION_MILLIS,
+                                easing = FastOutSlowInEasing,
+                            ),
+                        )
+                    }
+                }
+            } finally {
+                if (tabTransitionToPage == page) {
+                    pageTransitionActive = false
+                    tabTransitionActive = false
+                }
+            }
         }
-        Spacer(Modifier.height(12.dp))
+    }
+    val tabsContent: @Composable (Dp) -> Unit = { contentPadding ->
         AppTabs(
             currentPage = pagerState.currentPage,
             currentPageOffsetFraction = pagerState.currentPageOffsetFraction,
@@ -119,105 +163,60 @@ internal fun AppsSection(
             transitionToPage = tabTransitionToPage,
             transitionProgress = tabTransitionProgress.value,
             transitionActive = tabTransitionActive,
-            horizontalContentPadding = horizontalContentPadding,
-            onSelect = { page ->
-                if (tabTransitionActive && page == tabTransitionToPage) return@AppTabs
-
-                pageAnimationJob?.cancel()
-                pageAnimationJob = coroutineScope.launch {
-                    val fromPage = pagerState.settledPage
-                    if (page == fromPage) return@launch
-
-                    tabTransitionProgress.snapTo(0f)
-                    tabTransitionFromPage = fromPage
-                    tabTransitionToPage = page
-                    tabTransitionActive = true
-                    try {
-                        if (abs(page - fromPage) > 1) {
-                            pagerState.scrollToPage(page)
-                            pageTransitionActive = true
-                            tabTransitionProgress.animateTo(
-                                targetValue = 1f,
-                                animationSpec = tween(
-                                    durationMillis = APP_PAGE_ANIMATION_MILLIS,
-                                    easing = FastOutSlowInEasing,
-                                ),
-                            )
-                        } else {
-                            coroutineScope {
-                                launch {
-                                    pagerState.animateScrollToPage(
-                                        page = page,
-                                        animationSpec = tween(
-                                            durationMillis = APP_PAGE_ANIMATION_MILLIS,
-                                            easing = FastOutSlowInEasing,
-                                        ),
-                                    )
-                                }
-                                tabTransitionProgress.animateTo(
-                                    targetValue = 1f,
-                                    animationSpec = tween(
-                                        durationMillis = APP_PAGE_ANIMATION_MILLIS,
-                                        easing = FastOutSlowInEasing,
-                                    ),
-                                )
-                            }
-                        }
-                    } finally {
-                        if (tabTransitionToPage == page) {
-                            pageTransitionActive = false
-                            tabTransitionActive = false
-                        }
-                    }
-                }
-            },
+            horizontalContentPadding = contentPadding,
+            onSelect = onSelectPage,
         )
-        Spacer(Modifier.height(12.dp))
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = horizontalContentPadding)
-                .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
-                .weight(1f),
-            pageSpacing = 12.dp,
-            verticalAlignment = Alignment.Top,
-            beyondViewportPageCount = APP_CATEGORY_PAGE_COUNT - 1,
-            userScrollEnabled = !pageTransitionActive,
-        ) { page ->
-            val pageScrollState = rememberScrollState()
-            val transitionPageStep = (
-                pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing
-            ).toFloat()
-            val transitionDirection = if (tabTransitionToPage > tabTransitionFromPage) 1f else -1f
-            val transitionTranslationX = if (pageTransitionActive) {
-                when (page) {
-                    tabTransitionFromPage ->
-                        (tabTransitionToPage - tabTransitionFromPage) * transitionPageStep -
-                            transitionDirection * transitionPageStep * tabTransitionProgress.value
-                    tabTransitionToPage ->
-                        transitionDirection * transitionPageStep * (1f - tabTransitionProgress.value)
-                    else -> 0f
-                }
+    }
+    val pagerContent: @Composable (Modifier, Boolean, Dp, Boolean) -> Unit =
+        { pagerModifier, swipeEnabled, pageTopPadding, clipTopCorners ->
+            val resolvedPagerModifier = if (clipTopCorners) {
+                pagerModifier.clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
             } else {
-                0f
+                pagerModifier
             }
-
-            Column(
-                Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth()
-                    .zIndex(
-                        if (pageTransitionActive && page == tabTransitionFromPage) 1f else 0f,
-                    )
-                    .graphicsLayer {
-                        translationX = transitionTranslationX
+            HorizontalPager(
+                state = pagerState,
+                modifier = resolvedPagerModifier.fillMaxWidth(),
+                pageSpacing = 12.dp,
+                verticalAlignment = Alignment.Top,
+                beyondViewportPageCount = APP_CATEGORY_PAGE_COUNT - 1,
+                userScrollEnabled = swipeEnabled && !pageTransitionActive,
+            ) { page ->
+                val pageScrollState = rememberScrollState()
+                val transitionPageStep = (
+                    pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing
+                ).toFloat()
+                val transitionDirection =
+                    if (tabTransitionToPage > tabTransitionFromPage) 1f else -1f
+                val transitionTranslationX = if (pageTransitionActive) {
+                    when (page) {
+                        tabTransitionFromPage ->
+                            (tabTransitionToPage - tabTransitionFromPage) * transitionPageStep -
+                                transitionDirection * transitionPageStep * tabTransitionProgress.value
+                        tabTransitionToPage ->
+                            transitionDirection * transitionPageStep *
+                                (1f - tabTransitionProgress.value)
+                        else -> 0f
                     }
-                    .verticalScroll(pageScrollState)
-                    .padding(bottom = pageBottomPadding),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                when (page) {
+                } else {
+                    0f
+                }
+
+                Column(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .zIndex(
+                            if (pageTransitionActive && page == tabTransitionFromPage) 1f else 0f,
+                        )
+                        .graphicsLayer {
+                            translationX = transitionTranslationX
+                        }
+                        .verticalScroll(pageScrollState)
+                        .padding(top = pageTopPadding, bottom = pageBottomPadding),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    when (page) {
                     CATEGORY_DELIVERY -> {
                         FoodpandaCard(
                             installed = status.foodpandaInstalled,
@@ -313,8 +312,67 @@ internal fun AppsSection(
                             onOpenDebug = onOpenTaiwanPayDebug,
                         )
                     }
+                    }
                 }
             }
+        }
+
+    if (wideLeadingContent != null) {
+        Row(
+            modifier = modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(
+                        state = wideLeadingScrollState,
+                        reverseScrolling = true,
+                    )
+                    .padding(top = wideTopPadding, bottom = wideBottomPadding),
+            ) {
+                wideLeadingContent()
+                Spacer(Modifier.height(12.dp))
+                SectionHeader(
+                    title = "App",
+                    subtitle = "檢查安裝狀態，並分別測試各 App 的即時通知。",
+                )
+                Spacer(Modifier.height(12.dp))
+                tabsContent(0.dp)
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            ) {
+                pagerContent(Modifier.weight(1f), true, wideTopPadding, false)
+            }
+        }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .nestedScroll(containingScrollConnection),
+        ) {
+            Column(Modifier.padding(horizontal = horizontalContentPadding)) {
+                SectionHeader(
+                    title = "App",
+                    subtitle = "檢查安裝狀態，並分別測試各 App 的即時通知。",
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            tabsContent(horizontalContentPadding)
+            Spacer(Modifier.height(12.dp))
+            pagerContent(
+                Modifier
+                    .weight(1f)
+                    .padding(horizontal = horizontalContentPadding),
+                true,
+                0.dp,
+                true,
+            )
         }
     }
 }

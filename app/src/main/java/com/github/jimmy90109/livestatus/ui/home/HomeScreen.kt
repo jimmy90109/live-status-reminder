@@ -127,14 +127,14 @@ internal fun HomeScreenHostActivity.MainScreen(
     )
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
     val safeTopPadding = safeDrawingPadding.calculateTopPadding()
-    val scrollTopPadding = safeTopPadding + 20.dp
-    val heroTopPadding = maxOf(safeTopPadding, 20.dp)
-    val scrollBottomPadding = safeDrawingPadding.calculateBottomPadding() + 32.dp
-    val appPagerBottomPadding =
+    val scrollTopPadding = maxOf(safeTopPadding, 20.dp)
+    val heroTopPadding = scrollTopPadding
+    val scrollBottomPadding =
         maxOf(
             WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
             20.dp,
         )
+    val appPagerBottomPadding = scrollBottomPadding
 
     Surface(
         modifier = Modifier.fillMaxSize(),
