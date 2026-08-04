@@ -129,6 +129,7 @@ internal fun AppsSection(
                 .padding(horizontal = horizontalContentPadding)
                 .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                 .weight(1f),
+            pageSpacing = 12.dp,
             verticalAlignment = Alignment.Top,
             beyondViewportPageCount = APP_CATEGORY_PAGE_COUNT - 1,
         ) { page ->
