@@ -38,19 +38,19 @@ internal fun TaiwanTaxiCard(
         enabled = enabled,
         interactionEnabled = interactionEnabled,
         onEnabledChange = onEnabledChange,
-        cardColor = colors.commonContainer,
-        labelColor = colors.commonSurface,
-        foregroundColor = colors.onSurface,
+        cardColor = colors.taiwanTaxiContainer,
+        labelColor = colors.taiwanTaxiSecondaryContainer,
+        foregroundColor = colors.taiwanTaxiText,
     ) {
         AppWarningNotice(
             title = stringResource(R.string.platform_special_status_warning_title),
             description = stringResource(R.string.platform_special_status_warning_description),
         )
-        AppActionDivider(colors.onSurface)
+        AppActionDivider(colors.taiwanTaxiText)
         AppCardActionButton(
             stringResource(R.string.taiwan_taxi_simulate_driver_found),
-            colors.commonPrimary,
-            colors.onSurface,
+            colors.taiwanTaxiPrimary,
+            colors.taiwanTaxiText,
             supportingText = stringResource(R.string.monitoring_taiwan_taxi_driver_found),
             enabled = enabled,
         ) {
@@ -64,8 +64,8 @@ internal fun TaiwanTaxiCard(
         }
         AppCardActionButton(
             stringResource(R.string.taiwan_taxi_simulate_vehicle_arrived),
-            colors.commonPrimary,
-            colors.onSurface,
+            colors.taiwanTaxiPrimary,
+            colors.taiwanTaxiText,
             supportingText = stringResource(R.string.monitoring_taiwan_taxi_vehicle_arrived),
             enabled = enabled,
         ) {
@@ -79,8 +79,8 @@ internal fun TaiwanTaxiCard(
         }
         AppCardActionButton(
             stringResource(R.string.taiwan_taxi_simulate_trip_ended),
-            colors.commonPrimary,
-            colors.onSurface,
+            colors.taiwanTaxiPrimary,
+            colors.taiwanTaxiText,
             supportingText = stringResource(R.string.monitoring_taiwan_taxi_trip_ended),
         ) {
             TaiwanTaxiRideManager.clear(context)
@@ -88,8 +88,8 @@ internal fun TaiwanTaxiCard(
         if (BuildConfig.DEBUG) {
             AppCardActionButton(
                 stringResource(R.string.taiwan_taxi_debug_open_payload),
-                colors.commonPrimary,
-                colors.onSurface,
+                colors.taiwanTaxiPrimary,
+                colors.taiwanTaxiText,
                 onClick = onOpenDebug,
             )
         }

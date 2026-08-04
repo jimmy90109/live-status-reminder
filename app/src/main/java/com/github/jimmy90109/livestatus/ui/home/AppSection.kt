@@ -168,15 +168,6 @@ internal fun AppsSection(
                         )
                     }
                     CATEGORY_RIDE -> {
-                        TaiwanTaxiCard(
-                            installed = status.taiwanTaxiInstalled,
-                            enabled = status.taiwanTaxiEnabled,
-                            interactionEnabled = status.requiredSettingsComplete,
-                            onEnabledChange = {
-                                onAppEnabledChange(AppReminderPreferences.App.TAIWAN_TAXI, it)
-                            },
-                            onOpenDebug = onOpenTaiwanTaxiDebug,
-                        )
                         UberRideCard(
                             installed = status.uberInstalled,
                             enabled = status.uberEnabled,
@@ -185,6 +176,15 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.UBER_RIDE, it)
                             },
                             onOpenDebug = onOpenUberDebug,
+                        )
+                        TaiwanTaxiCard(
+                            installed = status.taiwanTaxiInstalled,
+                            enabled = status.taiwanTaxiEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TAIWAN_TAXI, it)
+                            },
+                            onOpenDebug = onOpenTaiwanTaxiDebug,
                         )
                     }
                     CATEGORY_RENTAL -> YouBikeCard(

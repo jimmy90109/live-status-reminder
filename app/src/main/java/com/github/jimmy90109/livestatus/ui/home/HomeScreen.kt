@@ -158,7 +158,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayContainer
                     DebugTarget.CLOCK -> colors.clockContainer
                     DebugTarget.YOU_BIKE -> colors.youBikeContainer
-                    DebugTarget.TAIWAN_TAXI -> colors.commonContainer
+                    DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiContainer
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
@@ -167,7 +167,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayPrimary
                     DebugTarget.CLOCK -> colors.onSurface
                     DebugTarget.YOU_BIKE -> colors.youBikeText
-                    DebugTarget.TAIWAN_TAXI -> colors.onSurface
+                    DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiText
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.FOODPANDA -> colors.foodpandaText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
