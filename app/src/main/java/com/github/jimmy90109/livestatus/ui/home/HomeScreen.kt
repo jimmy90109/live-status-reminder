@@ -349,12 +349,14 @@ private fun NotificationAccessDisclosureDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = onContinue) {
+            TextButton(
+                onClick = rememberHapticAction(HapticEffect.CONFIRM, onContinue),
+            ) {
                 Text("了解並前往設定")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = rememberHapticAction(action = onDismiss)) {
                 Text("暫時不要")
             }
         },

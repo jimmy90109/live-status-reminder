@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -491,7 +490,12 @@ private fun AppTab(
                 shape,
             )
             .clip(shape)
-            .clickable(role = Role.Tab) { onSelect(tab) }
+            .hapticClickable(
+                role = Role.Tab,
+                effect = if (tab == currentPage) null else HapticEffect.SELECTION,
+            ) {
+                onSelect(tab)
+            }
             .padding(horizontal = 16.dp, vertical = 11.dp),
         contentAlignment = Alignment.Center,
     ) {

@@ -126,7 +126,7 @@ internal fun AppCard(
             if (installed && showEnabledSwitch) {
                 Switch(
                     checked = enabled,
-                    onCheckedChange = onEnabledChange,
+                    onCheckedChange = rememberHapticToggleAction(onEnabledChange),
                     enabled = interactionEnabled,
                     modifier = Modifier.padding(start = 12.dp),
                 )
@@ -165,7 +165,11 @@ internal fun AppCard(
         if (actions != null) {
             Spacer(Modifier.height(10.dp))
             Button(
-                onClick = { expanded = !expanded },
+                onClick = rememberHapticAction(
+                    effect = toggleHapticEffect(!expanded),
+                ) {
+                    expanded = !expanded
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { this.stateDescription = stateDescription },

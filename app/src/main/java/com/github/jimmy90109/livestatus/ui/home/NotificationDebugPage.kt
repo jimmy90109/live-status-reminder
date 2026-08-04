@@ -3,7 +3,6 @@ package com.github.jimmy90109.livestatus.ui.home
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -65,7 +64,7 @@ internal fun NotificationDebugPage(
             .padding(start = 20.dp, top = topPadding, end = 20.dp, bottom = bottomPadding),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
+            IconButton(onClick = rememberHapticAction(action = onBack)) {
                 Icon(
                     imageVector = Icons.Rounded.ArrowBack,
                     contentDescription = "返回",
@@ -110,7 +109,7 @@ internal fun NotificationDebugPage(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .clip(RoundedCornerShape(100.dp))
-                            .clickable(role = Role.Button) {
+                            .hapticClickable(role = Role.Button, effect = HapticEffect.CONFIRM) {
                                 expandedIndex = 0
                                 onClear()
                             }
@@ -147,7 +146,11 @@ private fun NotificationDebugPayloadRow(
             .fillMaxWidth()
             .background(colors.commonSurface, RoundedCornerShape(18.dp))
             .clip(RoundedCornerShape(18.dp))
-            .clickable(role = Role.Button, onClick = onToggle)
+            .hapticClickable(
+                role = Role.Button,
+                effect = toggleHapticEffect(!expanded),
+                onClick = onToggle,
+            )
             .padding(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

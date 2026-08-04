@@ -47,7 +47,7 @@ internal fun SettingsPage(
         verticalArrangement = Arrangement.Top,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
+            IconButton(onClick = rememberHapticAction(action = onBack)) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "返回",
@@ -155,7 +155,7 @@ internal fun BrandWarningCard(
                 )
             }
             if (onDismiss != null) {
-                IconButton(onClick = onDismiss) {
+                IconButton(onClick = rememberHapticAction(action = onDismiss)) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
                         contentDescription = "關閉",

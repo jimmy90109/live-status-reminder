@@ -4,8 +4,11 @@ import androidx.activity.ExperimentalActivityApi
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -35,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -53,6 +58,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -194,8 +200,21 @@ internal fun HomeContentNarrow(
         val velocityThresholdPx = with(LocalDensity.current) {
             HERO_REVEAL_FLING_THRESHOLD.toPx()
         }
+        val hapticFeedback = LocalHapticFeedback.current
         val coroutineScope = rememberCoroutineScope()
         val heroExpanded = heroRevealState.settledValue == HeroRevealValue.Expanded
+        val heroVisualState by remember(requiredSettingsComplete, heroRevealState) {
+            derivedStateOf {
+                if (!requiredSettingsComplete || heroHeightPx <= 0) {
+                    HeroRevealVisualState(scale = 1f, alpha = 1f)
+                } else {
+                    heroRevealVisualState(
+                        visibleHeightPx = heroRevealState.requireOffset(),
+                        fullHeightPx = heroHeightPx.toFloat(),
+                    )
+                }
+            }
+        }
         val heroStateDescription = stringResource(
             if (heroExpanded) {
                 R.string.home_intro_expanded
@@ -216,6 +235,7 @@ internal fun HomeContentNarrow(
             homeScrollState,
             heroRevealState,
             velocityThresholdPx,
+            hapticFeedback,
         ) {
             heroRevealNestedScrollConnection(
                 enabled = requiredSettingsComplete,
@@ -223,6 +243,9 @@ internal fun HomeContentNarrow(
                 homeScrollState = homeScrollState,
                 state = heroRevealState,
                 velocityThresholdPxPerSecond = velocityThresholdPx,
+                onHapticEffect = { effect ->
+                    hapticFeedback.performHapticFeedback(effect.toFeedbackType())
+                },
             )
         }
 
@@ -277,6 +300,7 @@ internal fun HomeContentNarrow(
                     onRequestNotificationPermission = onRequestNotificationPermission,
                     onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
                     onDismissBrandWarning = onDismissBrandWarning,
+                    heroVisualState = heroVisualState,
                     heroVisibleHeightPx = if (requiredSettingsComplete) {
                         {
                             if (heroHeightPx <= 0) {
@@ -346,11 +370,13 @@ private fun HomeIntroColumn(
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
     onDismissBrandWarning: () -> Unit,
+    heroVisualState: HeroRevealVisualState? = null,
     heroVisibleHeightPx: (() -> Float)? = null,
     heroBottomSpacingVisibleFraction: (() -> Float)? = null,
     onHeroHeightChanged: (Int) -> Unit = {},
 ) {
     RevealingHeroCard(
+        visualState = heroVisualState,
         visibleHeightPx = heroVisibleHeightPx,
         onFullHeightChanged = onHeroHeightChanged,
         onOpenSettings = onOpenSettings,
@@ -418,16 +444,56 @@ private fun RevealableVerticalSpacer(
 
 @Composable
 private fun RevealingHeroCard(
+    visualState: HeroRevealVisualState?,
     visibleHeightPx: (() -> Float)?,
     onFullHeightChanged: (Int) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    val targetVisualState = visualState ?: HeroRevealVisualState(scale = 1f, alpha = 1f)
+    val weakenedTranslationYPx = with(LocalDensity.current) {
+        HERO_REVEAL_WEAKENED_TRANSLATION_Y.toPx()
+    }
+    val animatedScale by animateFloatAsState(
+        targetValue = targetVisualState.scale,
+        animationSpec = tween(
+            durationMillis = HERO_REVEAL_VISUAL_TRANSITION_MILLIS,
+            easing = LinearOutSlowInEasing,
+        ),
+        label = "Hero reveal scale",
+    )
+    val animatedAlpha by animateFloatAsState(
+        targetValue = targetVisualState.alpha,
+        animationSpec = tween(
+            durationMillis = HERO_REVEAL_VISUAL_TRANSITION_MILLIS,
+            easing = LinearOutSlowInEasing,
+        ),
+        label = "Hero reveal alpha",
+    )
+    val animatedTranslationY by animateFloatAsState(
+        targetValue = if (targetVisualState.scale < 1f) -weakenedTranslationYPx else 0f,
+        animationSpec = tween(
+            durationMillis = HERO_REVEAL_VISUAL_TRANSITION_MILLIS,
+            easing = LinearOutSlowInEasing,
+        ),
+        label = "Hero reveal vertical position",
+    )
     Layout(
         content = {
             Box(
-                modifier = Modifier.onSizeChanged { size ->
-                    onFullHeightChanged(size.height)
-                },
+                modifier = Modifier
+                    .graphicsLayer {
+                        scaleX = animatedScale
+                        scaleY = animatedScale
+                        alpha = animatedAlpha
+                        translationY = animatedTranslationY
+                        transformOrigin = TransformOrigin(
+                            pivotFractionX = 0.5f,
+                            pivotFractionY = 1f,
+                        )
+                    }
+                    .onSizeChanged { size ->
+                        onFullHeightChanged(size.height)
+                    },
             ) {
                 HeroCard(onOpenSettings = onOpenSettings)
             }
@@ -456,22 +522,37 @@ private fun heroRevealNestedScrollConnection(
     homeScrollState: ScrollState,
     state: AnchoredDraggableState<HeroRevealValue>,
     velocityThresholdPxPerSecond: Float,
+    onHapticEffect: (HapticEffect) -> Unit,
 ): NestedScrollConnection = object : NestedScrollConnection {
     private val gestureGate = HeroRevealGestureGate()
+    private val hapticTracker = HeroRevealHapticTracker()
 
     override fun onPreScroll(
         available: Offset,
         source: NestedScrollSource,
     ): Offset {
-        if (!enabled || source != NestedScrollSource.UserInput) {
+        if (!enabled) {
+            hapticTracker.reset()
+            return Offset.Zero
+        }
+        if (source != NestedScrollSource.UserInput) {
             return Offset.Zero
         }
         gestureGate.onPreScroll(available.y)
         if (available.y >= 0f) return Offset.Zero
 
+        val previousOffsetPx = state.requireOffset()
+        val consumedY = state.dispatchRawDelta(available.y)
+        gestureGate.onHeroDragConsumed(consumedY)
+        hapticTracker.onDrag(
+            startValue = state.settledValue,
+            previousOffsetPx = previousOffsetPx,
+            offsetPx = previousOffsetPx + consumedY,
+            fullHeightPx = fullHeightPx,
+        )?.let(onHapticEffect)
         return Offset(
             x = 0f,
-            y = state.dispatchRawDelta(available.y),
+            y = consumedY,
         )
     }
 
@@ -480,8 +561,11 @@ private fun heroRevealNestedScrollConnection(
         available: Offset,
         source: NestedScrollSource,
     ): Offset {
+        if (!enabled) {
+            hapticTracker.reset()
+            return Offset.Zero
+        }
         if (
-            !enabled ||
             source != NestedScrollSource.UserInput ||
             !gestureGate.canReveal(
                 consumedY = consumed.y,
@@ -492,34 +576,51 @@ private fun heroRevealNestedScrollConnection(
             return Offset.Zero
         }
 
+        val previousOffsetPx = state.requireOffset()
+        val consumedY = state.dispatchRawDelta(available.y)
+        gestureGate.onHeroDragConsumed(consumedY)
+        hapticTracker.onDrag(
+            startValue = state.settledValue,
+            previousOffsetPx = previousOffsetPx,
+            offsetPx = previousOffsetPx + consumedY,
+            fullHeightPx = fullHeightPx,
+        )?.let(onHapticEffect)
         return Offset(
             x = 0f,
-            y = state.dispatchRawDelta(available.y),
+            y = consumedY,
         )
     }
 
     override suspend fun onPreFling(available: Velocity): Velocity {
         if (!enabled || fullHeightPx <= 0f) {
             gestureGate.reset()
+            hapticTracker.reset()
             return Velocity.Zero
         }
 
         val offsetPx = state.requireOffset()
         if (offsetPx <= 0f || offsetPx >= fullHeightPx) {
             gestureGate.reset()
+            hapticTracker.reset()
             return Velocity.Zero
         }
 
-        state.animateTo(
-            targetValue = heroRevealTarget(
-                offsetPx = offsetPx,
-                fullHeightPx = fullHeightPx,
-                velocityPxPerSecond = available.y,
-                velocityThresholdPxPerSecond = velocityThresholdPxPerSecond,
-            ),
-            animationSpec = heroRevealSpring(),
+        val targetValue = heroRevealTarget(
+            offsetPx = offsetPx,
+            fullHeightPx = fullHeightPx,
+            velocityPxPerSecond = available.y,
+            velocityThresholdPxPerSecond = velocityThresholdPxPerSecond,
         )
-        gestureGate.reset()
+        hapticTracker.onRelease(targetValue)?.let(onHapticEffect)
+        try {
+            state.animateTo(
+                targetValue = targetValue,
+                animationSpec = heroRevealSpring(),
+            )
+        } finally {
+            gestureGate.reset()
+            hapticTracker.reset()
+        }
         return Velocity(x = 0f, y = available.y)
     }
 
@@ -528,6 +629,7 @@ private fun heroRevealNestedScrollConnection(
         available: Velocity,
     ): Velocity {
         gestureGate.reset()
+        hapticTracker.reset()
         return Velocity.Zero
     }
 }
@@ -540,3 +642,5 @@ private fun heroRevealSpring() = spring<Float>(
 private const val HOME_BACKGROUND_SHIFT_FRACTION = 0.05f
 private const val HOME_BACKGROUND_DIM_FRACTION = 0.34f
 private val HERO_REVEAL_FLING_THRESHOLD = 125.dp
+private val HERO_REVEAL_WEAKENED_TRANSLATION_Y = 12.dp
+private const val HERO_REVEAL_VISUAL_TRANSITION_MILLIS = 200

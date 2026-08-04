@@ -1,7 +1,6 @@
 package com.github.jimmy90109.livestatus.ui.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +38,7 @@ internal fun HeroCard(onOpenSettings: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             LabelPill("LIVE STATUS", colors.commonPrimary, colors.commonOnPrimary)
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = onOpenSettings) {
+            IconButton(onClick = rememberHapticAction(action = onOpenSettings)) {
                 Icon(
                     imageVector = Icons.Rounded.Settings,
                     contentDescription = "設定",
@@ -80,7 +79,10 @@ internal fun SectionHeader(
         }
         if (collapsible) {
             IconButton(
-                onClick = onToggle,
+                onClick = rememberHapticAction(
+                    effect = toggleHapticEffect(!expanded),
+                    action = onToggle,
+                ),
                 modifier = Modifier.padding(start = 12.dp),
             ) {
                 Icon(
@@ -214,7 +216,7 @@ internal fun ActionButton(
             .alpha(if (enabled) 1f else 0.46f)
             .background(background, shape)
             .clip(shape)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .hapticClickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {}
             .padding(horizontal = 16.dp, vertical = 14.dp),
         contentAlignment = Alignment.CenterStart,
