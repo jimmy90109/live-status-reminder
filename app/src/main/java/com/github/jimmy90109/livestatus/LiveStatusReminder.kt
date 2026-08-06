@@ -31,6 +31,7 @@ object LiveStatusReminder {
     private const val MEDIA_PLAYBACK_NOTIFICATION_ID = 1009
     private const val TAIWAN_TAXI_NOTIFICATION_ID = 1010
     private const val YPT_STUDY_NOTIFICATION_ID = 1011
+    private const val HEVY_WORKOUT_NOTIFICATION_ID = 1012
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -455,6 +456,64 @@ object LiveStatusReminder {
 
     internal fun clearYptStudy(context: Context) {
         notificationManager(context).cancel(YPT_STUDY_NOTIFICATION_ID)
+    }
+
+    internal fun showHevyWorkout(context: Context, update: HevyWorkoutUpdate) {
+        createChannel(context)
+        val openHevy = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            10,
+            HomeScreenHostActivity.createOpenHevyIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = hevyWorkoutPayload(update, openHevy)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(HevyWorkoutNotificationParser.WORKOUT_CATEGORY)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .also { notificationBuilder ->
+                if (update.hasActiveRestCountdown) {
+                    ClockTimerNotificationStyle.apply(
+                        notificationBuilder,
+                        hevyRestTimer(update, SystemClock.elapsedRealtime()),
+                        payload.criticalText,
+                    )
+                } else {
+                    notificationBuilder
+                        .setWhen(0)
+                        .setShowWhen(false)
+                        .setUsesChronometer(false)
+                        .setChronometerCountDown(false)
+                        .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+                }
+            }
+            .also { notificationBuilder ->
+                if (update.sourceActions.isEmpty()) {
+                    notificationBuilder.addAction(
+                        Notification.Action.Builder(
+                            Icon.createWithResource(context, payload.leftIconRes),
+                            context.getString(R.string.hevy_live_open_action),
+                            openHevy,
+                        ).build(),
+                    )
+                } else {
+                    update.sourceActions.forEach(notificationBuilder::addAction)
+                }
+            }
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(HEVY_WORKOUT_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearHevyWorkout(context: Context) {
+        notificationManager(context).cancel(HEVY_WORKOUT_NOTIFICATION_ID)
     }
 
     @JvmStatic
@@ -922,6 +981,49 @@ object LiveStatusReminder {
         title = title,
         contentText = update.sourceContentText ?: fallbackContentText,
         contentIntent = contentIntent,
+    )
+
+    internal fun hevyWorkoutPayload(
+        update: HevyWorkoutUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val setText = "第 ${update.setNumber}/${update.totalSets} 組"
+        val criticalText = if (update.hasActiveRestCountdown) {
+            "休息 ${formatHevyRestDuration(requireNotNull(update.restRemainingSeconds))}"
+        } else {
+            setText
+        }
+        val contentText = when {
+            update.hasActiveRestCountdown -> "下一個：$setText · ${update.setDetail}"
+            update.phase == HevyWorkoutPhase.ACTIVE_SET -> update.sourceContentText
+            else -> "$setText · ${update.setDetail}"
+        }
+        return LiveStatusPayload(
+            id = HEVY_WORKOUT_NOTIFICATION_ID,
+            appName = "Hevy",
+            smallIconRes = R.drawable.ic_fitness_notification,
+            leftIconRes = R.drawable.ic_fitness_notification,
+            criticalText = criticalText,
+            title = update.exerciseName,
+            contentText = contentText,
+            progress = update.progressPercent,
+            contentIntent = contentIntent,
+        )
+    }
+
+    internal fun formatHevyRestDuration(totalSeconds: Int): String {
+        val safeSeconds = totalSeconds.coerceAtLeast(0)
+        return "%d:%02d".format(safeSeconds / 60, safeSeconds % 60)
+    }
+
+    internal fun hevyRestTimer(
+        update: HevyWorkoutUpdate,
+        nowElapsedRealtimeMillis: Long,
+    ): LiveStatusTimer = LiveStatusTimer(
+        state = ClockTimerState.RUNNING,
+        endElapsedRealtimeMillis = nowElapsedRealtimeMillis +
+            requireNotNull(update.restRemainingSeconds) * 1_000L,
+        language = ClockTimerLanguage.CHINESE,
     )
 
     internal fun formatClockTimerDuration(durationMillis: Long): String {

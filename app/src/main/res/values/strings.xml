@@ -4,15 +4,15 @@
     <string name="app_name">即時狀態提醒</string>
     <string name="notification_app_name">LiveStatus</string>
     <string name="notification_channel_name">即時狀態提醒</string>
-    <string name="notification_channel_description">持續顯示倒數計時、讀書時長、乘車、YouBike 騎乘費用、外送訂單與種花狀態</string>
+    <string name="notification_channel_description">持續顯示倒數計時、讀書與健身時長、乘車、YouBike 騎乘費用、外送訂單與種花狀態</string>
     <string name="media_notification_channel_name">媒體播放即時通知</string>
     <string name="media_notification_channel_description">在來源媒體通知未成為 Live Update 時，靜音顯示目前播放內容。</string>
     <string name="home_intro_show">顯示首頁介紹</string>
     <string name="home_intro_hide">隱藏首頁介紹</string>
     <string name="home_intro_collapsed">首頁介紹已收合</string>
     <string name="home_intro_expanded">首頁介紹已展開</string>
-    <string name="home_intro_description">媒體播放、倒數計時、YPT 讀書時長、乘車、YouBike 騎乘、外送與 Pikmin Bloom 種花期間，持續顯示重要狀態。</string>
-    <string name="required_settings_description">完成設定後，App 就能把媒體播放、倒數計時、讀書時長、乘車、外送與種花狀態變成即時通知。</string>
+    <string name="home_intro_description">媒體播放、倒數計時、YPT 讀書、Hevy 健身、乘車、YouBike 騎乘、外送與 Pikmin Bloom 種花期間，持續顯示重要狀態。</string>
+    <string name="required_settings_description">完成設定後，App 就能把媒體播放、倒數計時、讀書與健身、乘車、外送與種花狀態變成即時通知。</string>
     <string name="app_card_collapsed">試用選項已收起</string>
     <string name="app_card_expanded">試用選項已展開</string>
     <string name="app_card_expand">試用即時通知功能</string>
@@ -20,8 +20,9 @@
     <string name="app_category_delivery">外送</string>
     <string name="app_category_ride">叫車</string>
     <string name="app_category_rental">租車</string>
-    <string name="app_category_game">遊戲</string>
+    <string name="app_category_sport">運動</string>
     <string name="app_category_tool">工具</string>
+    <string name="app_category_media">媒體</string>
     <string name="transit_code_card_title">乘車碼出站提醒</string>
     <string name="transit_code_status_description">進站後顯示乘車碼捷徑，準備下車時快速開啟。</string>
 
@@ -43,7 +44,7 @@
     <string name="media_playback_next">Next</string>
 
     <string name="ypt_card_app_name">YPT</string>
-    <string name="ypt_card_title">讀書時長 Live Update</string>
+    <string name="ypt_card_title">讀書時長</string>
     <string name="ypt_card_description">YPT 開始記錄讀書時間後，持續顯示目前累積時長；停止計時時自動移除。</string>
     <string name="ypt_simulate_start">模擬開始讀書</string>
     <string name="ypt_simulate_stop">模擬停止讀書</string>
@@ -55,6 +56,20 @@
     <string name="ypt_live_fallback_content">讀書時間持續累積中</string>
     <string name="ypt_live_metric_label">讀書時間</string>
     <string name="ypt_live_open_action">開啟 YPT</string>
+
+    <string name="hevy_card_app_name">Hevy</string>
+    <string name="hevy_card_title">健身進度</string>
+    <string name="hevy_card_description">Hevy 訓練期間同步顯示目前動作、組數、重量、次數、休息倒數與來源操作；結束訓練時自動移除。</string>
+    <string name="hevy_debug_open_payload">查看通知 payload</string>
+    <string name="hevy_simulate_active_set">模擬進行訓練組</string>
+    <string name="hevy_simulate_rest">模擬組間休息</string>
+    <string name="hevy_simulate_finish">模擬結束訓練</string>
+    <string name="monitoring_hevy_active_set">直接顯示來源的動作名稱與訓練組內文，不顯示訓練時間。</string>
+    <string name="monitoring_hevy_rest">讀取下一個動作與組數，並同步顯示「休息 M:SS」。</string>
+    <string name="monitoring_hevy_finished">Hevy 的訓練通知移除時清除即時通知。</string>
+    <string name="hevy_live_open_action">開啟 Hevy</string>
+    <string name="notification_debug_copy_payload">複製所有通知 payload</string>
+    <string name="notification_debug_payload_copied">已複製通知 payload</string>
 
     <string name="you_bike_tracking_title">YouBike 騎乘費用追蹤</string>
     <string name="you_bike_tracking_description">YouBike 騎乘中顯示目前預估費用與下一次費用變更時間。目前支援全臺 YouBike 服務區域的一般會員費率；站點無法辨識時，可在還車後選擇寄送回報。</string>

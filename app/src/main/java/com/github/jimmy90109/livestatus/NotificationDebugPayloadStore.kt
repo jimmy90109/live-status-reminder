@@ -23,6 +23,7 @@ object NotificationDebugPayloadStore {
     private val _taiwanPayPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _youBikePayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _yptPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _hevyPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
@@ -32,6 +33,39 @@ object NotificationDebugPayloadStore {
     val taiwanPayPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanPayPayloads
     val youBikePayloads: StateFlow<List<NotificationDebugPayload>> = _youBikePayloads
     val yptPayloads: StateFlow<List<NotificationDebugPayload>> = _yptPayloads
+    val hevyPayloads: StateFlow<List<NotificationDebugPayload>> = _hevyPayloads
+
+    internal fun recordHevy(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+        update: HevyWorkoutUpdate?,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = if (lifecycle == "REMOVED") lifecycle else update?.phase?.name ?: "NONE",
+            parsedPin = null,
+            parsedDetails = linkedMapOf(
+                "lifecycle" to lifecycle,
+                "exerciseName" to update?.exerciseName.orEmpty(),
+                "setNumber" to update?.setNumber?.toString().orEmpty(),
+                "totalSets" to update?.totalSets?.toString().orEmpty(),
+                "setDetail" to update?.setDetail.orEmpty(),
+                "sourceContentText" to update?.sourceContentText.orEmpty(),
+                "restRemainingSeconds" to update?.restRemainingSeconds?.toString().orEmpty(),
+                "startedAtEpochMillis" to update?.startedAtEpochMillis?.toString().orEmpty(),
+            ),
+        )
+        _hevyPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
 
     internal fun recordYpt(
         context: Context,
@@ -267,6 +301,10 @@ object NotificationDebugPayloadStore {
         _yptPayloads.value = emptyList()
     }
 
+    fun clearHevy() {
+        _hevyPayloads.value = emptyList()
+    }
+
     private fun createPayload(
         context: Context,
         statusBarNotification: StatusBarNotification,
@@ -329,6 +367,7 @@ object NotificationDebugPayloadStore {
         "title" to notificationTitle.orEmpty(),
         "contentText" to notificationContentText.orEmpty(),
         "joinedText" to notificationText,
+        "actions" to notification.actions.orEmpty().joinToString { it.title.toString() },
     )
 
     private fun pinCandidates(

@@ -17,6 +17,7 @@ import android.widget.TextView
 class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val clockTimerTracker = ClockTimerTracker()
     private val yptStudyTracker = YptStudyTracker()
+    private val hevyWorkoutTracker = HevyWorkoutTracker()
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
     private val clockTimerRefreshRunnable = Runnable(::refreshClockTimer)
@@ -245,11 +246,76 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     LiveStatusReminder.clearYptStudy(this)
                 }
             }
+            HEVY_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = parseHevyWorkout(statusBarNotification, notificationText)
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordHevy(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        "POSTED",
+                        update,
+                    )
+                }
+                if (AppReminderPreferences.App.HEVY.isEnabled(this)) {
+                    handleHevyWorkoutDecision(
+                        hevyWorkoutTracker.onPosted(statusBarNotification.key, update),
+                    )
+                } else {
+                    hevyWorkoutTracker.reset()
+                    LiveStatusReminder.clearHevyWorkout(this)
+                }
+            }
         }
+    }
+
+    private fun parseHevyWorkout(
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+    ): HevyWorkoutUpdate? {
+        val notification = statusBarNotification.notification
+        return HevyWorkoutNotificationParser.parse(
+            sourceKey = statusBarNotification.key,
+            channelId = notification.channelId,
+            category = notification.category,
+            startedAtEpochMillis = notification.`when`,
+            notificationText = notificationText,
+            nowEpochMillis = System.currentTimeMillis(),
+            contentIntent = notification.contentIntent,
+            sourceActions = notification.actions.orEmpty().toList(),
+        )
+    }
+
+    private fun recordRemovedHevy(statusBarNotification: StatusBarNotification) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        val notificationText = readNotificationText(
+            this,
+            statusBarNotification.packageName,
+            notification,
+        )
+        NotificationDebugPayloadStore.recordHevy(
+            this,
+            statusBarNotification,
+            notificationText,
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            "REMOVED",
+            parseHevyWorkout(statusBarNotification, notificationText),
+        )
     }
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (statusBarNotification.packageName == HEVY_PACKAGE) {
+            recordRemovedHevy(statusBarNotification)
+            handleHevyWorkoutDecision(hevyWorkoutTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (
             BuildConfig.DEBUG &&
             statusBarNotification.packageName == TAIWAN_PAY_PACKAGE
@@ -301,6 +367,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         val activeNotifications = getActiveNotifications()
         mediaPlaybackMonitor.start(activeNotifications)
         restoreYptStudy(activeNotifications)
+        restoreHevyWorkout(activeNotifications)
         YouBikeRideManager.restore(this)
     }
 
@@ -333,6 +400,14 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    private fun handleHevyWorkoutDecision(decision: HevyWorkoutDecision) {
+        when (decision) {
+            is HevyWorkoutDecision.Show -> LiveStatusReminder.showHevyWorkout(this, decision.update)
+            HevyWorkoutDecision.Clear -> LiveStatusReminder.clearHevyWorkout(this)
+            HevyWorkoutDecision.None -> Unit
+        }
+    }
+
     private fun restoreYptStudy(activeNotifications: Array<StatusBarNotification>) {
         if (!AppReminderPreferences.App.YPT.isEnabled(this)) {
             yptStudyTracker.reset()
@@ -346,6 +421,30 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             .mapNotNull { YptStudyNotificationExtractor.extract(it).update }
             .toList()
         handleYptStudyDecision(yptStudyTracker.restore(updates))
+    }
+
+    private fun restoreHevyWorkout(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.HEVY.isEnabled(this)) {
+            hevyWorkoutTracker.reset()
+            LiveStatusReminder.clearHevyWorkout(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { it.packageName == HEVY_PACKAGE }
+            .mapNotNull { statusBarNotification ->
+                parseHevyWorkout(
+                    statusBarNotification,
+                    readNotificationText(
+                        this,
+                        statusBarNotification.packageName,
+                        statusBarNotification.notification,
+                    ),
+                )
+            }
+            .toList()
+        handleHevyWorkoutDecision(hevyWorkoutTracker.restore(updates))
     }
 
     private fun showAndScheduleClockTimer(update: ClockTimerUpdate) {
@@ -557,6 +656,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
+        private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
 
         @JvmStatic
         fun readNotificationText(notification: Notification): String {

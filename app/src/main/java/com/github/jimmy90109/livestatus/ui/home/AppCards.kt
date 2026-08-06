@@ -18,6 +18,9 @@ import com.github.jimmy90109.livestatus.ClockTimerSource
 import com.github.jimmy90109.livestatus.ClockTimerState
 import com.github.jimmy90109.livestatus.ClockTimerUpdate
 import com.github.jimmy90109.livestatus.LiveStatusReminder
+import com.github.jimmy90109.livestatus.HevyWorkoutPhase
+import com.github.jimmy90109.livestatus.HevyWorkoutNotificationParser
+import com.github.jimmy90109.livestatus.HevyWorkoutUpdate
 import com.github.jimmy90109.livestatus.YouBikeNotificationParser
 import com.github.jimmy90109.livestatus.YouBikeEvent
 import com.github.jimmy90109.livestatus.YouBikeRideManager
@@ -117,6 +120,95 @@ internal fun YptCard(
                 stringResource(R.string.ypt_debug_open_payload),
                 colors.yptPrimary,
                 colors.yptText,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun HevyCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.hevy_card_app_name),
+        appPackageName = HEVY_PACKAGE,
+        fallbackIconRes = R.drawable.ic_fitness_notification,
+        title = stringResource(R.string.hevy_card_title),
+        description = stringResource(R.string.hevy_card_description),
+        supportedLanguages = listOf(stringResource(R.string.media_playback_language_independent)),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.commonContainer,
+        labelColor = colors.commonSurface,
+        foregroundColor = colors.onSurface,
+        actionColor = colors.commonPrimary,
+    ) {
+        AppActionDivider(colors.onSurface)
+        AppCardActionButton(
+            stringResource(R.string.hevy_simulate_active_set),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_hevy_active_set),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showHevyWorkout(
+                context,
+                HevyWorkoutUpdate(
+                    sourceKey = "debug-hevy-workout",
+                    startedAtEpochMillis = System.currentTimeMillis() - 3 * 60_000L,
+                    exerciseName = "肩推（啞鈴）",
+                    phase = HevyWorkoutPhase.ACTIVE_SET,
+                    setNumber = 4,
+                    totalSets = 4,
+                    setDetail = "7.5 kg × 12 次",
+                    sourceContentText = "第 4/4 組 - 7.5 kg x 12 次",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.hevy_simulate_rest),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_hevy_rest),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showHevyWorkout(
+                context,
+                HevyWorkoutUpdate(
+                    sourceKey = "debug-hevy-workout",
+                    startedAtEpochMillis = System.currentTimeMillis() - 4 * 60_000L,
+                    exerciseName = "俯身飛鳥（啞鈴）",
+                    phase = HevyWorkoutPhase.REST,
+                    setNumber = 1,
+                    totalSets = 4,
+                    setDetail = "2.5 kg × 12 次",
+                    sourceContentText = "下一個: 第1 組（共 4組） (2.5 kg x 12 次)\n休息 0:45",
+                    restRemainingSeconds = 45,
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.hevy_simulate_finish),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_hevy_finished),
+        ) {
+            LiveStatusReminder.clearHevyWorkout(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.hevy_debug_open_payload),
+                colors.commonPrimary,
+                colors.onSurface,
                 onClick = onOpenDebug,
             )
         }
@@ -458,6 +550,7 @@ private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
 private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
 private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
 private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
+private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
 
 private fun youBikeTestTimestamp(secondsAgo: Long = 0): String =
     java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei"))

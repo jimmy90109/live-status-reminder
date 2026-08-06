@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、YPT、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -25,6 +25,14 @@
 - Android 17 使用 `MetricStyle` stopwatch，Android 16 使用通知 chronometer；來源通知已由系統提升時不建立重複提醒。
 - 點擊提醒可開啟 YPT；來源計時通知移除或不再符合計時狀態後自動清除。
 - 功能暫時放在「工具」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆原始 payload，正式版不提供查看入口。
+
+### Hevy
+
+- 偵測 `com.hevy` 的健身前景通知；進行組直接顯示來源的動作與組內文，不另外顯示訓練時間。
+- 組間休息時以 Live Update 計時指標顯示 `M:SS` 休息倒數及下一個動作；來源通知每秒更新時同步校正。
+- 來源通知透過公開 `Notification.Action` 提供的操作會同步至 Live Update；沒有來源 action 時提供「開啟 Hevy」。
+- 點擊提醒可開啟 Hevy；結束訓練並移除來源通知後自動清除，通知監聽器重連時可從現有訓練通知恢復。
+- 功能位於「運動」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆原始 payload 與移除事件，正式版不提供查看入口。
 
 ### iPASS MONEY
 

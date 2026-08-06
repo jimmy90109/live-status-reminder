@@ -14,6 +14,75 @@ import org.junit.Test
 
 class LiveStatusPayloadTest {
     @Test
+    fun hevyActiveSetPayloadShowsExerciseSetAndProgress() {
+        val payload = LiveStatusReminder.hevyWorkoutPayload(
+            HevyWorkoutUpdate(
+                sourceKey = "hevy|workout",
+                startedAtEpochMillis = 1_700_000_000_000L,
+                exerciseName = "肩推（啞鈴）",
+                phase = HevyWorkoutPhase.ACTIVE_SET,
+                setNumber = 4,
+                totalSets = 4,
+                setDetail = "7.5 kg × 12 次",
+                sourceContentText = "第 4/4 組 - 7.5 kg x 12 次",
+            ),
+        )
+
+        assertEquals("Hevy", payload.appName)
+        assertEquals(R.drawable.ic_fitness_notification, payload.smallIconRes)
+        assertEquals("第 4/4 組", payload.criticalText)
+        assertEquals("肩推（啞鈴）", payload.title)
+        assertEquals("第 4/4 組 - 7.5 kg x 12 次", payload.contentText)
+        assertEquals(100, payload.progress)
+    }
+
+    @Test
+    fun hevyRestPayloadShowsCountdownAndNextSet() {
+        val update = HevyWorkoutUpdate(
+            sourceKey = "hevy|workout",
+            startedAtEpochMillis = 1_700_000_000_000L,
+            exerciseName = "俯身飛鳥（啞鈴）",
+            phase = HevyWorkoutPhase.REST,
+            setNumber = 1,
+            totalSets = 4,
+            setDetail = "2.5 kg × 12 次",
+            sourceContentText = "下一個: 第1 組（共 4組） (2.5 kg x 12 次)\n休息 0:45",
+            restRemainingSeconds = 45,
+        )
+        val payload = LiveStatusReminder.hevyWorkoutPayload(update)
+        val timer = LiveStatusReminder.hevyRestTimer(update, nowElapsedRealtimeMillis = 10_000L)
+
+        assertEquals("休息 0:45", payload.criticalText)
+        assertEquals("俯身飛鳥（啞鈴）", payload.title)
+        assertEquals("下一個：第 1/4 組 · 2.5 kg × 12 次", payload.contentText)
+        assertEquals(25, payload.progress)
+        assertEquals(ClockTimerState.RUNNING, timer.state)
+        assertEquals(55_000L, timer.endElapsedRealtimeMillis)
+        assertEquals(ClockTimerLanguage.CHINESE, timer.language)
+    }
+
+    @Test
+    fun hevyExpiredRestPayloadReturnsToSetContentWithoutZeroCountdown() {
+        val update = HevyWorkoutUpdate(
+            sourceKey = "hevy|workout",
+            startedAtEpochMillis = 1_700_000_000_000L,
+            exerciseName = "俯身飛鳥（啞鈴）",
+            phase = HevyWorkoutPhase.REST,
+            setNumber = 1,
+            totalSets = 4,
+            setDetail = "2.5 kg × 12 次",
+            sourceContentText = "下一個: 第1 組（共 4組） (2.5 kg x 12 次)\n休息 0:00",
+            restRemainingSeconds = 0,
+        )
+
+        val payload = LiveStatusReminder.hevyWorkoutPayload(update)
+
+        assertEquals(false, update.hasActiveRestCountdown)
+        assertEquals("第 1/4 組", payload.criticalText)
+        assertEquals("第 1/4 組 · 2.5 kg × 12 次", payload.contentText)
+    }
+
+    @Test
     fun yptStudyPayloadUsesChineseCopyAndSourceContent() {
         val payload = LiveStatusReminder.yptStudyPayload(
             update = YptStudyUpdate(
