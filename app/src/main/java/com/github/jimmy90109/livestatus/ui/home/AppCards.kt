@@ -23,6 +23,8 @@ import com.github.jimmy90109.livestatus.YouBikeEvent
 import com.github.jimmy90109.livestatus.YouBikeRideManager
 import com.github.jimmy90109.livestatus.YouBikeRideSessionStore
 import com.github.jimmy90109.livestatus.YouBikeRideUpdate
+import com.github.jimmy90109.livestatus.YptStudyNotificationParser
+import com.github.jimmy90109.livestatus.YptStudyUpdate
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
@@ -57,6 +59,68 @@ internal fun MediaPlaybackCard(
             )
         },
     )
+}
+
+@Composable
+internal fun YptCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.ypt_card_app_name),
+        appPackageName = YPT_PACKAGE,
+        fallbackIconRes = R.drawable.ic_timer_notification,
+        title = stringResource(R.string.ypt_card_title),
+        description = stringResource(R.string.ypt_card_description),
+        supportedLanguages = listOf(stringResource(R.string.media_playback_language_independent)),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.yptContainer,
+        labelColor = colors.yptSecondaryContainer,
+        foregroundColor = colors.yptText,
+        actionColor = colors.yptPrimary,
+    ) {
+        AppActionDivider(colors.yptText)
+        AppCardActionButton(
+            stringResource(R.string.ypt_simulate_start),
+            colors.yptPrimary,
+            colors.yptText,
+            supportingText = stringResource(R.string.monitoring_ypt_running),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showYptStudy(
+                context,
+                YptStudyUpdate(
+                    sourceKey = "debug-ypt-study",
+                    startedAtEpochMillis = System.currentTimeMillis() - 10 * 60_000L,
+                    sourceContentText = "YPT - Study Group",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.ypt_simulate_stop),
+            colors.yptPrimary,
+            colors.yptText,
+            supportingText = stringResource(R.string.monitoring_ypt_stopped),
+        ) {
+            LiveStatusReminder.clearYptStudy(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.ypt_debug_open_payload),
+                colors.yptPrimary,
+                colors.yptText,
+                onClick = onOpenDebug,
+            )
+        }
+    }
 }
 
 
@@ -393,6 +457,7 @@ private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
 private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
 private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
 private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
+private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
 
 private fun youBikeTestTimestamp(secondsAgo: Long = 0): String =
     java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei"))

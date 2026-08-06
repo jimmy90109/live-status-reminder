@@ -14,6 +14,45 @@ import org.junit.Test
 
 class LiveStatusPayloadTest {
     @Test
+    fun yptStudyPayloadUsesChineseCopyAndSourceContent() {
+        val payload = LiveStatusReminder.yptStudyPayload(
+            update = YptStudyUpdate(
+                sourceKey = "ypt|1001",
+                startedAtEpochMillis = 1_700_000_000_000L,
+                sourceContentText = "YPT - Study Group",
+            ),
+            appName = "YPT",
+            criticalText = "讀書中",
+            title = "正在記錄讀書時間",
+            fallbackContentText = "讀書時間持續累積中",
+        )
+
+        assertEquals(R.drawable.ic_timer_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_timer_notification, payload.leftIconRes)
+        assertEquals("YPT", payload.appName)
+        assertEquals("讀書中", payload.criticalText)
+        assertEquals("正在記錄讀書時間", payload.title)
+        assertEquals("YPT - Study Group", payload.contentText)
+    }
+
+    @Test
+    fun yptStudyPayloadFallsBackWhenSourceContentIsMissing() {
+        val payload = LiveStatusReminder.yptStudyPayload(
+            update = YptStudyUpdate(
+                sourceKey = "debug-ypt-study",
+                startedAtEpochMillis = 1_700_000_000_000L,
+                sourceContentText = null,
+            ),
+            appName = "YPT",
+            criticalText = "讀書中",
+            title = "正在記錄讀書時間",
+            fallbackContentText = "讀書時間持續累積中",
+        )
+
+        assertEquals("讀書時間持續累積中", payload.contentText)
+    }
+
+    @Test
     fun ridePayloadUsesQrIconAppNameAndCriticalText() {
         val payload = LiveStatusReminder.ridePayload()
 

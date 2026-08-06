@@ -30,6 +30,7 @@ object LiveStatusReminder {
     private const val YOU_BIKE_NOTIFICATION_ID = 1008
     private const val MEDIA_PLAYBACK_NOTIFICATION_ID = 1009
     private const val TAIWAN_TAXI_NOTIFICATION_ID = 1010
+    private const val YPT_STUDY_NOTIFICATION_ID = 1011
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -404,6 +405,56 @@ object LiveStatusReminder {
     @JvmStatic
     fun clearClockTimer(context: Context) {
         notificationManager(context).cancel(CLOCK_TIMER_NOTIFICATION_ID)
+    }
+
+    internal fun showYptStudy(context: Context, update: YptStudyUpdate) {
+        createChannel(context)
+        val openYpt = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            9,
+            HomeScreenHostActivity.createOpenYptIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = yptStudyPayload(
+            update = update,
+            appName = context.getString(R.string.ypt_card_app_name),
+            criticalText = context.getString(R.string.ypt_live_critical_text),
+            title = context.getString(R.string.ypt_live_title),
+            fallbackContentText = context.getString(R.string.ypt_live_fallback_content),
+            contentIntent = openYpt,
+        )
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    context.getString(R.string.ypt_live_open_action),
+                    openYpt,
+                ).build(),
+            )
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .also {
+                YptStudyNotificationStyle.apply(
+                    it,
+                    update.startedAtEpochMillis,
+                    context.getString(R.string.ypt_live_metric_label),
+                )
+            }
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(YPT_STUDY_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearYptStudy(context: Context) {
+        notificationManager(context).cancel(YPT_STUDY_NOTIFICATION_ID)
     }
 
     @JvmStatic
@@ -854,6 +905,24 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
     }
+
+    internal fun yptStudyPayload(
+        update: YptStudyUpdate,
+        appName: String,
+        criticalText: String,
+        title: String,
+        fallbackContentText: String,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload = LiveStatusPayload(
+        id = YPT_STUDY_NOTIFICATION_ID,
+        appName = appName,
+        smallIconRes = R.drawable.ic_timer_notification,
+        leftIconRes = R.drawable.ic_timer_notification,
+        criticalText = criticalText,
+        title = title,
+        contentText = update.sourceContentText ?: fallbackContentText,
+        contentIntent = contentIntent,
+    )
 
     internal fun formatClockTimerDuration(durationMillis: Long): String {
         val totalSeconds = ((durationMillis.coerceAtLeast(0) + 999) / 1_000)

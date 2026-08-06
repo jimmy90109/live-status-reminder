@@ -61,6 +61,7 @@ private enum class DebugTarget(val appName: String) {
     UBER("Uber"),
     FOODPANDA("foodpanda"),
     UBER_EATS("Uber Eats"),
+    YPT("YPT - Yeolpumta"),
 }
 
 @Composable
@@ -153,6 +154,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
                     DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
+                    DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
                 },
                 cardColor = when (currentDebugTarget) {
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayContainer
@@ -162,6 +164,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
+                    DebugTarget.YPT -> colors.yptContainer
                 },
                 actionColor = when (currentDebugTarget) {
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayPrimary
@@ -171,6 +174,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.FOODPANDA -> colors.foodpandaText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
+                    DebugTarget.YPT -> colors.yptText
                 },
                 showPinDetails = currentDebugTarget == DebugTarget.UBER ||
                     currentDebugTarget == DebugTarget.UBER_EATS,
@@ -186,6 +190,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
                         DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
+                        DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
                     }
                 },
             )
@@ -222,6 +227,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
+                        onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                     )
                 }
             } else {
@@ -247,6 +253,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
+                        onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                     )
                 }
             }

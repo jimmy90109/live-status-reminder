@@ -77,6 +77,7 @@ internal fun AppsSection(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
+    onOpenYptDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
         APP_CATEGORY_PAGE_COUNT
@@ -276,6 +277,15 @@ internal fun AppsSection(
                         },
                     )
                     CATEGORY_TOOL -> {
+                        YptCard(
+                            installed = status.yptInstalled,
+                            enabled = status.yptEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.YPT, it)
+                            },
+                            onOpenDebug = onOpenYptDebug,
+                        )
                         MediaPlaybackCard(
                             enabled = status.mediaPlaybackEnabled,
                             interactionEnabled = status.requiredSettingsComplete,

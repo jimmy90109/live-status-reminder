@@ -22,6 +22,7 @@ object NotificationDebugPayloadStore {
     private val _clockPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _taiwanPayPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _youBikePayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _yptPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
@@ -30,6 +31,34 @@ object NotificationDebugPayloadStore {
     val clockPayloads: StateFlow<List<NotificationDebugPayload>> = _clockPayloads
     val taiwanPayPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanPayPayloads
     val youBikePayloads: StateFlow<List<NotificationDebugPayload>> = _youBikePayloads
+    val yptPayloads: StateFlow<List<NotificationDebugPayload>> = _yptPayloads
+
+    internal fun recordYpt(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        extraction: YptStudyExtraction,
+    ) {
+        val update = extraction.update
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = if (update == null) "NONE" else "RUNNING",
+            parsedPin = null,
+            parsedDetails = linkedMapOf(
+                "sourceKey" to update?.sourceKey.orEmpty(),
+                "startedAtEpochMillis" to update?.startedAtEpochMillis?.toString().orEmpty(),
+                "sourceContentText" to update?.sourceContentText.orEmpty(),
+            ) + extraction.diagnostics,
+        )
+        _yptPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
 
     internal fun recordYouBike(
         context: Context,
@@ -232,6 +261,10 @@ object NotificationDebugPayloadStore {
 
     fun clearYouBike() {
         _youBikePayloads.value = emptyList()
+    }
+
+    fun clearYpt() {
+        _yptPayloads.value = emptyList()
     }
 
     private fun createPayload(

@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、YPT、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -18,6 +18,13 @@
 - 支援運行、暫停、繼續與加一分鐘造成的時間更新；倒數結束或來源通知移除後自動清除。
 - Android 17 優先讀取 `MetricStyle` timer，Android 16 則使用通知 chronometer；不解析畫面文字猜測剩餘時間。
 - 點擊提醒可開啟原始 Clock 計時器，但不複製暫停或加一分鐘操作按鈕。
+
+### YPT（Yeolpumta）
+
+- 偵測 `com.pallo.passiontimerscoped` 的讀書正向計時通知後，以 Live Update 持續顯示目前累積時長。
+- Android 17 使用 `MetricStyle` stopwatch，Android 16 使用通知 chronometer；來源通知已由系統提升時不建立重複提醒。
+- 點擊提醒可開啟 YPT；來源計時通知移除或不再符合計時狀態後自動清除。
+- 功能暫時放在「工具」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆原始 payload，正式版不提供查看入口。
 
 ### iPASS MONEY
 

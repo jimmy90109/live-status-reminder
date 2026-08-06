@@ -4,13 +4,15 @@
     <string name="app_name">即時狀態提醒</string>
     <string name="notification_app_name">LiveStatus</string>
     <string name="notification_channel_name">即時狀態提醒</string>
-    <string name="notification_channel_description">持續顯示倒數計時、乘車、YouBike 騎乘費用、外送訂單與種花狀態</string>
+    <string name="notification_channel_description">持續顯示倒數計時、讀書時長、乘車、YouBike 騎乘費用、外送訂單與種花狀態</string>
     <string name="media_notification_channel_name">媒體播放即時通知</string>
     <string name="media_notification_channel_description">在來源媒體通知未成為 Live Update 時，靜音顯示目前播放內容。</string>
     <string name="home_intro_show">顯示首頁介紹</string>
     <string name="home_intro_hide">隱藏首頁介紹</string>
     <string name="home_intro_collapsed">首頁介紹已收合</string>
     <string name="home_intro_expanded">首頁介紹已展開</string>
+    <string name="home_intro_description">媒體播放、倒數計時、YPT 讀書時長、乘車、YouBike 騎乘、外送與 Pikmin Bloom 種花期間，持續顯示重要狀態。</string>
+    <string name="required_settings_description">完成設定後，App 就能把媒體播放、倒數計時、讀書時長、乘車、外送與種花狀態變成即時通知。</string>
     <string name="app_card_collapsed">試用選項已收起</string>
     <string name="app_card_expanded">試用選項已展開</string>
     <string name="app_card_expand">試用即時通知功能</string>
@@ -39,6 +41,20 @@
     <string name="media_playback_forward_15_seconds">+15 sec</string>
     <string name="media_playback_fast_forward">Fast forward</string>
     <string name="media_playback_next">Next</string>
+
+    <string name="ypt_card_app_name">YPT</string>
+    <string name="ypt_card_title">讀書時長 Live Update</string>
+    <string name="ypt_card_description">YPT 開始記錄讀書時間後，持續顯示目前累積時長；停止計時時自動移除。</string>
+    <string name="ypt_simulate_start">模擬開始讀書</string>
+    <string name="ypt_simulate_stop">模擬停止讀書</string>
+    <string name="monitoring_ypt_running">讀取 YPT 正向計時通知的開始時間，持續累積讀書時長。</string>
+    <string name="monitoring_ypt_stopped">來源計時通知移除或不再符合計時狀態時清除。</string>
+    <string name="ypt_debug_open_payload">查看通知 payload</string>
+    <string name="ypt_live_critical_text">讀書中</string>
+    <string name="ypt_live_title">正在記錄讀書時間</string>
+    <string name="ypt_live_fallback_content">讀書時間持續累積中</string>
+    <string name="ypt_live_metric_label">讀書時間</string>
+    <string name="ypt_live_open_action">開啟 YPT</string>
 
     <string name="you_bike_tracking_title">YouBike 騎乘費用追蹤</string>
     <string name="you_bike_tracking_description">YouBike 騎乘中顯示目前預估費用與下一次費用變更時間。目前支援全臺 YouBike 服務區域的一般會員費率；站點無法辨識時，可在還車後選擇寄送回報。</string>

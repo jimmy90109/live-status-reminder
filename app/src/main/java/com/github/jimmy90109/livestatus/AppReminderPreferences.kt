@@ -25,6 +25,7 @@ object AppReminderPreferences {
         UBER_RIDE("uber_ride_enabled"),
         UBER_EATS("uber_eats_enabled"),
         PIKMIN_BLOOM("pikmin_bloom_enabled"),
+        YPT("ypt_enabled"),
         ;
 
         fun isEnabled(context: Context, installed: Boolean = true): Boolean {

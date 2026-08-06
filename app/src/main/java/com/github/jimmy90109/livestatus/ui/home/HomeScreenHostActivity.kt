@@ -64,6 +64,7 @@ import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
 import com.github.jimmy90109.livestatus.TaiwanTaxiRideManager
 import com.github.jimmy90109.livestatus.YouBikeRideManager
+import com.github.jimmy90109.livestatus.YptStudyNotificationParser
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
 import kotlinx.coroutines.CancellationException
@@ -87,6 +88,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_UBER -> openUber()
             ACTION_OPEN_UBER_EATS -> openUberEats()
             ACTION_OPEN_PIKMIN_BLOOM -> openPikminBloom()
+            ACTION_OPEN_YPT -> openYpt()
             else -> {
                 setContent {
                     LiveStatusTheme {
@@ -123,6 +125,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
+        val yptInstalled = isPackageInstalled(YPT_PACKAGE)
         val brandWarning = detectBrandWarning()
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
@@ -136,6 +139,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             uberInstalled = uberInstalled,
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
+            yptInstalled = yptInstalled,
             brandWarning = brandWarning,
             brandWarningDismissed =
                 AppReminderPreferences.isBrandWarningDismissed(this),
@@ -154,6 +158,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             uberEatsEnabled = AppReminderPreferences.App.UBER_EATS.isEnabled(this, uberEatsInstalled),
             pikminBloomEnabled =
                 AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this, pikminBloomInstalled),
+            yptEnabled = AppReminderPreferences.App.YPT.isEnabled(this, yptInstalled),
         )
     }
 
@@ -233,6 +238,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openPikminBloom() = openPackage(PIKMIN_BLOOM_PACKAGE, "Pikmin Bloom")
 
+    private fun openYpt() = openPackage(YPT_PACKAGE, "YPT")
+
     private fun openPackage(targetPackageName: String, appName: String) {
         packageManager.getLaunchIntentForPackage(targetPackageName)?.let {
             startActivity(it)
@@ -262,6 +269,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.UBER_RIDE -> LiveStatusReminder.clearUberRide(this)
             AppReminderPreferences.App.UBER_EATS -> LiveStatusReminder.clearUberEats(this)
             AppReminderPreferences.App.PIKMIN_BLOOM -> LiveStatusReminder.clearPikminBloom(this)
+            AppReminderPreferences.App.YPT -> LiveStatusReminder.clearYptStudy(this)
         }
     }
 
@@ -290,6 +298,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_UBER_EATS"
         private const val ACTION_OPEN_PIKMIN_BLOOM =
             "com.github.jimmy90109.livestatus.action.OPEN_PIKMIN_BLOOM"
+        private const val ACTION_OPEN_YPT =
+            "com.github.jimmy90109.livestatus.action.OPEN_YPT"
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
@@ -299,6 +309,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val UBER_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
+        private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val SAMSUNG_NOW_BAR_GUIDE_URL =
             "https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html"
         private const val PRIVACY_POLICY_URL =
@@ -340,6 +351,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
         fun createOpenPikminBloomIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_PIKMIN_BLOOM)
 
+        @JvmStatic
+        fun createOpenYptIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_YPT)
+
         private fun openAppIntent(context: Context, action: String): Intent =
             Intent(context, MainActivity::class.java)
                 .setAction(action)
@@ -359,6 +374,7 @@ internal data class StatusSnapshot(
     val uberInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val pikminBloomInstalled: Boolean = false,
+    val yptInstalled: Boolean = false,
     val brandWarning: BrandWarning? = null,
     val brandWarningDismissed: Boolean = false,
     val mediaPlaybackEnabled: Boolean = false,
@@ -372,6 +388,7 @@ internal data class StatusSnapshot(
     val uberEnabled: Boolean = false,
     val uberEatsEnabled: Boolean = false,
     val pikminBloomEnabled: Boolean = false,
+    val yptEnabled: Boolean = false,
 ) {
     val requiredSettingsComplete: Boolean
         get() = notificationAccess && notificationPermission

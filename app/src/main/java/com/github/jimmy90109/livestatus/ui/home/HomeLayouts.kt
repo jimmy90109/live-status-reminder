@@ -95,6 +95,7 @@ internal fun HomeContentWide(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
+    onOpenYptDebug: () -> Unit,
 ) {
     AppsSection(
         modifier = Modifier
@@ -125,6 +126,7 @@ internal fun HomeContentWide(
         onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
         onOpenUberDebug = onOpenUberDebug,
         onOpenUberEatsDebug = onOpenUberEatsDebug,
+        onOpenYptDebug = onOpenYptDebug,
     )
 }
 
@@ -148,6 +150,7 @@ internal fun HomeContentNarrow(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
+    onOpenYptDebug: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val appsViewportHeight =
@@ -318,6 +321,7 @@ internal fun HomeContentNarrow(
                 onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
                 onOpenUberDebug = onOpenUberDebug,
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
+                onOpenYptDebug = onOpenYptDebug,
             )
         }
     }

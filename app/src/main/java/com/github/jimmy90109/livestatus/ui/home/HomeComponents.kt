@@ -24,11 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 @Composable
@@ -50,7 +52,7 @@ internal fun HeroCard(onOpenSettings: () -> Unit) {
         AppText("重要狀態，\n留在最前面。", 34, colors.onSurface, true)
         Spacer(Modifier.height(12.dp))
         AppText(
-            "媒體播放、倒數計時、乘車、YouBike 騎乘、外送與 Pikmin Bloom 種花期間，持續顯示重要狀態。",
+            stringResource(R.string.home_intro_description),
             16,
             colors.onSurfaceVariant,
         )

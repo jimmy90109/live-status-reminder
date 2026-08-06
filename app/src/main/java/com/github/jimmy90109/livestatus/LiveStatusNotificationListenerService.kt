@@ -16,6 +16,7 @@ import android.widget.TextView
 
 class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val clockTimerTracker = ClockTimerTracker()
+    private val yptStudyTracker = YptStudyTracker()
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
     private val clockTimerRefreshRunnable = Runnable(::refreshClockTimer)
@@ -223,6 +224,27 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             PIKMIN_BLOOM_PACKAGE -> if (AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this)) {
                 handlePikminBloomNotification(notificationText)
             }
+            YPT_PACKAGE -> {
+                val extraction = YptStudyNotificationExtractor.extract(statusBarNotification)
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordYpt(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                        extraction,
+                    )
+                }
+                if (AppReminderPreferences.App.YPT.isEnabled(this)) {
+                    handleYptStudyDecision(
+                        yptStudyTracker.onPosted(statusBarNotification.key, extraction.update),
+                    )
+                } else {
+                    yptStudyTracker.reset()
+                    LiveStatusReminder.clearYptStudy(this)
+                }
+            }
         }
     }
 
@@ -253,6 +275,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             handleClockTimerDecision(clockTimerTracker.onRemoved(statusBarNotification.key))
             return
         }
+        if (statusBarNotification.packageName == YPT_PACKAGE) {
+            handleYptStudyDecision(yptStudyTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
 
         val notificationText = readNotificationText(statusBarNotification.notification)
@@ -272,7 +298,9 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        mediaPlaybackMonitor.start(getActiveNotifications())
+        val activeNotifications = getActiveNotifications()
+        mediaPlaybackMonitor.start(activeNotifications)
+        restoreYptStudy(activeNotifications)
         YouBikeRideManager.restore(this)
     }
 
@@ -295,6 +323,29 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             }
             ClockTimerDecision.None -> Unit
         }
+    }
+
+    private fun handleYptStudyDecision(decision: YptStudyDecision) {
+        when (decision) {
+            is YptStudyDecision.Show -> LiveStatusReminder.showYptStudy(this, decision.update)
+            YptStudyDecision.Clear -> LiveStatusReminder.clearYptStudy(this)
+            YptStudyDecision.None -> Unit
+        }
+    }
+
+    private fun restoreYptStudy(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.YPT.isEnabled(this)) {
+            yptStudyTracker.reset()
+            LiveStatusReminder.clearYptStudy(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { it.packageName == YPT_PACKAGE }
+            .mapNotNull { YptStudyNotificationExtractor.extract(it).update }
+            .toList()
+        handleYptStudyDecision(yptStudyTracker.restore(updates))
     }
 
     private fun showAndScheduleClockTimer(update: ClockTimerUpdate) {
@@ -505,6 +556,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
+        private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
 
         @JvmStatic
         fun readNotificationText(notification: Notification): String {
