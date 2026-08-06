@@ -1,5 +1,5 @@
 # Generated station-name index. Refresh with tools/update_youbike_station_index.py.
-# generatedAt=2026-08-02T16:29:05+00:00 source=TDX rows=9406
+# generatedAt=2026-08-04T17:03:02+00:00 source=TDX rows=9409
 YouBike2.0_(竹科)介壽路	HsinchuSciencePark
 YouBike2.0_(竹科)創新三路	HsinchuSciencePark
 YouBike2.0_(竹科)力行一路力行六路口	HsinchuSciencePark
@@ -2303,6 +2303,7 @@ YouBike2.0_國家圖書館	Taipei
 YouBike2.0_國家教育研究院	Taichung
 YouBike2.0_國家檔案館	NewTaipei
 YouBike2.0_國家檔案館(文化一路)	NewTaipei
+YouBike2.0_國家環境研究院	Taoyuan
 YouBike2.0_國家生技園區	Taipei
 YouBike2.0_國家生物模式中心	Taipei
 YouBike2.0_國家衛生研究院	Miaoli
@@ -2618,6 +2619,7 @@ YouBike2.0_大崙公車站	ChiayiCounty
 YouBike2.0_大崙新興宮	ChiayiCounty
 YouBike2.0_大工工三路口	Taoyuan
 YouBike2.0_大平山公園	Taoyuan
+YouBike2.0_大平里市民活動中心	Taoyuan
 YouBike2.0_大庄一號公園	NewTaipei
 YouBike2.0_大庄福德宮	NewTaipei
 YouBike2.0_大度立德路口	Taipei
@@ -9355,6 +9357,7 @@ YouBike2.0_龍慈游泳路口	Taoyuan
 YouBike2.0_龍慈路後寮一路口	Taoyuan
 YouBike2.0_龍慈路龍岡路三段281巷口	Taoyuan
 YouBike2.0_龍東派出所	Taichung
+YouBike2.0_龍江平面停車場	Taipei
 YouBike2.0_龍江朱崙街口	Taipei
 YouBike2.0_龍江路345巷	Taipei
 YouBike2.0_龍江錦州街口	Taipei
