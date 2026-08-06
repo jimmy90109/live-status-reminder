@@ -8,6 +8,10 @@ object LiveStatusNotificationParser {
         """(?m)(?:^|\n)\s*(\d)\s*\n\s*(\d)\s*\n\s*(\d)\s*\n\s*(\d)\s*(?:\n|$)""",
     )
     private val taiwanPayRideLine = Regex("""^(.+?站)\s*(上車|下車)通知$""")
+    private val taiwanTaxiPlate = Regex(
+        """已替您找到車輛\s*([A-Z0-9]{2,4}-[A-Z0-9]{2,4})(?=[^\p{L}\p{N}]|$)""",
+        RegexOption.IGNORE_CASE,
+    )
 
     enum class RideEvent {
         NONE,
@@ -39,6 +43,13 @@ object LiveStatusNotificationParser {
         PICKUP_NEARBY,
         ARRIVED,
         ON_TRIP,
+        TRIP_ENDED,
+    }
+
+    enum class TaiwanTaxiEvent {
+        NONE,
+        DRIVER_FOUND,
+        VEHICLE_ARRIVED,
         TRIP_ENDED,
     }
 
@@ -75,6 +86,11 @@ object LiveStatusNotificationParser {
     data class TaiwanPayRideUpdate(
         val event: RideEvent,
         val stationName: String? = null,
+    )
+
+    data class TaiwanTaxiUpdate(
+        val event: TaiwanTaxiEvent,
+        val plate: String? = null,
     )
 
     data class UberRideUpdate(
@@ -120,6 +136,33 @@ object LiveStatusNotificationParser {
             event = if (match.groupValues[2] == "下車") RideEvent.EXITED else RideEvent.ENTERED,
             stationName = match.groupValues[1].trim(),
         )
+    }
+
+    @JvmStatic
+    fun parseTaiwanTaxi(
+        notificationTitle: String?,
+        notificationContentText: String?,
+        notificationText: String?,
+    ): TaiwanTaxiUpdate {
+        val titleLines = notificationTitle.cleanLines().ifEmpty {
+            notificationText.cleanLines()
+        }
+        val event = when {
+            TAIWAN_TAXI_TRIP_ENDED_TITLE in titleLines -> TaiwanTaxiEvent.TRIP_ENDED
+            TAIWAN_TAXI_VEHICLE_ARRIVED_TITLE in titleLines -> TaiwanTaxiEvent.VEHICLE_ARRIVED
+            TAIWAN_TAXI_DRIVER_FOUND_TITLE in titleLines -> TaiwanTaxiEvent.DRIVER_FOUND
+            else -> TaiwanTaxiEvent.NONE
+        }
+        if (event == TaiwanTaxiEvent.TRIP_ENDED || event == TaiwanTaxiEvent.NONE) {
+            return TaiwanTaxiUpdate(event)
+        }
+
+        val plate = sequenceOf(notificationContentText, notificationText)
+            .filterNotNull()
+            .mapNotNull { text -> taiwanTaxiPlate.find(text)?.groupValues?.getOrNull(1) }
+            .firstOrNull()
+            ?.uppercase(Locale.ROOT)
+        return TaiwanTaxiUpdate(event = event, plate = plate)
     }
 
     @JvmStatic
@@ -396,6 +439,9 @@ object LiveStatusNotificationParser {
         }
 
     private const val UBER_RIDE_NEARBY_MINUTES = 2
+    private const val TAIWAN_TAXI_DRIVER_FOUND_TITLE = "已找到司機"
+    private const val TAIWAN_TAXI_VEHICLE_ARRIVED_TITLE = "車輛已抵達"
+    private const val TAIWAN_TAXI_TRIP_ENDED_TITLE = "行程已完成"
     private val UBER_RIDE_ZH_PICKUP_ETA = Regex("""(\d+)\s*分鐘內上車""")
     private val UBER_RIDE_ZH_PICKUP_POINT = Regex("""^在\s*(.+?)\s*碰面$""")
     private val UBER_RIDE_ZH_PICKUP_NEARBY = Regex("""\S+\s*即將抵達$""")

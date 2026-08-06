@@ -57,6 +57,7 @@ private enum class DebugTarget(val appName: String) {
     TAIWAN_PAY("台灣 Pay"),
     CLOCK("Clock"),
     YOU_BIKE("YouBike"),
+    TAIWAN_TAXI("55688"),
     UBER("Uber"),
     FOODPANDA("foodpanda"),
     UBER_EATS("Uber Eats"),
@@ -126,14 +127,14 @@ internal fun HomeScreenHostActivity.MainScreen(
     )
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
     val safeTopPadding = safeDrawingPadding.calculateTopPadding()
-    val scrollTopPadding = safeTopPadding + 20.dp
-    val heroTopPadding = maxOf(safeTopPadding, 20.dp)
-    val scrollBottomPadding = safeDrawingPadding.calculateBottomPadding() + 32.dp
-    val appPagerBottomPadding =
+    val scrollTopPadding = maxOf(safeTopPadding, 20.dp)
+    val heroTopPadding = scrollTopPadding
+    val scrollBottomPadding =
         maxOf(
             WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
             20.dp,
         )
+    val appPagerBottomPadding = scrollBottomPadding
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -148,6 +149,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.taiwanPayPayloads
                     DebugTarget.CLOCK -> NotificationDebugPayloadStore.clockPayloads
                     DebugTarget.YOU_BIKE -> NotificationDebugPayloadStore.youBikePayloads
+                    DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.taiwanTaxiPayloads
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
                     DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
@@ -156,6 +158,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayContainer
                     DebugTarget.CLOCK -> colors.clockContainer
                     DebugTarget.YOU_BIKE -> colors.youBikeContainer
+                    DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiContainer
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
@@ -164,6 +167,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayPrimary
                     DebugTarget.CLOCK -> colors.onSurface
                     DebugTarget.YOU_BIKE -> colors.youBikeText
+                    DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiText
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.FOODPANDA -> colors.foodpandaText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
@@ -178,6 +182,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.clearTaiwanPay()
                         DebugTarget.CLOCK -> NotificationDebugPayloadStore.clearClock()
                         DebugTarget.YOU_BIKE -> NotificationDebugPayloadStore.clearYouBike()
+                        DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.clearTaiwanTaxi()
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
                         DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
@@ -214,6 +219,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
+                        onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                     )
@@ -238,6 +244,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
+                        onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                     )
@@ -335,19 +342,21 @@ private fun NotificationAccessDisclosureDialog(
         title = { Text("允許讀取通知前，請先了解") },
         text = {
             Text(
-                "即時狀態提醒會讀取媒體播放、Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
-                    "用來辨識曲名與作者、倒數計時、乘車、YouBike 騎乘費用、外送進度、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
+                "即時狀態提醒會讀取媒體播放、Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                    "用來辨識曲名與作者、倒數計時、乘車、YouBike 騎乘費用、外送進度、55688 車牌、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
-                    "也不會永久儲存通知內容或 PIN。YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
+                    "也不會永久儲存通知內容、車牌或 PIN。YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
             )
         },
         confirmButton = {
-            TextButton(onClick = onContinue) {
+            TextButton(
+                onClick = rememberHapticAction(HapticEffect.CONFIRM, onContinue),
+            ) {
                 Text("了解並前往設定")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = rememberHapticAction(action = onDismiss)) {
                 Text("暫時不要")
             }
         },

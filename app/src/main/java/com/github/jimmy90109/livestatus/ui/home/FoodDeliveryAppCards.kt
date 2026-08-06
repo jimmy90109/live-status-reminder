@@ -9,7 +9,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +26,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -89,11 +87,14 @@ internal fun FoodpandaCard(
         cardColor = colors.foodpandaContainer,
         labelColor = colors.foodpandaSecondaryContainer,
         foregroundColor = colors.foodpandaText,
+        actionColor = colors.foodpandaPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.platform_special_status_warning_title),
+                description = stringResource(R.string.platform_special_status_warning_description),
+            )
+        },
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.platform_special_status_warning_title),
-            description = stringResource(R.string.platform_special_status_warning_description),
-        )
         AppActionDivider(colors.foodpandaText)
         AppCardActionButton(
             "模擬外送中",
@@ -154,11 +155,14 @@ internal fun UberEatsCard(
         cardColor = colors.uberEatsContainer,
         labelColor = colors.uberEatsSecondaryContainer,
         foregroundColor = colors.uberEatsText,
+        actionColor = colors.uberEatsPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.platform_special_status_warning_title),
+                description = stringResource(R.string.platform_special_status_warning_description),
+            )
+        },
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.platform_special_status_warning_title),
-            description = stringResource(R.string.platform_special_status_warning_description),
-        )
         AppActionDivider(colors.uberEatsText)
         UberEatsTestButton(
             label = "模擬訂單已收到",

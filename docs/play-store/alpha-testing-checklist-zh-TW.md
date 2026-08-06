@@ -1,20 +1,16 @@
 # 封閉測試 Alpha 驗證清單
 
-已審查通過版本：`2608030 (1.0.4)`
+已審查通過版本：`2608050 (1.0.5)`
 
-最新 Alpha 上傳版本：`2608030 (1.0.4)`
+最新 Alpha 上傳版本：`2608050 (1.0.5)`
 
-Alpha 審查狀態：`2608030 (1.0.4)` 已於 2026-08-03 01:12 通過審查並可供測試人員使用
+Alpha 審查狀態：`2608050 (1.0.5)` 已於 2026-08-05 通過審查並發布，可供測試人員使用
 
-## 審查通過後立即確認
+本機發版候選：`2608050 (1.0.5)`，已用於 Alpha
 
-- [x] Play Console Alpha 審查已通過。
-- [x] Play Console 已上傳 `2607101 (1.0.0-beta3)` 至 Alpha。
-- [x] Play Console 顯示最新 Alpha 版本已可供測試人員安裝。
-- [ ] 測試者 Google 帳號已加入 `livestatus--app@googlegroups.com`。
-- [ ] 測試者已開啟測試邀請連結並選擇加入測試。
-- [ ] 測試裝置可從 Google Play 安裝「LiveStatus 即時狀態提醒」。
-- [ ] 安裝來源顯示為 Google Play，而不是本機 sideload。
+候選 AAB SHA-256：`c8ca6a6db099d3e75b750393357047bdd5a27f936c9820ec696620fd9c9cc559`
+
+候選 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`
 
 ## 首次啟動與權限流程
 
@@ -67,6 +63,9 @@ Alpha 審查狀態：`2608030 (1.0.4)` 已於 2026-08-03 01:12 通過審查並�
 - [ ] foodpanda 外送中通知可建立外送提醒。
 - [ ] foodpanda 即將抵達通知可更新狀態。
 - [ ] foodpanda 送達或取消後可結束提醒。
+- [ ] 55688「已找到司機」通知可建立提醒，並顯示從指定文案取得的車牌。
+- [ ] 55688「車輛已抵達」可更新狀態並沿用車牌；「行程已完成」可清除提醒。
+- [ ] 55688 功能關閉時清除通知與記憶體狀態，重新開啟後不沿用舊車牌。
 - [ ] Uber 乘車進度通知可建立提醒。
 - [ ] Uber 快抵達、已抵達、已上車等狀態可更新提醒。
 - [ ] Uber 通知包含 PIN 時，App 僅在裝置上顯示，不上傳或永久儲存。
@@ -74,28 +73,3 @@ Alpha 審查狀態：`2608030 (1.0.4)` 已於 2026-08-03 01:12 通過審查並�
 - [ ] Uber Eats 取餐、配送、即將抵達等狀態可更新提醒。
 - [ ] Uber Eats 通知包含交付 PIN 時，App 僅在裝置上顯示，不上傳或永久儲存。
 - [ ] 點擊提醒可開啟對應 App；未安裝時可前往 Google Play。
-
-## 隱私與資料安全驗證
-
-- [ ] App 沒有要求帳號登入。
-- [ ] App 沒有廣告或分析 SDK 行為。
-- [ ] App 不會自動傳送完整通知內容、PIN 或使用者資料到外部伺服器。
-- [ ] YouBike 站點回報只有在使用者點擊並於 Email App 確認寄出後才離開裝置；去重偏好只含索引版本與站名雜湊，不含站名明文。
-- [ ] 隱私權政策連結可正常開啟：<https://jimmy90109.github.io/live-status-reminder/>。
-- [ ] Play Console「資料安全性」內容仍符合目前實作：自動通知處理不收集、不分享資料；選用 Email 回報依當下 user-initiated action 規則完成核對。
-- [ ] Release merged manifest 包含 `SCHEDULE_EXACT_ALARM`，且不包含 `USE_EXACT_ALARM`；若 Play Console 要求，完成對應權限用途說明。
-
-## Play Console 觀察項目
-
-- [ ] Pre-launch report 無重大 crash、ANR 或政策警告。
-- [ ] Android vitals 無新增重大問題。
-- [ ] 測試人員可成功安裝與啟動。
-- [ ] 若 Play Console 要求 12 位測試者連續 14 天測試，記錄開始日期與結束日期。
-
-## 正式版前最後檢查
-
-- [ ] 若有任何程式碼變更，遞增 `versionCode`。
-- [ ] 若已不再是測試版，將 `versionName` 從目前測試版名稱調整為正式版本名稱。
-- [ ] 更新商店版本資訊。
-- [ ] 重新執行 `./gradlew test lintRelease bundleRelease`。
-- [ ] 使用正式簽署 AAB 建立 Production release。

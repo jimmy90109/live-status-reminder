@@ -47,7 +47,7 @@ internal fun SettingsPage(
         verticalArrangement = Arrangement.Top,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
+            IconButton(onClick = rememberHapticAction(action = onBack)) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "返回",
@@ -110,7 +110,7 @@ internal fun RequiredSettingsSection(
                 SettingCard(
                     number = "01",
                     title = "讀取狀態通知",
-                    description = "允許 App 辨識媒體播放、Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
+                    description = "允許 App 辨識媒體播放、Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
                     enabled = status.notificationAccess,
                     enabledText = "已開啟",
                     disabledText = "尚未開啟",
@@ -155,7 +155,7 @@ internal fun BrandWarningCard(
                 )
             }
             if (onDismiss != null) {
-                IconButton(onClick = onDismiss) {
+                IconButton(onClick = rememberHapticAction(action = onDismiss)) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
                         contentDescription = "關閉",

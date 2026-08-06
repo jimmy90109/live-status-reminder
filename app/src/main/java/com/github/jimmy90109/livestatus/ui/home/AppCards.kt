@@ -50,12 +50,13 @@ internal fun MediaPlaybackCard(
         cardColor = colors.commonContainer,
         labelColor = colors.commonSurface,
         foregroundColor = colors.onSurface,
-    ) {
-        AppWarningNotice(
-            title = stringResource(R.string.media_playback_limitation_title),
-            description = stringResource(R.string.media_playback_limitation_description),
-        )
-    }
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.media_playback_limitation_title),
+                description = stringResource(R.string.media_playback_limitation_description),
+            )
+        },
+    )
 }
 
 
@@ -72,8 +73,8 @@ internal fun IpassCard(
         appName = "iPASS MONEY",
         appPackageName = IPASS_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
-        title = null,
-        description = null,
+        title = stringResource(R.string.transit_code_card_title),
+        description = stringResource(R.string.transit_code_status_description),
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
@@ -82,6 +83,7 @@ internal fun IpassCard(
         cardColor = colors.ipassContainer,
         labelColor = colors.ipassSecondaryContainer,
         foregroundColor = colors.onSurface,
+        actionColor = colors.ipassPrimary,
     ) {
         Spacer(Modifier.height(4.dp))
         AppCardActionButton(
@@ -118,8 +120,8 @@ internal fun TaiwanPayCard(
         appName = "台灣 Pay",
         appPackageName = TAIWAN_PAY_PACKAGE,
         fallbackIconRes = R.drawable.ic_notification,
-        title = null,
-        description = null,
+        title = stringResource(R.string.transit_code_card_title),
+        description = stringResource(R.string.transit_code_status_description),
         supportedLanguages = listOf("繁中"),
         installed = installed,
         enabled = enabled,
@@ -128,6 +130,7 @@ internal fun TaiwanPayCard(
         cardColor = colors.taiwanPayContainer,
         labelColor = colors.taiwanPaySecondaryContainer,
         foregroundColor = colors.onSurface,
+        actionColor = colors.taiwanPayPrimary,
     ) {
         Spacer(Modifier.height(4.dp))
         AppCardActionButton(
@@ -183,11 +186,14 @@ internal fun ClockCard(
         cardColor = colors.clockContainer,
         labelColor = colors.clockSurface,
         foregroundColor = colors.clockText,
+        actionColor = colors.clockPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.clock_aod_update_warning_title),
+                description = stringResource(R.string.clock_aod_update_warning_description),
+            )
+        },
     ) {
-        AppWarningNotice(
-            title = stringResource(R.string.clock_aod_update_warning_title),
-            description = stringResource(R.string.clock_aod_update_warning_description),
-        )
         AppActionDivider(colors.clockText)
         AppCardActionButton(
             "模擬 22 分鐘倒數",
@@ -264,30 +270,35 @@ internal fun YouBikeCard(
         cardColor = colors.youBikeContainer,
         labelColor = colors.youBikeSecondaryContainer,
         foregroundColor = colors.youBikeText,
-    ) {
-        if (enabled && !exactAlarmAllowed) {
-            AppWarningNotice(
-                title = stringResource(R.string.you_bike_exact_alarm_disabled_title),
-                description = stringResource(R.string.you_bike_exact_alarm_disabled_description),
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            ActionButton(
-                label = stringResource(R.string.you_bike_exact_alarm_allow_action),
-                background = MaterialTheme.colorScheme.error,
-                foreground = MaterialTheme.colorScheme.onError,
-            ) {
-                context.startActivity(
-                    Intent(
-                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                        "package:${context.packageName}".toUri(),
-                    ),
+        actionColor = colors.youBikePrimary,
+        notices = if (enabled && !exactAlarmAllowed) {
+            {
+                AppWarningNotice(
+                    title = stringResource(R.string.you_bike_exact_alarm_disabled_title),
+                    description = stringResource(R.string.you_bike_exact_alarm_disabled_description),
+                    outlineColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.error,
+                    action = {
+                        ActionButton(
+                            label = stringResource(R.string.you_bike_exact_alarm_allow_action),
+                            background = MaterialTheme.colorScheme.error,
+                            foreground = MaterialTheme.colorScheme.onError,
+                        ) {
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                                    "package:${context.packageName}".toUri(),
+                                ),
+                            )
+                        }
+                    },
                 )
             }
-            AppActionDivider(colors.youBikeText)
         } else {
-            AppActionDivider(colors.youBikeText)
+            null
         }
+    ) {
+        AppActionDivider(colors.youBikeText)
         AppCardActionButton(
             stringResource(R.string.you_bike_simulate_borrow),
             colors.youBikePrimary,
