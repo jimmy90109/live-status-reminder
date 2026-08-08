@@ -1,5 +1,5 @@
 # Generated station-name index. Refresh with tools/update_youbike_station_index.py.
-# generatedAt=2026-08-04T17:03:02+00:00 source=TDX rows=9409
+# generatedAt=2026-08-06T15:24:00+00:00 source=TDX rows=9416
 YouBike2.0_(竹科)介壽路	HsinchuSciencePark
 YouBike2.0_(竹科)創新三路	HsinchuSciencePark
 YouBike2.0_(竹科)力行一路力行六路口	HsinchuSciencePark
@@ -1058,6 +1058,7 @@ YouBike2.0_佳里區仁愛國小	Tainan
 YouBike2.0_佳里區公所	Tainan
 YouBike2.0_佳里國中	Tainan
 YouBike2.0_佳里國小(文化路)	Tainan
+YouBike2.0_佳鋐新邑	Taichung
 YouBike2.0_來義高中	Pingtung
 YouBike2.0_俊興三龍街口	NewTaipei
 YouBike2.0_俊興俊安街口	NewTaipei
@@ -1713,6 +1714,7 @@ YouBike2.0_南京東路四段179巷口	Taipei
 YouBike2.0_南京林森路口	Taipei
 YouBike2.0_南京漢口路口	ChiayiCity
 YouBike2.0_南京西寧北路口(西北側)	Taipei
+YouBike2.0_南京進德路口	Taichung
 YouBike2.0_南京遼寧街口	Taipei
 YouBike2.0_南京龍江路口	Taipei
 YouBike2.0_南光高中	Tainan
@@ -2777,6 +2779,7 @@ YouBike2.0_大社東勢北極殿	Tainan
 YouBike2.0_大秀國小	Taichung
 YouBike2.0_大稻埕公園	Taipei
 YouBike2.0_大稻埕碼頭	Taipei
+YouBike2.0_大竹北路(嘉綠墅社區)	Taoyuan
 YouBike2.0_大竹國小	Taoyuan
 YouBike2.0_大竹游泳池	Taoyuan
 YouBike2.0_大義三樹路口	NewTaipei
@@ -3367,6 +3370,7 @@ YouBike2.0_左營高中	Kaohsiung
 YouBike2.0_左鎮化石園區	Tainan
 YouBike2.0_巧聖先師廟	Taichung
 YouBike2.0_巨大大甲分公司	Taichung
+YouBike2.0_巨大機械外埔宿舍	Taichung
 YouBike2.0_巨大集團總部	Taichung
 YouBike2.0_巨輪協和路口	Kaohsiung
 YouBike2.0_巴克禮公園	Tainan
@@ -3502,6 +3506,7 @@ YouBike2.0_廣停三停車場	Miaoli
 YouBike2.0_廣停二停車場	NewTaipei
 YouBike2.0_廣停二公有停車場	Taichung
 YouBike2.0_廣停五停車場	Taichung
+YouBike2.0_廣停四停車場	Taichung
 YouBike2.0_廣八公園	HsinchuCounty
 YouBike2.0_廣兼停8停車場	Taichung
 YouBike2.0_廣十地下停車場	Taichung
@@ -6181,6 +6186,7 @@ YouBike2.0_沙田天仁街口	Taichung
 YouBike2.0_沙田沙田路三段889巷口	Taichung
 YouBike2.0_沙田興和路口(東北側)	Taichung
 YouBike2.0_沙田興和路口(東南側)	Taichung
+YouBike2.0_沙田路一段550巷口	Taichung
 YouBike2.0_沙田路五段315巷口	Taichung
 YouBike2.0_沙田路永和巷口	Taichung
 YouBike2.0_沙鹿區兒童公園	Taichung
@@ -8519,6 +8525,7 @@ YouBike2.0_進業公園(東英十五街)	Taichung
 YouBike2.0_逸仙松高路口	Taipei
 YouBike2.0_遊園北遠東街口	Taichung
 YouBike2.0_遊園南遊園南路314巷口	Taichung
+YouBike2.0_遊園路一段8巷遊園路口	Taichung
 YouBike2.0_運五棒球場	Taichung
 YouBike2.0_運河公園	Tainan
 YouBike2.0_運河星鑽停車場	Tainan
