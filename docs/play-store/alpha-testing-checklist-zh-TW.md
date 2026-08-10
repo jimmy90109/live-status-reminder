@@ -46,6 +46,11 @@ Alpha 審查狀態：`2608050 (1.0.5)` 已於 2026-08-05 通過審查並發布�
 - [ ] 同時存在多個計時器時只顯示來源指定的主要倒數。
 - [ ] Google 時鐘碼表通知不會建立鏡像，也不會誤清除不同通知 key 的倒數提醒。
 - [ ] Android 16 chronometer 與 Android 17 MetricStyle 路徑皆完成實機驗證。
+- [ ] Google Recorder 繁中「準備錄音」／英文 `Prepare to record` 初始化通知不建立 Live Update；「正在錄音」／`Currently recording` 建立紅色正向計時提醒，時間與來源一致。
+- [ ] `Recording paused` 固定顯示目前錄音長度，Resume recording／Save recording 來源 action 可操作；繼續錄音後不把暫停時間計入。
+- [ ] Recorder 通知移除、通知不再符合或關閉工具分頁開關時立即清除；通知監聽器重連可從現有錄音通知恢復。
+- [ ] 其他 channel、非 ongoing／foreground 通知、錯誤時長及未支援語言文案不會誤判；Release build 不顯示 payload 查看入口。
+- [ ] Recorder 卡片與 Live Update 在淺色、深色、大字級、橫向及公開鎖定畫面維持紅色品牌色與足夠對比。
 - [ ] YPT 開始讀書時建立正向計時 Live Update，開始時間與來源一致，內容顯示來源 `contentText`。
 - [ ] YPT 來源通知移除或不再符合正向計時特徵時清除；其他 YPT 通知與不同 notification key 不會誤清除。
 - [ ] YPT 來源已由系統提升時不建立重複提醒；通知監聽器重連時可從現有活躍通知恢復。

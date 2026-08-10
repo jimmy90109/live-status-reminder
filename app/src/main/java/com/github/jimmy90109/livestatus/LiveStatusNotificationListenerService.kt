@@ -19,6 +19,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val yptStudyTracker = YptStudyTracker()
     private val hevyWorkoutTracker = HevyWorkoutTracker()
     private val discordVoiceTracker = DiscordVoiceTracker()
+    private val recorderTracker = RecorderTracker()
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
     private val clockTimerRefreshRunnable = Runnable(::refreshClockTimer)
@@ -53,6 +54,23 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            GOOGLE_RECORDER_PACKAGE -> {
+                val extraction = GoogleRecorderNotificationExtractor.extract(
+                    statusBarNotification,
+                    notificationText,
+                )
+                if (BuildConfig.DEBUG) {
+                    recordGoogleRecorder(statusBarNotification, "POSTED", extraction)
+                }
+                if (AppReminderPreferences.App.GOOGLE_RECORDER.isEnabled(this)) {
+                    handleRecorderDecision(
+                        recorderTracker.onPosted(statusBarNotification.key, extraction),
+                    )
+                } else {
+                    recorderTracker.reset()
+                    LiveStatusReminder.clearGoogleRecorder(this)
+                }
+            }
             DISCORD_PACKAGE -> {
                 val extraction = DiscordVoiceNotificationExtractor.extract(statusBarNotification)
                 if (BuildConfig.DEBUG) {
@@ -343,8 +361,41 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         )
     }
 
+    private fun recordGoogleRecorder(
+        statusBarNotification: StatusBarNotification,
+        lifecycle: String,
+        extraction: RecorderExtraction? = null,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        val notificationText = readNotificationText(
+            this,
+            statusBarNotification.packageName,
+            notification,
+        )
+        val resolvedExtraction = extraction ?: if (lifecycle == "REMOVED") {
+            null
+        } else {
+            GoogleRecorderNotificationExtractor.extract(statusBarNotification, notificationText)
+        }
+        NotificationDebugPayloadStore.recordGoogleRecorder(
+            this,
+            statusBarNotification,
+            notificationText,
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            lifecycle,
+            resolvedExtraction,
+        )
+    }
+
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (statusBarNotification.packageName == GOOGLE_RECORDER_PACKAGE) {
+            if (BuildConfig.DEBUG) recordGoogleRecorder(statusBarNotification, "REMOVED")
+            handleRecorderDecision(recorderTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (statusBarNotification.packageName == DISCORD_PACKAGE) {
             if (BuildConfig.DEBUG) recordDiscord(statusBarNotification, "REMOVED")
             handleDiscordVoiceDecision(
@@ -411,8 +462,12 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             activeNotifications
                 .filter { it.packageName == DISCORD_PACKAGE }
                 .forEach { recordDiscord(it, "ACTIVE_SNAPSHOT") }
+            activeNotifications
+                .filter { it.packageName == GOOGLE_RECORDER_PACKAGE }
+                .forEach { recordGoogleRecorder(it, "ACTIVE_SNAPSHOT") }
         }
         restoreDiscordVoice(activeNotifications)
+        restoreGoogleRecorder(activeNotifications)
         restoreYptStudy(activeNotifications)
         restoreHevyWorkout(activeNotifications)
         YouBikeRideManager.restore(this)
@@ -463,6 +518,14 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    private fun handleRecorderDecision(decision: RecorderDecision) {
+        when (decision) {
+            is RecorderDecision.Show -> LiveStatusReminder.showGoogleRecorder(this, decision.update)
+            RecorderDecision.Clear -> LiveStatusReminder.clearGoogleRecorder(this)
+            RecorderDecision.None -> Unit
+        }
+    }
+
     private fun restoreDiscordVoice(activeNotifications: Array<StatusBarNotification>) {
         if (!AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this)) {
             discordVoiceTracker.reset()
@@ -476,6 +539,30 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             .mapNotNull { DiscordVoiceNotificationExtractor.extract(it).update }
             .toList()
         handleDiscordVoiceDecision(discordVoiceTracker.restore(updates))
+    }
+
+    private fun restoreGoogleRecorder(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.GOOGLE_RECORDER.isEnabled(this)) {
+            recorderTracker.reset()
+            LiveStatusReminder.clearGoogleRecorder(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { GoogleRecorderNotificationParser.supportsPackage(it.packageName) }
+            .mapNotNull { statusBarNotification ->
+                GoogleRecorderNotificationExtractor.extract(
+                    statusBarNotification,
+                    readNotificationText(
+                        this,
+                        statusBarNotification.packageName,
+                        statusBarNotification.notification,
+                    ),
+                ).update
+            }
+            .toList()
+        handleRecorderDecision(recorderTracker.restore(updates))
     }
 
     private fun restoreYptStudy(activeNotifications: Array<StatusBarNotification>) {
@@ -728,6 +815,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
         private const val DISCORD_PACKAGE = DiscordVoiceNotificationParser.PACKAGE_NAME
+        private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME
 
         @JvmStatic
         fun readNotificationText(notification: Notification): String {

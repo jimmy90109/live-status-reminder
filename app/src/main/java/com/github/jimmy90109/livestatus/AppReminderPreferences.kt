@@ -28,6 +28,7 @@ object AppReminderPreferences {
         YPT("ypt_enabled"),
         HEVY("hevy_enabled"),
         DISCORD_VOICE("discord_voice_enabled"),
+        GOOGLE_RECORDER("google_recorder_enabled"),
         ;
 
         fun isEnabled(context: Context, installed: Boolean = true): Boolean {

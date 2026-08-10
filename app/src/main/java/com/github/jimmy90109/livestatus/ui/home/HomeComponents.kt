@@ -36,7 +36,7 @@ import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 @Composable
 internal fun HeroCard(onOpenSettings: () -> Unit) {
     val colors = LocalAppColors.current
-    CardSurface(colors.commonContainer, 36) {
+    CardSurface(background = colors.commonContainer, radius = 36) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             LabelPill("LIVE STATUS", colors.commonPrimary, colors.commonOnPrimary)
             Spacer(Modifier.weight(1f))
@@ -113,7 +113,7 @@ internal fun SettingCard(
     onClick: () -> Unit,
 ) {
     val colors = LocalAppColors.current
-    CardSurface(colors.commonSurface, 26, 18) {
+    CardSurface(background = colors.commonSurface, radius = 26, padding = 18) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             LabelPill(number, colors.commonContainer, colors.onSurface)
             Spacer(Modifier.padding(horizontal = 5.dp))
@@ -130,10 +130,10 @@ internal fun SettingCard(
 
 @Composable
 internal fun CardSurface(
+    modifier: Modifier = Modifier,
     background: Color,
     radius: Int,
     padding: Int = 22,
-    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(

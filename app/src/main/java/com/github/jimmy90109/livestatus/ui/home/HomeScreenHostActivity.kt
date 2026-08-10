@@ -11,65 +11,23 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.ExperimentalActivityApi
-import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.core.net.toUri
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.only
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
+import com.github.jimmy90109.livestatus.GoogleRecorderNotificationParser
+import com.github.jimmy90109.livestatus.HevyWorkoutNotificationParser
 import com.github.jimmy90109.livestatus.LiveStatusNotificationListenerService
 import com.github.jimmy90109.livestatus.LiveStatusReminder
-import com.github.jimmy90109.livestatus.HevyWorkoutNotificationParser
-import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
 import com.github.jimmy90109.livestatus.TaiwanTaxiRideManager
 import com.github.jimmy90109.livestatus.YouBikeRideManager
 import com.github.jimmy90109.livestatus.YptStudyNotificationParser
-import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 
 open class HomeScreenHostActivity : ComponentActivity() {
     private var statusSnapshot by mutableStateOf(StatusSnapshot())
@@ -92,6 +50,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_YPT -> openYpt()
             ACTION_OPEN_HEVY -> openHevy()
             ACTION_OPEN_DISCORD -> openDiscord()
+            ACTION_OPEN_GOOGLE_RECORDER -> openGoogleRecorder()
             else -> {
                 setContent {
                     LiveStatusTheme {
@@ -131,6 +90,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val yptInstalled = isPackageInstalled(YPT_PACKAGE)
         val hevyInstalled = isPackageInstalled(HEVY_PACKAGE)
         val discordInstalled = isPackageInstalled(DISCORD_PACKAGE)
+        val googleRecorderInstalled = isPackageInstalled(GOOGLE_RECORDER_PACKAGE)
         val brandWarning = detectBrandWarning()
         statusSnapshot = StatusSnapshot(
             notificationAccess = isNotificationAccessEnabled(),
@@ -147,6 +107,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             yptInstalled = yptInstalled,
             hevyInstalled = hevyInstalled,
             discordInstalled = discordInstalled,
+            googleRecorderInstalled = googleRecorderInstalled,
             brandWarning = brandWarning,
             brandWarningDismissed =
                 AppReminderPreferences.isBrandWarningDismissed(this),
@@ -169,6 +130,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
             hevyEnabled = AppReminderPreferences.App.HEVY.isEnabled(this, hevyInstalled),
             discordVoiceEnabled =
                 AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this, discordInstalled),
+            googleRecorderEnabled =
+                AppReminderPreferences.App.GOOGLE_RECORDER.isEnabled(
+                    this,
+                    googleRecorderInstalled,
+                ),
         )
     }
 
@@ -254,6 +220,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openDiscord() = openPackage(DISCORD_PACKAGE, "Discord")
 
+    private fun openGoogleRecorder() = openPackage(GOOGLE_RECORDER_PACKAGE, "Google Recorder")
+
     private fun openPackage(targetPackageName: String, appName: String) {
         packageManager.getLaunchIntentForPackage(targetPackageName)?.let {
             startActivity(it)
@@ -287,6 +255,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.HEVY -> LiveStatusReminder.clearHevyWorkout(this)
             AppReminderPreferences.App.DISCORD_VOICE ->
                 LiveStatusReminder.clearDiscordVoice(this)
+            AppReminderPreferences.App.GOOGLE_RECORDER ->
+                LiveStatusReminder.clearGoogleRecorder(this)
         }
     }
 
@@ -321,6 +291,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_HEVY"
         private const val ACTION_OPEN_DISCORD =
             "com.github.jimmy90109.livestatus.action.OPEN_DISCORD"
+        private const val ACTION_OPEN_GOOGLE_RECORDER =
+            "com.github.jimmy90109.livestatus.action.OPEN_GOOGLE_RECORDER"
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
         private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
@@ -333,6 +305,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
         private const val DISCORD_PACKAGE = "com.discord"
+        private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME
         private const val SAMSUNG_NOW_BAR_GUIDE_URL =
             "https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html"
         private const val PRIVACY_POLICY_URL =
@@ -386,6 +359,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
         fun createOpenDiscordIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_DISCORD)
 
+        @JvmStatic
+        fun createOpenGoogleRecorderIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_GOOGLE_RECORDER)
+
         private fun openAppIntent(context: Context, action: String): Intent =
             Intent(context, MainActivity::class.java)
                 .setAction(action)
@@ -408,6 +385,7 @@ internal data class StatusSnapshot(
     val yptInstalled: Boolean = false,
     val hevyInstalled: Boolean = false,
     val discordInstalled: Boolean = false,
+    val googleRecorderInstalled: Boolean = false,
     val brandWarning: BrandWarning? = null,
     val brandWarningDismissed: Boolean = false,
     val mediaPlaybackEnabled: Boolean = false,
@@ -424,6 +402,7 @@ internal data class StatusSnapshot(
     val yptEnabled: Boolean = false,
     val hevyEnabled: Boolean = false,
     val discordVoiceEnabled: Boolean = false,
+    val googleRecorderEnabled: Boolean = false,
 ) {
     val requiredSettingsComplete: Boolean
         get() = notificationAccess && notificationPermission

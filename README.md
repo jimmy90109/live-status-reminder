@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Discord、Google 時鐘、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Discord、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -27,6 +27,13 @@
 - 支援運行、暫停、繼續與加一分鐘造成的時間更新；倒數結束或來源通知移除後自動清除。
 - Android 17 優先讀取 `MetricStyle` timer，Android 16 則使用通知 chronometer；不解析畫面文字猜測剩餘時間。
 - 點擊提醒可開啟原始 Clock 計時器，但不複製暫停或加一分鐘操作按鈕。
+
+### Google Recorder
+
+- 精確辨識繁中「準備錄音」、「正在錄音」、「已暫停錄音」與英文 `Prepare to record`、`Currently recording`、`Recording paused` 前景通知；初始化階段不建立提醒，錄音開始後顯示正向計時 Live Update。
+- 暫停時固定顯示目前錄音長度，並同步來源提供的「繼續錄製」／「儲存錄製內容」或 Resume recording／Save recording 操作；錄音中通知沒有公開操作，因此點擊提醒會開啟 Recorder。
+- 來源通知移除、功能關閉或通知不再符合時自動清除；通知監聽器重連時可由現有錄音通知恢復。
+- 功能位於「工具」分類、預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆 payload，正式版不提供查看入口。
 
 ### YPT（Yeolpumta）
 

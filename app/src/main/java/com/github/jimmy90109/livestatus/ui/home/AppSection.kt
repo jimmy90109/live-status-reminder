@@ -80,6 +80,7 @@ internal fun AppsSection(
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
+    onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
         APP_CATEGORY_PAGE_COUNT
@@ -290,6 +291,15 @@ internal fun AppsSection(
                         )
                     }
                     CATEGORY_TOOL -> {
+                        GoogleRecorderCard(
+                            installed = status.googleRecorderInstalled,
+                            enabled = status.googleRecorderEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.GOOGLE_RECORDER, it)
+                            },
+                            onOpenDebug = onOpenGoogleRecorderDebug,
+                        )
                         YptCard(
                             installed = status.yptInstalled,
                             enabled = status.yptEnabled,

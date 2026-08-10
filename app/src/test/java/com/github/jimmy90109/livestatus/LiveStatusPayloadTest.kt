@@ -14,6 +14,68 @@ import org.junit.Test
 
 class LiveStatusPayloadTest {
     @Test
+    fun googleRecorderPayloadShowsRunningAndPausedStates() {
+        val running = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|running",
+                state = RecorderState.RUNNING,
+                elapsedMillis = 7_000L,
+                startedAtEpochMillis = 1_700_000_000_000L,
+                postedAtEpochMillis = 1_700_000_007_000L,
+            ),
+        )
+        val paused = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|paused",
+                state = RecorderState.PAUSED,
+                elapsedMillis = 3_723_000L,
+                startedAtEpochMillis = null,
+                postedAtEpochMillis = 1_700_000_007_000L,
+            ),
+        )
+        val englishRunning = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|english-running",
+                state = RecorderState.RUNNING,
+                elapsedMillis = 7_000L,
+                startedAtEpochMillis = 1_700_000_000_000L,
+                postedAtEpochMillis = 1_700_000_007_000L,
+                language = RecorderLanguage.ENGLISH,
+            ),
+        )
+        val englishPaused = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|english-paused",
+                state = RecorderState.PAUSED,
+                elapsedMillis = 3_723_000L,
+                startedAtEpochMillis = null,
+                postedAtEpochMillis = 1_700_000_007_000L,
+                language = RecorderLanguage.ENGLISH,
+            ),
+        )
+
+        assertEquals("Recorder", running.appName)
+        assertEquals(R.drawable.ic_microphone_notification, running.smallIconRes)
+        assertEquals("錄音中", running.criticalText)
+        assertEquals("正在錄音", running.title)
+        assertEquals("錄音時間持續累積中", running.contentText)
+        assertEquals("1:02:03", paused.criticalText)
+        assertEquals("錄音已暫停", paused.title)
+        assertEquals("目前錄音長度 1:02:03", paused.contentText)
+        assertEquals("Recording", englishRunning.criticalText)
+        assertEquals("Recording", englishRunning.title)
+        assertEquals("Recording time is increasing", englishRunning.contentText)
+        assertEquals("1:02:03", englishPaused.criticalText)
+        assertEquals("Recording paused", englishPaused.title)
+        assertEquals("Current recording length: 1:02:03", englishPaused.contentText)
+    }
+
+    @Test
+    fun googleRecorderUsesPublicVisibility() {
+        assertEquals(android.app.Notification.VISIBILITY_PUBLIC, LiveStatusReminder.GOOGLE_RECORDER_VISIBILITY)
+    }
+
+    @Test
     fun hevyActiveSetPayloadShowsExerciseSetAndProgress() {
         val payload = LiveStatusReminder.hevyWorkoutPayload(
             HevyWorkoutUpdate(

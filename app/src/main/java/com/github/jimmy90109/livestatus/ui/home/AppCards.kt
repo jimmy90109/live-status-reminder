@@ -22,6 +22,9 @@ import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.HevyWorkoutPhase
 import com.github.jimmy90109.livestatus.HevyWorkoutNotificationParser
 import com.github.jimmy90109.livestatus.HevyWorkoutUpdate
+import com.github.jimmy90109.livestatus.GoogleRecorderNotificationParser
+import com.github.jimmy90109.livestatus.RecorderState
+import com.github.jimmy90109.livestatus.RecorderUpdate
 import com.github.jimmy90109.livestatus.YouBikeNotificationParser
 import com.github.jimmy90109.livestatus.YouBikeEvent
 import com.github.jimmy90109.livestatus.YouBikeRideManager
@@ -32,6 +35,91 @@ import com.github.jimmy90109.livestatus.YptStudyUpdate
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
+@Composable
+internal fun GoogleRecorderCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.google_recorder_card_app_name),
+        appPackageName = GoogleRecorderNotificationParser.PACKAGE_NAME,
+        fallbackIconRes = R.drawable.ic_microphone_notification,
+        title = stringResource(R.string.google_recorder_card_title),
+        description = stringResource(R.string.google_recorder_card_description),
+        supportedLanguages = listOf(
+            stringResource(R.string.google_recorder_language),
+        ),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.recorderContainer,
+        labelColor = colors.recorderSecondaryContainer,
+        foregroundColor = colors.recorderText,
+        actionColor = colors.recorderPrimary,
+    ) {
+        AppActionDivider(colors.recorderText)
+        AppCardActionButton(
+            stringResource(R.string.google_recorder_simulate_running),
+            colors.recorderPrimary,
+            colors.recorderText,
+            supportingText = stringResource(R.string.monitoring_google_recorder_running),
+            enabled = enabled,
+        ) {
+            val now = System.currentTimeMillis()
+            LiveStatusReminder.showGoogleRecorder(
+                context,
+                RecorderUpdate(
+                    sourceKey = "debug-google-recorder",
+                    state = RecorderState.RUNNING,
+                    elapsedMillis = 7_000L,
+                    startedAtEpochMillis = now - 7_000L,
+                    postedAtEpochMillis = now,
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.google_recorder_simulate_paused),
+            colors.recorderPrimary,
+            colors.recorderText,
+            supportingText = stringResource(R.string.monitoring_google_recorder_paused),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showGoogleRecorder(
+                context,
+                RecorderUpdate(
+                    sourceKey = "debug-google-recorder",
+                    state = RecorderState.PAUSED,
+                    elapsedMillis = 7_000L,
+                    startedAtEpochMillis = null,
+                    postedAtEpochMillis = System.currentTimeMillis(),
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.google_recorder_simulate_clear),
+            colors.recorderPrimary,
+            colors.recorderText,
+            supportingText = stringResource(R.string.monitoring_google_recorder_stopped),
+        ) {
+            LiveStatusReminder.clearGoogleRecorder(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.google_recorder_debug_open_payload),
+                colors.recorderPrimary,
+                colors.recorderText,
+                enabled = installed,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
 
 @Composable
 internal fun MediaPlaybackCard(

@@ -25,6 +25,8 @@ object NotificationDebugPayloadStore {
     private val _yptPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _hevyPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _discordPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _googleRecorderPayloads =
+        MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
@@ -36,6 +38,38 @@ object NotificationDebugPayloadStore {
     val yptPayloads: StateFlow<List<NotificationDebugPayload>> = _yptPayloads
     val hevyPayloads: StateFlow<List<NotificationDebugPayload>> = _hevyPayloads
     val discordPayloads: StateFlow<List<NotificationDebugPayload>> = _discordPayloads
+    val googleRecorderPayloads: StateFlow<List<NotificationDebugPayload>> =
+        _googleRecorderPayloads
+
+    internal fun recordGoogleRecorder(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+        extraction: RecorderExtraction? = null,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = if (lifecycle == "REMOVED") {
+                lifecycle
+            } else {
+                extraction?.event?.name ?: lifecycle
+            },
+            parsedPin = null,
+            parsedDetails = linkedMapOf("lifecycle" to lifecycle) +
+                extraction?.diagnostics.orEmpty(),
+        )
+        _googleRecorderPayloads.update { current ->
+            (listOf(payload) + current).take(MAX_ITEMS)
+        }
+    }
 
     internal fun recordDiscord(
         context: Context,
@@ -338,6 +372,10 @@ object NotificationDebugPayloadStore {
 
     fun clearDiscord() {
         _discordPayloads.value = emptyList()
+    }
+
+    fun clearGoogleRecorder() {
+        _googleRecorderPayloads.value = emptyList()
     }
 
     private fun createPayload(

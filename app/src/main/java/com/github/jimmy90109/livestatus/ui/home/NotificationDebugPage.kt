@@ -96,7 +96,7 @@ internal fun NotificationDebugPage(
             }
         }
         Spacer(Modifier.height(18.dp))
-        CardSurface(cardColor, 28, 18) {
+        CardSurface(background = cardColor, radius = 28, padding = 18) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     AppText("最近通知", 20, colors.onSurface, true)

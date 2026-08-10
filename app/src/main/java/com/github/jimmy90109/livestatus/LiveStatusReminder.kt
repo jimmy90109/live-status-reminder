@@ -18,9 +18,11 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 object LiveStatusReminder {
+    internal const val GOOGLE_RECORDER_VISIBILITY = Notification.VISIBILITY_PUBLIC
     private const val CHANNEL_ID = "live_status"
     private const val MEDIA_CHANNEL_ID = "media_live_status"
     private const val DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status"
+    private const val GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
     private const val FOODPANDA_NOTIFICATION_ID = 1002
     private const val UBER_EATS_NOTIFICATION_ID = 1003
@@ -34,6 +36,7 @@ object LiveStatusReminder {
     private const val YPT_STUDY_NOTIFICATION_ID = 1011
     private const val HEVY_WORKOUT_NOTIFICATION_ID = 1012
     private const val DISCORD_VOICE_NOTIFICATION_ID = 1013
+    private const val GOOGLE_RECORDER_NOTIFICATION_ID = 1014
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -77,6 +80,20 @@ object LiveStatusReminder {
         ).apply {
             description = context.getString(R.string.discord_voice_notification_channel_description)
             lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).createNotificationChannel(channel)
+    }
+
+    private fun createGoogleRecorderChannel(context: Context) {
+        val channel = NotificationChannel(
+            GOOGLE_RECORDER_CHANNEL_ID,
+            context.getString(R.string.google_recorder_notification_channel_name),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            description = context.getString(R.string.google_recorder_notification_channel_description)
+            lockscreenVisibility = GOOGLE_RECORDER_VISIBILITY
             setSound(null, null)
             enableVibration(false)
         }
@@ -473,6 +490,82 @@ object LiveStatusReminder {
 
     internal fun clearYptStudy(context: Context) {
         notificationManager(context).cancel(YPT_STUDY_NOTIFICATION_ID)
+    }
+
+    internal fun showGoogleRecorder(context: Context, update: RecorderUpdate) {
+        createGoogleRecorderChannel(context)
+        val openRecorder = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            12,
+            HomeScreenHostActivity.createOpenGoogleRecorderIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = googleRecorderPayload(update, openRecorder)
+        val isEnglish = update.language == RecorderLanguage.ENGLISH
+        val builder = Notification.Builder(context, GOOGLE_RECORDER_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(GOOGLE_RECORDER_VISIBILITY)
+            .setColor(Color.rgb(217, 48, 37))
+            .also { notificationBuilder ->
+                if (update.state == RecorderState.PAUSED) {
+                    notificationBuilder.setShortCriticalText(payload.criticalText)
+                }
+            }
+            .also { notificationBuilder ->
+                if (update.state == RecorderState.RUNNING) {
+                    YptStudyNotificationStyle.apply(
+                        notificationBuilder,
+                        requireNotNull(update.startedAtEpochMillis),
+                        context.getString(
+                            if (isEnglish) {
+                                R.string.google_recorder_live_metric_label_en
+                            } else {
+                                R.string.google_recorder_live_metric_label
+                            },
+                        ),
+                    )
+                } else {
+                    notificationBuilder
+                        .setWhen(0)
+                        .setShowWhen(false)
+                        .setUsesChronometer(false)
+                        .setChronometerCountDown(false)
+                        .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+                }
+            }
+            .also { notificationBuilder ->
+                if (update.sourceActions.isEmpty()) {
+                    notificationBuilder.addAction(
+                        Notification.Action.Builder(
+                            Icon.createWithResource(context, payload.leftIconRes),
+                            context.getString(
+                                if (isEnglish) {
+                                    R.string.google_recorder_live_open_action_en
+                                } else {
+                                    R.string.google_recorder_live_open_action
+                                },
+                            ),
+                            openRecorder,
+                        ).build(),
+                    )
+                } else {
+                    update.sourceActions.take(2).forEach(notificationBuilder::addAction)
+                }
+            }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(GOOGLE_RECORDER_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearGoogleRecorder(context: Context) {
+        notificationManager(context).cancel(GOOGLE_RECORDER_NOTIFICATION_ID)
     }
 
     internal fun showHevyWorkout(context: Context, update: HevyWorkoutUpdate) {
@@ -1057,6 +1150,47 @@ object LiveStatusReminder {
         contentText = update.sourceContentText ?: fallbackContentText,
         contentIntent = contentIntent,
     )
+
+    internal fun googleRecorderPayload(
+        update: RecorderUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val paused = update.state == RecorderState.PAUSED
+        val english = update.language == RecorderLanguage.ENGLISH
+        val duration = formatRecorderDuration(update.elapsedMillis)
+        return LiveStatusPayload(
+            id = GOOGLE_RECORDER_NOTIFICATION_ID,
+            appName = "Recorder",
+            smallIconRes = R.drawable.ic_microphone_notification,
+            leftIconRes = R.drawable.ic_microphone_notification,
+            criticalText = if (paused) duration else if (english) "Recording" else "錄音中",
+            title = when {
+                paused && english -> "Recording paused"
+                paused -> "錄音已暫停"
+                english -> "Recording"
+                else -> "正在錄音"
+            },
+            contentText = when {
+                paused && english -> "Current recording length: $duration"
+                paused -> "目前錄音長度 $duration"
+                english -> "Recording time is increasing"
+                else -> "錄音時間持續累積中"
+            },
+            contentIntent = contentIntent,
+        )
+    }
+
+    internal fun formatRecorderDuration(elapsedMillis: Long): String {
+        val totalSeconds = (elapsedMillis / 1_000L).coerceAtLeast(0L)
+        val hours = totalSeconds / 3_600L
+        val minutes = totalSeconds % 3_600L / 60L
+        val seconds = totalSeconds % 60L
+        return if (hours > 0L) {
+            "%d:%02d:%02d".format(Locale.ROOT, hours, minutes, seconds)
+        } else {
+            "%02d:%02d".format(Locale.ROOT, minutes, seconds)
+        }
+    }
 
     internal fun hevyWorkoutPayload(
         update: HevyWorkoutUpdate,

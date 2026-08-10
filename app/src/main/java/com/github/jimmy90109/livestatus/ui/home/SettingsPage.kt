@@ -112,7 +112,7 @@ internal fun RequiredSettingsSection(
                 SettingCard(
                     number = "01",
                     title = "讀取狀態通知",
-                    description = "允許 App 辨識媒體播放、Clock、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
+                    description = "允許 App 辨識媒體播放、Clock、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
                     enabled = status.notificationAccess,
                     enabledText = "已開啟",
                     disabledText = "尚未開啟",
@@ -141,7 +141,7 @@ internal fun BrandWarningCard(
     onDismiss: (() -> Unit)? = null,
 ) {
     val colors = LocalAppColors.current
-    CardSurface(colors.warningContainer, 26, 18) {
+    CardSurface(background = colors.warningContainer, radius = 26, padding = 18) {
         Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
                 AppText(
