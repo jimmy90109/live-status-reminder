@@ -97,6 +97,7 @@ internal fun HomeContentWide(
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
+    onOpenDiscordDebug: () -> Unit,
 ) {
     AppsSection(
         modifier = Modifier
@@ -129,6 +130,7 @@ internal fun HomeContentWide(
         onOpenUberEatsDebug = onOpenUberEatsDebug,
         onOpenYptDebug = onOpenYptDebug,
         onOpenHevyDebug = onOpenHevyDebug,
+        onOpenDiscordDebug = onOpenDiscordDebug,
     )
 }
 
@@ -154,6 +156,7 @@ internal fun HomeContentNarrow(
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
+    onOpenDiscordDebug: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val appsViewportHeight =
@@ -326,6 +329,7 @@ internal fun HomeContentNarrow(
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
                 onOpenYptDebug = onOpenYptDebug,
                 onOpenHevyDebug = onOpenHevyDebug,
+                onOpenDiscordDebug = onOpenDiscordDebug,
             )
         }
     }

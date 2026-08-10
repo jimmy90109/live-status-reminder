@@ -20,6 +20,7 @@ import java.util.Locale
 object LiveStatusReminder {
     private const val CHANNEL_ID = "live_status"
     private const val MEDIA_CHANNEL_ID = "media_live_status"
+    private const val DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
     private const val FOODPANDA_NOTIFICATION_ID = 1002
     private const val UBER_EATS_NOTIFICATION_ID = 1003
@@ -32,6 +33,7 @@ object LiveStatusReminder {
     private const val TAIWAN_TAXI_NOTIFICATION_ID = 1010
     private const val YPT_STUDY_NOTIFICATION_ID = 1011
     private const val HEVY_WORKOUT_NOTIFICATION_ID = 1012
+    private const val DISCORD_VOICE_NOTIFICATION_ID = 1013
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -59,6 +61,21 @@ object LiveStatusReminder {
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
             description = context.getString(R.string.media_notification_channel_description)
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).createNotificationChannel(channel)
+    }
+
+    @JvmStatic
+    fun createDiscordVoiceChannel(context: Context) {
+        val channel = NotificationChannel(
+            DISCORD_VOICE_CHANNEL_ID,
+            context.getString(R.string.discord_voice_notification_channel_name),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            description = context.getString(R.string.discord_voice_notification_channel_description)
             lockscreenVisibility = Notification.VISIBILITY_PRIVATE
             setSound(null, null)
             enableVibration(false)
@@ -515,6 +532,64 @@ object LiveStatusReminder {
     internal fun clearHevyWorkout(context: Context) {
         notificationManager(context).cancel(HEVY_WORKOUT_NOTIFICATION_ID)
     }
+
+    internal fun showDiscordVoice(context: Context, update: DiscordVoiceUpdate) {
+        createDiscordVoiceChannel(context)
+        val openDiscord = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            11,
+            HomeScreenHostActivity.createOpenDiscordIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = LiveStatusPayload(
+            id = DISCORD_VOICE_NOTIFICATION_ID,
+            appName = "Discord",
+            smallIconRes = R.drawable.ic_voice_notification,
+            leftIconRes = R.drawable.ic_voice_notification,
+            criticalText = context.getString(R.string.discord_voice_critical_text),
+            title = discordVoiceTitle(
+                update,
+                context.getString(R.string.discord_voice_fallback_title),
+            ),
+            contentText = discordVoiceContentText(
+                update,
+                context.getString(R.string.discord_voice_fallback_content),
+            ),
+            contentIntent = openDiscord,
+        )
+        val builder = Notification.Builder(context, DISCORD_VOICE_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setColor(Color.rgb(88, 101, 242))
+            .setWhen(0)
+            .setShowWhen(false)
+            .setUsesChronometer(false)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also { notificationBuilder ->
+                update.sourceActions.take(3).forEach(notificationBuilder::addAction)
+            }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(DISCORD_VOICE_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearDiscordVoice(context: Context) {
+        notificationManager(context).cancel(DISCORD_VOICE_NOTIFICATION_ID)
+    }
+
+    internal fun discordVoiceTitle(update: DiscordVoiceUpdate, fallback: String): String =
+        update.sourceTitle ?: fallback
+
+    internal fun discordVoiceContentText(update: DiscordVoiceUpdate, fallback: String): String =
+        update.sourceContentText ?: fallback
 
     @JvmStatic
     internal fun showMediaPlayback(context: Context, update: MediaPlaybackUpdate) {

@@ -17,6 +17,7 @@ import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.ClockTimerSource
 import com.github.jimmy90109.livestatus.ClockTimerState
 import com.github.jimmy90109.livestatus.ClockTimerUpdate
+import com.github.jimmy90109.livestatus.DiscordVoiceUpdate
 import com.github.jimmy90109.livestatus.LiveStatusReminder
 import com.github.jimmy90109.livestatus.HevyWorkoutPhase
 import com.github.jimmy90109.livestatus.HevyWorkoutNotificationParser
@@ -62,6 +63,70 @@ internal fun MediaPlaybackCard(
             )
         },
     )
+}
+
+@Composable
+internal fun DiscordVoiceCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "Discord",
+        appPackageName = DISCORD_PACKAGE,
+        fallbackIconRes = R.drawable.ic_voice_notification,
+        title = stringResource(R.string.discord_voice_card_title),
+        description = stringResource(R.string.discord_voice_card_description),
+        supportedLanguages = listOf(stringResource(R.string.media_playback_language_independent)),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.discordContainer,
+        labelColor = colors.discordSecondaryContainer,
+        foregroundColor = colors.discordText,
+        actionColor = colors.discordPrimary,
+    ) {
+        AppActionDivider(colors.discordText)
+        AppCardActionButton(
+            stringResource(R.string.discord_voice_simulate_connected),
+            colors.discordPrimary,
+            colors.discordText,
+            supportingText = stringResource(R.string.discord_voice_monitoring_connected),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showDiscordVoice(
+                context,
+                DiscordVoiceUpdate(
+                    sourceKey = "debug-discord-voice",
+                    postedAtEpochMillis = System.currentTimeMillis(),
+                    sourceTitle = "語音已連線 — 點選即可回到通話",
+                    sourceContentText = "[測試] 語音頻道",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.discord_voice_simulate_clear),
+            colors.discordPrimary,
+            colors.discordText,
+            supportingText = stringResource(R.string.discord_voice_monitoring_disconnected),
+        ) {
+            LiveStatusReminder.clearDiscordVoice(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.discord_debug_open_payload),
+                colors.discordPrimary,
+                colors.discordText,
+                enabled = installed,
+                onClick = onOpenDebug,
+            )
+        }
+    }
 }
 
 @Composable
@@ -551,6 +616,7 @@ private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
 private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
 private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
 private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
+private const val DISCORD_PACKAGE = "com.discord"
 
 private fun youBikeTestTimestamp(secondsAgo: Long = 0): String =
     java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei"))

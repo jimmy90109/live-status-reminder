@@ -79,6 +79,7 @@ internal fun AppsSection(
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
+    onOpenDiscordDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
         APP_CATEGORY_PAGE_COUNT
@@ -308,13 +309,24 @@ internal fun AppsSection(
                             onOpenDebug = onOpenClockDebug,
                         )
                     }
-                    CATEGORY_MEDIA -> MediaPlaybackCard(
-                        enabled = status.mediaPlaybackEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.MEDIA_PLAYBACK, it)
-                        },
-                    )
+                    CATEGORY_MEDIA -> {
+                        DiscordVoiceCard(
+                            installed = status.discordInstalled,
+                            enabled = status.discordVoiceEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.DISCORD_VOICE, it)
+                            },
+                            onOpenDebug = onOpenDiscordDebug,
+                        )
+                        MediaPlaybackCard(
+                            enabled = status.mediaPlaybackEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.MEDIA_PLAYBACK, it)
+                            },
+                        )
+                    }
                     else -> {
                         IpassCard(
                             installed = status.ipassInstalled,

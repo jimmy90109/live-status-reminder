@@ -24,6 +24,7 @@ object NotificationDebugPayloadStore {
     private val _youBikePayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _yptPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _hevyPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _discordPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
@@ -34,6 +35,36 @@ object NotificationDebugPayloadStore {
     val youBikePayloads: StateFlow<List<NotificationDebugPayload>> = _youBikePayloads
     val yptPayloads: StateFlow<List<NotificationDebugPayload>> = _yptPayloads
     val hevyPayloads: StateFlow<List<NotificationDebugPayload>> = _hevyPayloads
+    val discordPayloads: StateFlow<List<NotificationDebugPayload>> = _discordPayloads
+
+    internal fun recordDiscord(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+        extraction: DiscordVoiceExtraction,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = if (lifecycle == "REMOVED") {
+                lifecycle
+            } else if (extraction.update == null) {
+                "NONE"
+            } else {
+                "VOICE_ACTIVE"
+            },
+            parsedPin = null,
+            parsedDetails = linkedMapOf("lifecycle" to lifecycle) + extraction.diagnostics,
+        )
+        _discordPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
 
     internal fun recordHevy(
         context: Context,
@@ -305,6 +336,10 @@ object NotificationDebugPayloadStore {
         _hevyPayloads.value = emptyList()
     }
 
+    fun clearDiscord() {
+        _discordPayloads.value = emptyList()
+    }
+
     private fun createPayload(
         context: Context,
         statusBarNotification: StatusBarNotification,
@@ -329,6 +364,7 @@ object NotificationDebugPayloadStore {
             parsedDetails = parsedDetails,
             pinCandidates = pinCandidates(notification, notificationText, shortCriticalText),
             fields = notificationFields(
+                context,
                 statusBarNotification,
                 notification,
                 notificationText,
@@ -341,6 +377,7 @@ object NotificationDebugPayloadStore {
     }
 
     private fun notificationFields(
+        context: Context,
         statusBarNotification: StatusBarNotification,
         notification: Notification,
         notificationText: String,
@@ -359,16 +396,54 @@ object NotificationDebugPayloadStore {
         "sortKey" to notification.sortKey.orEmpty(),
         "priority" to notification.priority.toString(),
         "flags" to notification.flags.toString(),
+        "isOngoing" to
+            ((notification.flags and Notification.FLAG_ONGOING_EVENT) != 0).toString(),
+        "isForegroundService" to
+            ((notification.flags and Notification.FLAG_FOREGROUND_SERVICE) != 0).toString(),
+        "isNoClear" to
+            ((notification.flags and Notification.FLAG_NO_CLEAR) != 0).toString(),
         "isGroupSummary" to
             ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0).toString(),
+        "isPromotedOngoing" to
+            ((notification.flags and Notification.FLAG_PROMOTED_ONGOING) != 0).toString(),
         "when" to timeFormatter.format(Date(notification.`when`)),
+        "showsChronometer" to
+            notification.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER, false).toString(),
+        "chronometerCountsDown" to
+            notification.extras.getBoolean(
+                Notification.EXTRA_CHRONOMETER_COUNT_DOWN,
+                false,
+            ).toString(),
+        "style" to notification.styleName(context, statusBarNotification.packageName),
         "number" to notification.number.toString(),
+        "hasContentIntent" to (notification.contentIntent != null).toString(),
+        "hasDeleteIntent" to (notification.deleteIntent != null).toString(),
+        "hasFullScreenIntent" to (notification.fullScreenIntent != null).toString(),
         "shortCriticalText" to shortCriticalText.orEmpty(),
         "title" to notificationTitle.orEmpty(),
         "contentText" to notificationContentText.orEmpty(),
         "joinedText" to notificationText,
-        "actions" to notification.actions.orEmpty().joinToString { it.title.toString() },
+        "actions" to notification.actions.orEmpty().mapIndexed { index, action ->
+            buildString {
+                append("#")
+                append(index)
+                append(" title=")
+                append(action.title.toString().replace("\n", " "))
+                append(" semanticAction=")
+                append(action.semanticAction)
+                append(" hasPendingIntent=")
+                append(action.actionIntent != null)
+            }
+        }.joinToString(" | "),
     )
+
+    private fun Notification.styleName(context: Context, packageName: String): String {
+        val packageContext = runCatching { context.createPackageContext(packageName, 0) }
+            .getOrDefault(context)
+        return runCatching {
+            Notification.Builder.recoverBuilder(packageContext, this).style?.javaClass?.name
+        }.getOrNull().orEmpty()
+    }
 
     private fun pinCandidates(
         notification: Notification,

@@ -27,6 +27,7 @@ object AppReminderPreferences {
         PIKMIN_BLOOM("pikmin_bloom_enabled"),
         YPT("ypt_enabled"),
         HEVY("hevy_enabled"),
+        DISCORD_VOICE("discord_voice_enabled"),
         ;
 
         fun isEnabled(context: Context, installed: Boolean = true): Boolean {

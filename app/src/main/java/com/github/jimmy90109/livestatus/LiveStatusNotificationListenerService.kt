@@ -18,6 +18,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val clockTimerTracker = ClockTimerTracker()
     private val yptStudyTracker = YptStudyTracker()
     private val hevyWorkoutTracker = HevyWorkoutTracker()
+    private val discordVoiceTracker = DiscordVoiceTracker()
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
     private val clockTimerRefreshRunnable = Runnable(::refreshClockTimer)
@@ -52,6 +53,20 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            DISCORD_PACKAGE -> {
+                val extraction = DiscordVoiceNotificationExtractor.extract(statusBarNotification)
+                if (BuildConfig.DEBUG) {
+                    recordDiscord(statusBarNotification, "POSTED", extraction)
+                }
+                if (AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this)) {
+                    handleDiscordVoiceDecision(
+                        discordVoiceTracker.onPosted(statusBarNotification.key, extraction.update),
+                    )
+                } else {
+                    discordVoiceTracker.reset()
+                    LiveStatusReminder.clearDiscordVoice(this)
+                }
+            }
             CLOCK_PACKAGE -> {
                 val extraction = ClockTimerNotificationExtractor.extract(this, statusBarNotification)
                 if (BuildConfig.DEBUG) {
@@ -309,8 +324,34 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         )
     }
 
+    private fun recordDiscord(
+        statusBarNotification: StatusBarNotification,
+        lifecycle: String,
+        extraction: DiscordVoiceExtraction =
+            DiscordVoiceNotificationExtractor.extract(statusBarNotification),
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        NotificationDebugPayloadStore.recordDiscord(
+            this,
+            statusBarNotification,
+            readNotificationText(this, statusBarNotification.packageName, notification),
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            lifecycle,
+            extraction,
+        )
+    }
+
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (statusBarNotification.packageName == DISCORD_PACKAGE) {
+            if (BuildConfig.DEBUG) recordDiscord(statusBarNotification, "REMOVED")
+            handleDiscordVoiceDecision(
+                discordVoiceTracker.onRemoved(statusBarNotification.key),
+            )
+            return
+        }
         if (statusBarNotification.packageName == HEVY_PACKAGE) {
             recordRemovedHevy(statusBarNotification)
             handleHevyWorkoutDecision(hevyWorkoutTracker.onRemoved(statusBarNotification.key))
@@ -366,6 +407,12 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         super.onListenerConnected()
         val activeNotifications = getActiveNotifications()
         mediaPlaybackMonitor.start(activeNotifications)
+        if (BuildConfig.DEBUG) {
+            activeNotifications
+                .filter { it.packageName == DISCORD_PACKAGE }
+                .forEach { recordDiscord(it, "ACTIVE_SNAPSHOT") }
+        }
+        restoreDiscordVoice(activeNotifications)
         restoreYptStudy(activeNotifications)
         restoreHevyWorkout(activeNotifications)
         YouBikeRideManager.restore(this)
@@ -406,6 +453,29 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             HevyWorkoutDecision.Clear -> LiveStatusReminder.clearHevyWorkout(this)
             HevyWorkoutDecision.None -> Unit
         }
+    }
+
+    private fun handleDiscordVoiceDecision(decision: DiscordVoiceDecision) {
+        when (decision) {
+            is DiscordVoiceDecision.Show -> LiveStatusReminder.showDiscordVoice(this, decision.update)
+            DiscordVoiceDecision.Clear -> LiveStatusReminder.clearDiscordVoice(this)
+            DiscordVoiceDecision.None -> Unit
+        }
+    }
+
+    private fun restoreDiscordVoice(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this)) {
+            discordVoiceTracker.reset()
+            LiveStatusReminder.clearDiscordVoice(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { DiscordVoiceNotificationParser.supportsPackage(it.packageName) }
+            .mapNotNull { DiscordVoiceNotificationExtractor.extract(it).update }
+            .toList()
+        handleDiscordVoiceDecision(discordVoiceTracker.restore(updates))
     }
 
     private fun restoreYptStudy(activeNotifications: Array<StatusBarNotification>) {
@@ -657,6 +727,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
+        private const val DISCORD_PACKAGE = DiscordVoiceNotificationParser.PACKAGE_NAME
 
         @JvmStatic
         fun readNotificationText(notification: Notification): String {

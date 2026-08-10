@@ -16,6 +16,7 @@
         <package android:name="com.nianticlabs.pikmin" />
         <package android:name="com.pallo.passiontimerscoped" />
         <package android:name="com.hevy" />
+        <package android:name="com.discord" />
     </queries>
 
     <application
