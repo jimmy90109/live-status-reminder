@@ -97,6 +97,8 @@
     <string name="monitoring_hevy_rest">讀取下一個動作與組數，並同步顯示「休息 M:SS」。</string>
     <string name="monitoring_hevy_finished">Hevy 的訓練通知移除時清除即時通知。</string>
     <string name="hevy_live_open_action">開啟 Hevy</string>
+    <string name="uber_eats_open_action">開啟 Uber Eats</string>
+    <string name="uber_eats_open_action_en">Open Uber Eats</string>
     <string name="notification_debug_copy_payload">複製所有通知 payload</string>
     <string name="notification_debug_payload_copied">已複製通知 payload</string>
     <string name="notification_debug_copy_single_payload">複製這筆通知 payload</string>
@@ -188,12 +190,12 @@
     <string name="monitoring_taiwan_taxi_trip_ended">標題為「行程已完成」時清除提醒。</string>
     <string name="taiwan_taxi_debug_open_payload">查看通知 payload</string>
 
-    <string name="monitoring_uber_eats_received">包含「訂單已收到」或「已收到您的訂單」。</string>
-    <string name="monitoring_uber_eats_preparing">包含「正在準備訂單」或「準備訂單」。</string>
-    <string name="monitoring_uber_eats_picking_up">包含「正在取餐」。</string>
-    <string name="monitoring_uber_eats_on_the_way">包含「正前往您所在位置」、「正在前往您所在位置」或「即將抵達」。</string>
-    <string name="monitoring_uber_eats_arriving">包含「快到了」。</string>
-    <string name="monitoring_uber_eats_ended">包含「訂單已送達」、「已送達」、「訂單已取消」、「已取消」或「訂單取消」。</string>
+    <string name="monitoring_uber_eats_received">自訂樣式常駐通知包含「訂單已收到」、「已收到您的訂單」或「Order received」。</string>
+    <string name="monitoring_uber_eats_preparing">自訂樣式常駐通知包含「正在準備訂單」、「準備訂單」或「Preparing your order」。</string>
+    <string name="monitoring_uber_eats_picking_up">自訂樣式常駐通知包含「正在取餐」或「Picking up your order」。</string>
+    <string name="monitoring_uber_eats_on_the_way">自訂樣式常駐通知包含「正前往您所在位置」、「正在前往您所在位置」、「即將抵達」或「Heading your way」。</string>
+    <string name="monitoring_uber_eats_arriving">自訂樣式常駐通知包含「快到了」或「Almost here!」。</string>
+    <string name="monitoring_uber_eats_ended">自訂樣式常駐通知包含「訂單已送達」、「已送達」、「訂單已取消」、「已取消」、「訂單取消」或「Order delivered」；來源通知被移除時也會清除提醒。</string>
     <string name="monitoring_pikmin_started">包含繁體「正在背景執行時種花」、簡體「正在背景执行时种花」或英文「Planting flowers in the background」。</string>
     <string name="monitoring_pikmin_stopped">來源種花通知被移除，或後續 Pikmin Bloom 通知不再符合種花文案。</string>
 </resources>

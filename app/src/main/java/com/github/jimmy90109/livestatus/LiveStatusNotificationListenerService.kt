@@ -39,10 +39,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
     private var lastUberRideUpdate =
         LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
-    private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
-    private var lastUberEatsPin: String? = null
-    private var lastUberEatsTitle: String? = null
-    private var lastUberEatsText: String? = null
+    private val uberEatsTracker = UberEatsTracker()
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
         if (statusBarNotification.packageName == packageName) return
@@ -244,15 +241,23 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                         update,
                     )
                 }
-                if (AppReminderPreferences.App.UBER_EATS.isEnabled(this)) {
-                    handleUberEatsNotification(
-                        update,
-                        notificationText,
-                        notificationTitle,
-                        notificationContentText,
-                    )
-                } else {
-                    resetUberEatsState()
+                val template = notification.extras.getString(Notification.EXTRA_TEMPLATE)
+                val isGroupSummary =
+                    notification.flags and Notification.FLAG_GROUP_SUMMARY != 0
+                if (UberEatsNotificationSourcePolicy.supports(template, isGroupSummary)) {
+                    if (AppReminderPreferences.App.UBER_EATS.isEnabled(this)) {
+                        handleUberEatsDecision(
+                            uberEatsTracker.onPosted(
+                                sourceKey = statusBarNotification.key,
+                                update = update,
+                                officialTitle = notificationTitle,
+                                officialText = notificationContentText ?: notificationText,
+                            ),
+                        )
+                    } else {
+                        uberEatsTracker.reset()
+                        LiveStatusReminder.clearUberEats(this)
+                    }
                 }
             }
             PIKMIN_BLOOM_PACKAGE -> if (AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this)) {
@@ -435,6 +440,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
         if (statusBarNotification.packageName == YPT_PACKAGE) {
             handleYptStudyDecision(yptStudyTracker.onRemoved(statusBarNotification.key))
+            return
+        }
+        if (statusBarNotification.packageName == UBER_EATS_PACKAGE) {
+            handleUberEatsDecision(uberEatsTracker.onRemoved(statusBarNotification.key))
             return
         }
         if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
@@ -684,55 +693,18 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    private fun handleUberEatsNotification(
-        update: LiveStatusNotificationParser.UberEatsUpdate,
-        notificationText: String,
-        notificationTitle: String?,
-        notificationContentText: String?,
-    ) {
-        val event = update.event
-
-        if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_ENDED) {
-            resetUberEatsState()
-            LiveStatusReminder.clearUberEats(this)
-            return
-        }
-
-        if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED) {
-            lastUberEatsEvent = event
-            lastUberEatsPin = update.pin
-            lastUberEatsTitle = notificationTitle
-            lastUberEatsText = notificationContentText ?: notificationText
-        } else {
-            update.pin?.let { lastUberEatsPin = it }
-            notificationTitle?.let { lastUberEatsTitle = it }
-            (notificationContentText ?: notificationText).takeIf { it.isNotBlank() }?.let {
-                lastUberEatsText = it
-            }
-            if (
-                event != LiveStatusNotificationParser.UberEatsEvent.NONE &&
-                eventRank(event) >= eventRank(lastUberEatsEvent)
-            ) {
-                lastUberEatsEvent = event
-            }
-        }
-
-        if (
-            lastUberEatsEvent != LiveStatusNotificationParser.UberEatsEvent.NONE &&
-            (
-                event != LiveStatusNotificationParser.UberEatsEvent.NONE ||
-                    update.pin != null ||
-                    notificationTitle != null ||
-                    notificationContentText != null
-                )
-        ) {
-            LiveStatusReminder.showUberEats(
-                this,
-                lastUberEatsEvent,
-                lastUberEatsPin,
-                lastUberEatsTitle,
-                lastUberEatsText,
+    private fun handleUberEatsDecision(decision: UberEatsDecision) {
+        when (decision) {
+            is UberEatsDecision.Show -> LiveStatusReminder.showUberEats(
+                context = this,
+                event = decision.update.event,
+                pin = decision.update.pin,
+                language = decision.update.language,
+                officialTitle = decision.update.officialTitle,
+                officialText = decision.update.officialText,
             )
+            UberEatsDecision.Clear -> LiveStatusReminder.clearUberEats(this)
+            UberEatsDecision.None -> Unit
         }
     }
 
@@ -746,25 +718,9 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    private fun resetUberEatsState() {
-        lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
-        lastUberEatsPin = null
-        lastUberEatsTitle = null
-        lastUberEatsText = null
-    }
-
     private fun resetUberRideState() {
         lastUberRideUpdate =
             LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
-    }
-
-    private fun eventRank(event: LiveStatusNotificationParser.UberEatsEvent): Int = when (event) {
-        LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED -> 1
-        LiveStatusNotificationParser.UberEatsEvent.PREPARING -> 2
-        LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> 3
-        LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> 4
-        LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> 5
-        else -> 0
     }
 
     private fun LiveStatusNotificationParser.UberRideUpdate.merge(

@@ -285,6 +285,8 @@ object LiveStatusReminder {
         context: Context,
         event: LiveStatusNotificationParser.UberEatsEvent,
         pin: String?,
+        language: LiveStatusNotificationParser.UberEatsLanguage =
+            LiveStatusNotificationParser.UberEatsLanguage.TRADITIONAL_CHINESE,
         officialTitle: String? = null,
         officialText: String? = null,
     ) {
@@ -295,18 +297,30 @@ object LiveStatusReminder {
             HomeScreenHostActivity.createOpenUberEatsIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val payload = uberEatsPayload(event, officialTitle, officialText, openUberEats)
-        val privatePayload = uberEatsPrivatePayload(event, payload, pin)
+        val payload = uberEatsPayload(
+            event,
+            language,
+            officialTitle,
+            officialText,
+            openUberEats,
+        )
+        val displayPayload = uberEatsPayloadWithPin(event, language, payload, pin)
 
         val builder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(privatePayload.smallIconRes)
-            .setContentTitle(privatePayload.title)
-            .setContentText(privatePayload.contentText)
-            .setContentIntent(privatePayload.contentIntent)
+            .setSmallIcon(displayPayload.smallIconRes)
+            .setContentTitle(displayPayload.title)
+            .setContentText(displayPayload.contentText)
+            .setContentIntent(displayPayload.contentIntent)
             .addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(context, privatePayload.leftIconRes),
-                    "開啟 Uber Eats",
+                    Icon.createWithResource(context, displayPayload.leftIconRes),
+                    context.getString(
+                        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+                            R.string.uber_eats_open_action_en
+                        } else {
+                            R.string.uber_eats_open_action
+                        },
+                    ),
                     openUberEats,
                 ).build(),
             )
@@ -315,9 +329,9 @@ object LiveStatusReminder {
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .also { applyUberEatsStyle(it, event) }
-            .setShortCriticalText(pin ?: uberEatsShortText(event))
+            .setShortCriticalText(pin ?: uberEatsShortText(event, language))
             .also(::requestPromotedOngoing)
-            .also { XiaomiHyperIslandRenderer.apply(context, it, privatePayload) }
+            .also { XiaomiHyperIslandRenderer.apply(context, it, displayPayload) }
 
         notificationManager(context).notify(UBER_EATS_NOTIFICATION_ID, builder.build())
     }
@@ -894,57 +908,105 @@ object LiveStatusReminder {
 
     private fun uberEatsTitle(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         officialTitle: String?,
     ): String {
         val cleanOfficialTitle = officialTitle
             ?.takeUnless { it.contains("Uber Eats", ignoreCase = true) && it.contains("·") }
             ?.takeUnless { it.equals("Uber Eats", ignoreCase = true) }
         return cleanOfficialTitle?.let { title ->
-            if (title.startsWith("Uber Eats", ignoreCase = true)) title else "Uber Eats $title"
-        } ?: uberEatsFallbackTitle(event)
+            if (title.startsWith("Uber Eats", ignoreCase = true)) {
+                title
+            } else if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+                "Uber Eats · $title"
+            } else {
+                "Uber Eats $title"
+            }
+        } ?: uberEatsFallbackTitle(event, language)
     }
 
-    private fun uberEatsFallbackTitle(event: LiveStatusNotificationParser.UberEatsEvent): String =
-        when (event) {
-            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
-            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
-            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "Uber Eats 正前往您所在位置"
-            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
-            else -> "Uber Eats 訂單已收到"
-        }
-
-    private fun uberEatsStatusText(event: LiveStatusNotificationParser.UberEatsEvent): String =
-        when (event) {
-            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "抵達時間更新中"
-            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "外送夥伴正在取餐。"
-            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "外送夥伴正前往您所在位置。"
-            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "外送夥伴即將抵達，請準備取餐。"
-            else -> "抵達時間更新中"
-        }
-
-    internal fun uberEatsPrivateText(
+    private fun uberEatsFallbackTitle(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
+    ): String =
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING ->
+                    "Uber Eats · Preparing your order"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP ->
+                    "Uber Eats · Picking up your order"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "Uber Eats · Heading your way"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING ->
+                    "Uber Eats · Almost here!"
+                else -> "Uber Eats · Order received"
+            }
+        } else {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "Uber Eats 正前往您所在位置"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
+                else -> "Uber Eats 訂單已收到"
+            }
+        }
+
+    private fun uberEatsStatusText(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
+    ): String =
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP ->
+                    "Your courier is picking up your order."
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "Your courier is heading your way."
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING ->
+                    "Your courier is almost here."
+                else -> "Arrival time is updating."
+            }
+        } else {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "抵達時間更新中"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "外送夥伴正在取餐。"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "外送夥伴正前往您所在位置。"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING ->
+                    "外送夥伴即將抵達，請準備取餐。"
+                else -> "抵達時間更新中"
+            }
+        }
+
+    internal fun uberEatsDisplayText(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         contentText: String,
         pin: String?,
     ): String {
-        val officialDetails = uberEatsOfficialDetails(event, contentText)
+        val officialDetails = uberEatsOfficialDetails(event, language, contentText)
         return pin?.let { "$officialDetails · PIN $it" } ?: officialDetails
     }
 
-    internal fun uberEatsPrivatePayload(
+    internal fun uberEatsPayloadWithPin(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         payload: LiveStatusPayload,
         pin: String?,
     ): LiveStatusPayload =
         payload.copy(
             criticalText = pin ?: payload.criticalText,
-            contentText = uberEatsPrivateText(event, payload.contentText, pin),
+            contentText = uberEatsDisplayText(event, language, payload.contentText, pin),
         )
 
     private fun uberEatsOfficialDetails(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         contentText: String,
     ): String {
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            return uberEatsEnglishOfficialDetails(event, contentText)
+        }
         val lines = contentText
             .lineSequence()
             .map { it.trim() }
@@ -962,16 +1024,63 @@ object LiveStatusReminder {
             ?: uberEatsArrivalEstimate.find(contentText)?.groupValues?.getOrNull(1)?.let {
                 "預估 $it"
             }
-            ?: uberEatsStatusText(event)
+            ?: uberEatsStatusText(event, language)
     }
 
-    private fun uberEatsShortText(event: LiveStatusNotificationParser.UberEatsEvent): String =
-        when (event) {
-            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "備餐中"
-            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "取餐中"
-            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "配送中"
-            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "快到了"
-            else -> "已接單"
+    private fun uberEatsEnglishOfficialDetails(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        contentText: String,
+    ): String {
+        val statusLines = setOf(
+            "order received",
+            "preparing your order",
+            "picking up your order",
+            "heading your way",
+            "almost here!",
+        )
+        val lines = contentText
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .filterNot { it.lowercase(Locale.ROOT) in statusLines }
+            .filterNot { it.length == 1 && it[0].isDigit() }
+            .distinct()
+            .toList()
+        val details = lines.filterNot { line ->
+            lines.any { other ->
+                other != line && other.startsWith("$line •", ignoreCase = true)
+            }
+        }.joinToString(" · ")
+            .replace(Regex("""\s+"""), " ")
+            .trim()
+
+        return details.takeIf(String::isNotEmpty)
+            ?: uberEatsStatusText(
+                event,
+                LiveStatusNotificationParser.UberEatsLanguage.ENGLISH,
+            )
+    }
+
+    private fun uberEatsShortText(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
+    ): String =
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Preparing"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Picking up"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "On the way"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Almost here"
+                else -> "Received"
+            }
+        } else {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "備餐中"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "取餐中"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "配送中"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "快到了"
+                else -> "已接單"
+            }
         }
 
     internal fun ridePayload(contentIntent: PendingIntent? = null): LiveStatusPayload =
@@ -1023,6 +1132,8 @@ object LiveStatusReminder {
 
     internal fun uberEatsPayload(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage =
+            LiveStatusNotificationParser.UberEatsLanguage.TRADITIONAL_CHINESE,
         officialTitle: String? = null,
         officialText: String? = null,
         contentIntent: PendingIntent? = null,
@@ -1032,9 +1143,9 @@ object LiveStatusReminder {
             appName = "Uber Eats",
             smallIconRes = R.drawable.ic_food_delivery_notification,
             leftIconRes = R.drawable.ic_food_delivery_notification,
-            criticalText = uberEatsShortText(event),
-            title = uberEatsTitle(event, officialTitle),
-            contentText = officialText ?: uberEatsStatusText(event),
+            criticalText = uberEatsShortText(event, language),
+            title = uberEatsTitle(event, language, officialTitle),
+            contentText = officialText ?: uberEatsStatusText(event, language),
             progress = uberEatsProgress(event),
             contentIntent = contentIntent,
         )

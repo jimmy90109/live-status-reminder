@@ -79,7 +79,7 @@ internal fun FoodpandaCard(
         fallbackIconRes = R.drawable.ic_food_delivery_notification,
         title = "外送訂單狀態",
         description = "外送夥伴出發或即將抵達時，顯示取餐提醒。",
-        supportedLanguages = listOf("繁中"),
+        supportedLanguages = listOf("繁中", "English"),
         installed = installed,
         enabled = enabled,
         interactionEnabled = interactionEnabled,
@@ -238,7 +238,13 @@ private fun UberEatsTestButton(
         supportingText = supportingText,
         enabled = enabled,
     ) {
-        LiveStatusReminder.showUberEats(context, event, null, officialTitle, officialText)
+        LiveStatusReminder.showUberEats(
+            context = context,
+            event = event,
+            pin = null,
+            officialTitle = officialTitle,
+            officialText = officialText,
+        )
     }
 }
 

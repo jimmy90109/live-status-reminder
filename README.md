@@ -101,9 +101,13 @@
   3. 正在取餐
   4. 正前往您所在位置
   5. 快到了
-- 只從 Android 16 `shortCriticalText` 解析剛好四位數的 PIN。
+- 支援繁體中文與英文自訂樣式常駐通知；英文階段依序為 `Order received`、
+  `Preparing your order`、`Picking up your order`、`Heading your way` 與
+  `Almost here!`。
+- 只從 Android 16 `shortCriticalText` 的剛好四位數，或通知 View 中四個各自成行的數字解析 PIN。
 - 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
-- 訂單送達或取消後自動移除提醒。
+- 英文來源會以英文顯示 Live Update，並保留 ETA、外送員、車牌及車輛資訊。
+- 收到 `Order delivered`、繁中送達／取消狀態，或來源常駐通知被移除後，自動移除提醒。
 
 ### Uber
 

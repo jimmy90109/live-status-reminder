@@ -36,6 +36,11 @@ object LiveStatusNotificationParser {
         ORDER_ENDED,
     }
 
+    enum class UberEatsLanguage {
+        ENGLISH,
+        TRADITIONAL_CHINESE,
+    }
+
     enum class UberRideEvent {
         NONE,
         PICKUP_EN_ROUTE,
@@ -81,6 +86,7 @@ object LiveStatusNotificationParser {
     data class UberEatsUpdate(
         val event: UberEatsEvent,
         val pin: String?,
+        val language: UberEatsLanguage = UberEatsLanguage.TRADITIONAL_CHINESE,
     )
 
     data class TaiwanPayRideUpdate(
@@ -187,27 +193,47 @@ object LiveStatusNotificationParser {
         shortCriticalText: String?,
     ): UberEatsUpdate {
         val normalized = notificationText?.lowercase(Locale.ROOT).orEmpty()
-        val event = when {
+        val lines = normalized.lineSequence().map(String::trim).filter(String::isNotEmpty).toList()
+        val (event, language) = when {
             normalized.contains("訂單已送達") ||
                 normalized.contains("已送達") ||
                 normalized.contains("訂單已取消") ||
                 normalized.contains("已取消") ||
-                normalized.contains("訂單取消") -> UberEatsEvent.ORDER_ENDED
-            normalized.contains("快到了") -> UberEatsEvent.ARRIVING
+                normalized.contains("訂單取消") ->
+                UberEatsEvent.ORDER_ENDED to UberEatsLanguage.TRADITIONAL_CHINESE
+            lines.any { it == "order delivered" || it.startsWith("order delivered at ") } ->
+                UberEatsEvent.ORDER_ENDED to UberEatsLanguage.ENGLISH
+            normalized.contains("快到了") ->
+                UberEatsEvent.ARRIVING to UberEatsLanguage.TRADITIONAL_CHINESE
+            lines.any { it == "almost here!" } ->
+                UberEatsEvent.ARRIVING to UberEatsLanguage.ENGLISH
             normalized.contains("正前往您所在位置") ||
                 normalized.contains("正在前往您所在位置") ||
-                normalized.contains("即將抵達") -> UberEatsEvent.ON_THE_WAY
-            normalized.contains("正在取餐") -> UberEatsEvent.PICKING_UP
+                normalized.contains("即將抵達") ->
+                UberEatsEvent.ON_THE_WAY to UberEatsLanguage.TRADITIONAL_CHINESE
+            lines.any { it == "heading your way" } ->
+                UberEatsEvent.ON_THE_WAY to UberEatsLanguage.ENGLISH
+            normalized.contains("正在取餐") ->
+                UberEatsEvent.PICKING_UP to UberEatsLanguage.TRADITIONAL_CHINESE
+            lines.any { it == "picking up your order" } ->
+                UberEatsEvent.PICKING_UP to UberEatsLanguage.ENGLISH
             normalized.contains("正在準備訂單") ||
-                normalized.contains("準備訂單") -> UberEatsEvent.PREPARING
+                normalized.contains("準備訂單") ->
+                UberEatsEvent.PREPARING to UberEatsLanguage.TRADITIONAL_CHINESE
+            lines.any { it == "preparing your order" } ->
+                UberEatsEvent.PREPARING to UberEatsLanguage.ENGLISH
             normalized.contains("訂單已收到") ||
-                normalized.contains("已收到您的訂單") -> UberEatsEvent.ORDER_RECEIVED
-            else -> UberEatsEvent.NONE
+                normalized.contains("已收到您的訂單") ->
+                UberEatsEvent.ORDER_RECEIVED to UberEatsLanguage.TRADITIONAL_CHINESE
+            lines.any { it == "order received" } ->
+                UberEatsEvent.ORDER_RECEIVED to UberEatsLanguage.ENGLISH
+            else -> UberEatsEvent.NONE to UberEatsLanguage.TRADITIONAL_CHINESE
         }
 
         return UberEatsUpdate(
             event = event,
             pin = exactPin(shortCriticalText) ?: separatedPin(notificationText),
+            language = language,
         )
     }
 
