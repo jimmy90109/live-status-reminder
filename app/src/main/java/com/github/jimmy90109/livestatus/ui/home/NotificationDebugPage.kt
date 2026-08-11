@@ -1,5 +1,10 @@
 package com.github.jimmy90109.livestatus.ui.home
 
+import android.content.ClipData
+import android.content.ClipDescription
+import android.content.ClipboardManager
+import android.os.PersistableBundle
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -15,7 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -29,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +44,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.jimmy90109.livestatus.NotificationDebugPayload
+import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.flow.StateFlow
 
@@ -52,6 +61,7 @@ internal fun NotificationDebugPage(
     onClear: () -> Unit,
 ) {
     val colors = LocalAppColors.current
+    val context = LocalContext.current
     val payloads by payloadsFlow.collectAsState()
     var expandedIndex by remember(payloads.firstOrNull()?.key) { mutableIntStateOf(0) }
 
@@ -66,7 +76,7 @@ internal fun NotificationDebugPage(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = rememberHapticAction(action = onBack)) {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "返回",
                     tint = colors.onSurface,
                 )
@@ -86,7 +96,7 @@ internal fun NotificationDebugPage(
             }
         }
         Spacer(Modifier.height(18.dp))
-        CardSurface(cardColor, 28, 18) {
+        CardSurface(background = cardColor, radius = 28, padding = 18) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     AppText("最近通知", 20, colors.onSurface, true)
@@ -102,6 +112,33 @@ internal fun NotificationDebugPage(
                     )
                 }
                 if (payloads.isNotEmpty()) {
+                    IconButton(
+                        onClick = rememberHapticAction {
+                            val clip = ClipData.newPlainText(
+                                "$appName payload",
+                                payloads.toDebugText(showPinDetails),
+                            ).apply {
+                                description.extras = PersistableBundle().apply {
+                                    putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+                                }
+                            }
+                            context.getSystemService(ClipboardManager::class.java)
+                                .setPrimaryClip(clip)
+                            Toast.makeText(
+                                context,
+                                R.string.notification_debug_payload_copied,
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.ContentCopy,
+                            contentDescription = stringResource(
+                                R.string.notification_debug_copy_payload,
+                            ),
+                            tint = actionColor,
+                        )
+                    }
                     Text(
                         text = "清除",
                         color = actionColor,
@@ -141,6 +178,7 @@ private fun NotificationDebugPayloadRow(
     onToggle: () -> Unit,
 ) {
     val colors = LocalAppColors.current
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -170,6 +208,33 @@ private fun NotificationDebugPayloadRow(
                     )
                 }
             }
+            IconButton(
+                onClick = rememberHapticAction {
+                    val clip = ClipData.newPlainText(
+                        "${payload.appLabel} payload",
+                        payload.toDebugText(showPinDetails),
+                    ).apply {
+                        description.extras = PersistableBundle().apply {
+                            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+                        }
+                    }
+                    context.getSystemService(ClipboardManager::class.java)
+                        .setPrimaryClip(clip)
+                    Toast.makeText(
+                        context,
+                        R.string.notification_debug_single_payload_copied,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ContentCopy,
+                    contentDescription = stringResource(
+                        R.string.notification_debug_copy_single_payload,
+                    ),
+                    tint = actionColor,
+                )
+            }
             Text(
                 text = if (expanded) "收合" else "展開",
                 color = actionColor,
@@ -194,6 +259,11 @@ private fun NotificationDebugPayloadRow(
         }
     }
 }
+
+private fun List<NotificationDebugPayload>.toDebugText(showPinDetails: Boolean): String =
+    mapIndexed { index, payload ->
+        "--- payload ${index + 1} ---\n${payload.toDebugText(showPinDetails)}"
+    }.joinToString("\n\n")
 
 private fun NotificationDebugPayload.toDebugText(showPinDetails: Boolean): String = buildString {
     appendLine("capturedAt=$capturedAt")

@@ -61,6 +61,10 @@ private enum class DebugTarget(val appName: String) {
     UBER("Uber"),
     FOODPANDA("foodpanda"),
     UBER_EATS("Uber Eats"),
+    YPT("YPT - Yeolpumta"),
+    HEVY("Hevy"),
+    DISCORD("Discord"),
+    GOOGLE_RECORDER("Google Recorder"),
 }
 
 @Composable
@@ -153,6 +157,11 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
                     DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
+                    DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
+                    DebugTarget.HEVY -> NotificationDebugPayloadStore.hevyPayloads
+                    DebugTarget.DISCORD -> NotificationDebugPayloadStore.discordPayloads
+                    DebugTarget.GOOGLE_RECORDER ->
+                        NotificationDebugPayloadStore.googleRecorderPayloads
                 },
                 cardColor = when (currentDebugTarget) {
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayContainer
@@ -162,6 +171,10 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
+                    DebugTarget.YPT -> colors.yptContainer
+                    DebugTarget.HEVY -> colors.commonContainer
+                    DebugTarget.DISCORD -> colors.discordContainer
+                    DebugTarget.GOOGLE_RECORDER -> colors.recorderContainer
                 },
                 actionColor = when (currentDebugTarget) {
                     DebugTarget.TAIWAN_PAY -> colors.taiwanPayPrimary
@@ -171,6 +184,10 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.FOODPANDA -> colors.foodpandaText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
+                    DebugTarget.YPT -> colors.yptText
+                    DebugTarget.HEVY -> colors.onSurface
+                    DebugTarget.DISCORD -> colors.discordText
+                    DebugTarget.GOOGLE_RECORDER -> colors.recorderText
                 },
                 showPinDetails = currentDebugTarget == DebugTarget.UBER ||
                     currentDebugTarget == DebugTarget.UBER_EATS,
@@ -186,6 +203,11 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
                         DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
+                        DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
+                        DebugTarget.HEVY -> NotificationDebugPayloadStore.clearHevy()
+                        DebugTarget.DISCORD -> NotificationDebugPayloadStore.clearDiscord()
+                        DebugTarget.GOOGLE_RECORDER ->
+                            NotificationDebugPayloadStore.clearGoogleRecorder()
                     }
                 },
             )
@@ -222,6 +244,12 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
+                        onOpenYptDebug = { debugTarget = DebugTarget.YPT },
+                        onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                        onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
+                        onOpenGoogleRecorderDebug = {
+                            debugTarget = DebugTarget.GOOGLE_RECORDER
+                        },
                     )
                 }
             } else {
@@ -247,6 +275,12 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
+                        onOpenYptDebug = { debugTarget = DebugTarget.YPT },
+                        onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                        onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
+                        onOpenGoogleRecorderDebug = {
+                            debugTarget = DebugTarget.GOOGLE_RECORDER
+                        },
                     )
                 }
             }
@@ -342,10 +376,10 @@ private fun NotificationAccessDisclosureDialog(
         title = { Text("允許讀取通知前，請先了解") },
         text = {
             Text(
-                "即時狀態提醒會讀取媒體播放、Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
-                    "用來辨識曲名與作者、倒數計時、乘車、YouBike 騎乘費用、外送進度、55688 車牌、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
+                "即時狀態提醒會讀取媒體播放、Discord、Clock、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                    "用來辨識曲名與作者、Discord 語音通話連線狀態與對方／頻道名稱、倒數與錄音時間、讀書與健身進度、乘車、YouBike 騎乘費用、外送進度、55688 車牌、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
-                    "也不會永久儲存通知內容、車牌或 PIN。YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
+                    "也不會永久儲存通知內容、車牌或 PIN。Google Recorder 的錄音狀態與時間只在目前程序記憶體處理；Debug build 另暫存最近 30 筆 Recorder payload，重啟 App 後即清除。YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
             )
         },
         confirmButton = {

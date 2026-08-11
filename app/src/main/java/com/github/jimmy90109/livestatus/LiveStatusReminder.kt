@@ -18,8 +18,16 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 object LiveStatusReminder {
+    internal const val DISCORD_VOICE_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
+    internal const val DISCORD_VOICE_VISIBILITY = Notification.VISIBILITY_PUBLIC
+    internal const val GOOGLE_RECORDER_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
+    internal const val GOOGLE_RECORDER_VISIBILITY = Notification.VISIBILITY_PUBLIC
     private const val CHANNEL_ID = "live_status"
     private const val MEDIA_CHANNEL_ID = "media_live_status"
+    private const val DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status_v2"
+    private const val LEGACY_DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status"
+    private const val GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status_v2"
+    private const val LEGACY_GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
     private const val FOODPANDA_NOTIFICATION_ID = 1002
     private const val UBER_EATS_NOTIFICATION_ID = 1003
@@ -30,6 +38,10 @@ object LiveStatusReminder {
     private const val YOU_BIKE_NOTIFICATION_ID = 1008
     private const val MEDIA_PLAYBACK_NOTIFICATION_ID = 1009
     private const val TAIWAN_TAXI_NOTIFICATION_ID = 1010
+    private const val YPT_STUDY_NOTIFICATION_ID = 1011
+    private const val HEVY_WORKOUT_NOTIFICATION_ID = 1012
+    private const val DISCORD_VOICE_NOTIFICATION_ID = 1013
+    private const val GOOGLE_RECORDER_NOTIFICATION_ID = 1014
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -62,6 +74,41 @@ object LiveStatusReminder {
             enableVibration(false)
         }
         notificationManager(context).createNotificationChannel(channel)
+    }
+
+    @JvmStatic
+    fun createDiscordVoiceChannel(context: Context) {
+        val channel = NotificationChannel(
+            DISCORD_VOICE_CHANNEL_ID,
+            context.getString(R.string.discord_voice_notification_channel_name),
+            DISCORD_VOICE_CHANNEL_IMPORTANCE,
+        ).apply {
+            description = context.getString(R.string.discord_voice_notification_channel_description)
+            lockscreenVisibility = DISCORD_VOICE_VISIBILITY
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).run {
+            createNotificationChannel(channel)
+            deleteNotificationChannel(LEGACY_DISCORD_VOICE_CHANNEL_ID)
+        }
+    }
+
+    private fun createGoogleRecorderChannel(context: Context) {
+        val channel = NotificationChannel(
+            GOOGLE_RECORDER_CHANNEL_ID,
+            context.getString(R.string.google_recorder_notification_channel_name),
+            GOOGLE_RECORDER_CHANNEL_IMPORTANCE,
+        ).apply {
+            description = context.getString(R.string.google_recorder_notification_channel_description)
+            lockscreenVisibility = GOOGLE_RECORDER_VISIBILITY
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).run {
+            createNotificationChannel(channel)
+            deleteNotificationChannel(LEGACY_GOOGLE_RECORDER_CHANNEL_ID)
+        }
     }
 
     @JvmStatic
@@ -405,6 +452,248 @@ object LiveStatusReminder {
     fun clearClockTimer(context: Context) {
         notificationManager(context).cancel(CLOCK_TIMER_NOTIFICATION_ID)
     }
+
+    internal fun showYptStudy(context: Context, update: YptStudyUpdate) {
+        createChannel(context)
+        val openYpt = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            9,
+            HomeScreenHostActivity.createOpenYptIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = yptStudyPayload(
+            update = update,
+            appName = context.getString(R.string.ypt_card_app_name),
+            criticalText = context.getString(R.string.ypt_live_critical_text),
+            title = context.getString(R.string.ypt_live_title),
+            fallbackContentText = context.getString(R.string.ypt_live_fallback_content),
+            contentIntent = openYpt,
+        )
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    context.getString(R.string.ypt_live_open_action),
+                    openYpt,
+                ).build(),
+            )
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .also {
+                YptStudyNotificationStyle.apply(
+                    it,
+                    update.startedAtEpochMillis,
+                    context.getString(R.string.ypt_live_metric_label),
+                )
+            }
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(YPT_STUDY_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearYptStudy(context: Context) {
+        notificationManager(context).cancel(YPT_STUDY_NOTIFICATION_ID)
+    }
+
+    internal fun showGoogleRecorder(context: Context, update: RecorderUpdate) {
+        createGoogleRecorderChannel(context)
+        val openRecorder = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            12,
+            HomeScreenHostActivity.createOpenGoogleRecorderIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = googleRecorderPayload(update, openRecorder)
+        val isEnglish = update.language == RecorderLanguage.ENGLISH
+        val builder = Notification.Builder(context, GOOGLE_RECORDER_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(GOOGLE_RECORDER_VISIBILITY)
+            .setColor(Color.rgb(217, 48, 37))
+            .also { notificationBuilder ->
+                if (update.state == RecorderState.PAUSED) {
+                    notificationBuilder.setShortCriticalText(payload.criticalText)
+                }
+            }
+            .also { notificationBuilder ->
+                if (update.state == RecorderState.RUNNING) {
+                    YptStudyNotificationStyle.apply(
+                        notificationBuilder,
+                        requireNotNull(update.startedAtEpochMillis),
+                        context.getString(
+                            if (isEnglish) {
+                                R.string.google_recorder_live_metric_label_en
+                            } else {
+                                R.string.google_recorder_live_metric_label
+                            },
+                        ),
+                    )
+                } else {
+                    notificationBuilder
+                        .setWhen(0)
+                        .setShowWhen(false)
+                        .setUsesChronometer(false)
+                        .setChronometerCountDown(false)
+                        .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+                }
+            }
+            .also { notificationBuilder ->
+                if (update.sourceActions.isEmpty()) {
+                    notificationBuilder.addAction(
+                        Notification.Action.Builder(
+                            Icon.createWithResource(context, payload.leftIconRes),
+                            context.getString(
+                                if (isEnglish) {
+                                    R.string.google_recorder_live_open_action_en
+                                } else {
+                                    R.string.google_recorder_live_open_action
+                                },
+                            ),
+                            openRecorder,
+                        ).build(),
+                    )
+                } else {
+                    update.sourceActions.take(2).forEach(notificationBuilder::addAction)
+                }
+            }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(GOOGLE_RECORDER_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearGoogleRecorder(context: Context) {
+        notificationManager(context).cancel(GOOGLE_RECORDER_NOTIFICATION_ID)
+    }
+
+    internal fun showHevyWorkout(context: Context, update: HevyWorkoutUpdate) {
+        createChannel(context)
+        val openHevy = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            10,
+            HomeScreenHostActivity.createOpenHevyIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = hevyWorkoutPayload(update, openHevy)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(HevyWorkoutNotificationParser.WORKOUT_CATEGORY)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .also { notificationBuilder ->
+                if (update.hasActiveRestCountdown) {
+                    ClockTimerNotificationStyle.apply(
+                        notificationBuilder,
+                        hevyRestTimer(update, SystemClock.elapsedRealtime()),
+                        payload.criticalText,
+                    )
+                } else {
+                    notificationBuilder
+                        .setWhen(0)
+                        .setShowWhen(false)
+                        .setUsesChronometer(false)
+                        .setChronometerCountDown(false)
+                        .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+                }
+            }
+            .also { notificationBuilder ->
+                if (update.sourceActions.isEmpty()) {
+                    notificationBuilder.addAction(
+                        Notification.Action.Builder(
+                            Icon.createWithResource(context, payload.leftIconRes),
+                            context.getString(R.string.hevy_live_open_action),
+                            openHevy,
+                        ).build(),
+                    )
+                } else {
+                    update.sourceActions.forEach(notificationBuilder::addAction)
+                }
+            }
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(HEVY_WORKOUT_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearHevyWorkout(context: Context) {
+        notificationManager(context).cancel(HEVY_WORKOUT_NOTIFICATION_ID)
+    }
+
+    internal fun showDiscordVoice(context: Context, update: DiscordVoiceUpdate) {
+        createDiscordVoiceChannel(context)
+        val openDiscord = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            11,
+            HomeScreenHostActivity.createOpenDiscordIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = LiveStatusPayload(
+            id = DISCORD_VOICE_NOTIFICATION_ID,
+            appName = "Discord",
+            smallIconRes = R.drawable.ic_voice_notification,
+            leftIconRes = R.drawable.ic_voice_notification,
+            criticalText = context.getString(R.string.discord_voice_critical_text),
+            title = discordVoiceTitle(
+                update,
+                context.getString(R.string.discord_voice_fallback_title),
+            ),
+            contentText = discordVoiceContentText(
+                update,
+                context.getString(R.string.discord_voice_fallback_content),
+            ),
+            contentIntent = openDiscord,
+        )
+        val builder = Notification.Builder(context, DISCORD_VOICE_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(DISCORD_VOICE_VISIBILITY)
+            .setColor(Color.rgb(88, 101, 242))
+            .setWhen(0)
+            .setShowWhen(false)
+            .setUsesChronometer(false)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also { notificationBuilder ->
+                update.sourceActions.take(3).forEach(notificationBuilder::addAction)
+            }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(DISCORD_VOICE_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearDiscordVoice(context: Context) {
+        notificationManager(context).cancel(DISCORD_VOICE_NOTIFICATION_ID)
+    }
+
+    internal fun discordVoiceTitle(update: DiscordVoiceUpdate, fallback: String): String =
+        update.sourceTitle ?: fallback
+
+    internal fun discordVoiceContentText(update: DiscordVoiceUpdate, fallback: String): String =
+        update.sourceContentText ?: fallback
 
     @JvmStatic
     internal fun showMediaPlayback(context: Context, update: MediaPlaybackUpdate) {
@@ -854,6 +1143,108 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
     }
+
+    internal fun yptStudyPayload(
+        update: YptStudyUpdate,
+        appName: String,
+        criticalText: String,
+        title: String,
+        fallbackContentText: String,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload = LiveStatusPayload(
+        id = YPT_STUDY_NOTIFICATION_ID,
+        appName = appName,
+        smallIconRes = R.drawable.ic_timer_notification,
+        leftIconRes = R.drawable.ic_timer_notification,
+        criticalText = criticalText,
+        title = title,
+        contentText = update.sourceContentText ?: fallbackContentText,
+        contentIntent = contentIntent,
+    )
+
+    internal fun googleRecorderPayload(
+        update: RecorderUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val paused = update.state == RecorderState.PAUSED
+        val english = update.language == RecorderLanguage.ENGLISH
+        val duration = formatRecorderDuration(update.elapsedMillis)
+        return LiveStatusPayload(
+            id = GOOGLE_RECORDER_NOTIFICATION_ID,
+            appName = "Recorder",
+            smallIconRes = R.drawable.ic_microphone_notification,
+            leftIconRes = R.drawable.ic_microphone_notification,
+            criticalText = if (paused) duration else if (english) "Recording" else "錄音中",
+            title = when {
+                paused && english -> "Recording paused"
+                paused -> "錄音已暫停"
+                english -> "Recording"
+                else -> "正在錄音"
+            },
+            contentText = when {
+                paused && english -> "Current recording length: $duration"
+                paused -> "目前錄音長度 $duration"
+                english -> "Recording time is increasing"
+                else -> "錄音時間持續累積中"
+            },
+            contentIntent = contentIntent,
+        )
+    }
+
+    internal fun formatRecorderDuration(elapsedMillis: Long): String {
+        val totalSeconds = (elapsedMillis / 1_000L).coerceAtLeast(0L)
+        val hours = totalSeconds / 3_600L
+        val minutes = totalSeconds % 3_600L / 60L
+        val seconds = totalSeconds % 60L
+        return if (hours > 0L) {
+            "%d:%02d:%02d".format(Locale.ROOT, hours, minutes, seconds)
+        } else {
+            "%02d:%02d".format(Locale.ROOT, minutes, seconds)
+        }
+    }
+
+    internal fun hevyWorkoutPayload(
+        update: HevyWorkoutUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val setText = "第 ${update.setNumber}/${update.totalSets} 組"
+        val criticalText = if (update.hasActiveRestCountdown) {
+            "休息 ${formatHevyRestDuration(requireNotNull(update.restRemainingSeconds))}"
+        } else {
+            setText
+        }
+        val contentText = when {
+            update.hasActiveRestCountdown -> "下一個：$setText · ${update.setDetail}"
+            update.phase == HevyWorkoutPhase.ACTIVE_SET -> update.sourceContentText
+            else -> "$setText · ${update.setDetail}"
+        }
+        return LiveStatusPayload(
+            id = HEVY_WORKOUT_NOTIFICATION_ID,
+            appName = "Hevy",
+            smallIconRes = R.drawable.ic_fitness_notification,
+            leftIconRes = R.drawable.ic_fitness_notification,
+            criticalText = criticalText,
+            title = update.exerciseName,
+            contentText = contentText,
+            progress = update.progressPercent,
+            contentIntent = contentIntent,
+        )
+    }
+
+    internal fun formatHevyRestDuration(totalSeconds: Int): String {
+        val safeSeconds = totalSeconds.coerceAtLeast(0)
+        return "%d:%02d".format(safeSeconds / 60, safeSeconds % 60)
+    }
+
+    internal fun hevyRestTimer(
+        update: HevyWorkoutUpdate,
+        nowElapsedRealtimeMillis: Long,
+    ): LiveStatusTimer = LiveStatusTimer(
+        state = ClockTimerState.RUNNING,
+        endElapsedRealtimeMillis = nowElapsedRealtimeMillis +
+            requireNotNull(update.restRemainingSeconds) * 1_000L,
+        language = ClockTimerLanguage.CHINESE,
+    )
 
     internal fun formatClockTimerDuration(durationMillis: Long): String {
         val totalSeconds = ((durationMillis.coerceAtLeast(0) + 999) / 1_000)

@@ -14,6 +14,10 @@
         <package android:name="com.ubercab" />
         <package android:name="com.ubercab.eats" />
         <package android:name="com.nianticlabs.pikmin" />
+        <package android:name="com.pallo.passiontimerscoped" />
+        <package android:name="com.hevy" />
+        <package android:name="com.discord" />
+        <package android:name="com.google.android.apps.recorder" />
     </queries>
 
     <application

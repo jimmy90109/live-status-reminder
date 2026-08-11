@@ -14,6 +14,180 @@ import org.junit.Test
 
 class LiveStatusPayloadTest {
     @Test
+    fun googleRecorderPayloadShowsRunningAndPausedStates() {
+        val running = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|running",
+                state = RecorderState.RUNNING,
+                elapsedMillis = 7_000L,
+                startedAtEpochMillis = 1_700_000_000_000L,
+                postedAtEpochMillis = 1_700_000_007_000L,
+            ),
+        )
+        val paused = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|paused",
+                state = RecorderState.PAUSED,
+                elapsedMillis = 3_723_000L,
+                startedAtEpochMillis = null,
+                postedAtEpochMillis = 1_700_000_007_000L,
+            ),
+        )
+        val englishRunning = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|english-running",
+                state = RecorderState.RUNNING,
+                elapsedMillis = 7_000L,
+                startedAtEpochMillis = 1_700_000_000_000L,
+                postedAtEpochMillis = 1_700_000_007_000L,
+                language = RecorderLanguage.ENGLISH,
+            ),
+        )
+        val englishPaused = LiveStatusReminder.googleRecorderPayload(
+            RecorderUpdate(
+                sourceKey = "recorder|english-paused",
+                state = RecorderState.PAUSED,
+                elapsedMillis = 3_723_000L,
+                startedAtEpochMillis = null,
+                postedAtEpochMillis = 1_700_000_007_000L,
+                language = RecorderLanguage.ENGLISH,
+            ),
+        )
+
+        assertEquals("Recorder", running.appName)
+        assertEquals(R.drawable.ic_microphone_notification, running.smallIconRes)
+        assertEquals("錄音中", running.criticalText)
+        assertEquals("正在錄音", running.title)
+        assertEquals("錄音時間持續累積中", running.contentText)
+        assertEquals("1:02:03", paused.criticalText)
+        assertEquals("錄音已暫停", paused.title)
+        assertEquals("目前錄音長度 1:02:03", paused.contentText)
+        assertEquals("Recording", englishRunning.criticalText)
+        assertEquals("Recording", englishRunning.title)
+        assertEquals("Recording time is increasing", englishRunning.contentText)
+        assertEquals("1:02:03", englishPaused.criticalText)
+        assertEquals("Recording paused", englishPaused.title)
+        assertEquals("Current recording length: 1:02:03", englishPaused.contentText)
+    }
+
+    @Test
+    fun googleRecorderUsesPublicVisibility() {
+        assertEquals(
+            android.app.NotificationManager.IMPORTANCE_DEFAULT,
+            LiveStatusReminder.GOOGLE_RECORDER_CHANNEL_IMPORTANCE,
+        )
+        assertEquals(android.app.Notification.VISIBILITY_PUBLIC, LiveStatusReminder.GOOGLE_RECORDER_VISIBILITY)
+    }
+
+    @Test
+    fun hevyActiveSetPayloadShowsExerciseSetAndProgress() {
+        val payload = LiveStatusReminder.hevyWorkoutPayload(
+            HevyWorkoutUpdate(
+                sourceKey = "hevy|workout",
+                startedAtEpochMillis = 1_700_000_000_000L,
+                exerciseName = "肩推（啞鈴）",
+                phase = HevyWorkoutPhase.ACTIVE_SET,
+                setNumber = 4,
+                totalSets = 4,
+                setDetail = "7.5 kg × 12 次",
+                sourceContentText = "第 4/4 組 - 7.5 kg x 12 次",
+            ),
+        )
+
+        assertEquals("Hevy", payload.appName)
+        assertEquals(R.drawable.ic_fitness_notification, payload.smallIconRes)
+        assertEquals("第 4/4 組", payload.criticalText)
+        assertEquals("肩推（啞鈴）", payload.title)
+        assertEquals("第 4/4 組 - 7.5 kg x 12 次", payload.contentText)
+        assertEquals(100, payload.progress)
+    }
+
+    @Test
+    fun hevyRestPayloadShowsCountdownAndNextSet() {
+        val update = HevyWorkoutUpdate(
+            sourceKey = "hevy|workout",
+            startedAtEpochMillis = 1_700_000_000_000L,
+            exerciseName = "俯身飛鳥（啞鈴）",
+            phase = HevyWorkoutPhase.REST,
+            setNumber = 1,
+            totalSets = 4,
+            setDetail = "2.5 kg × 12 次",
+            sourceContentText = "下一個: 第1 組（共 4組） (2.5 kg x 12 次)\n休息 0:45",
+            restRemainingSeconds = 45,
+        )
+        val payload = LiveStatusReminder.hevyWorkoutPayload(update)
+        val timer = LiveStatusReminder.hevyRestTimer(update, nowElapsedRealtimeMillis = 10_000L)
+
+        assertEquals("休息 0:45", payload.criticalText)
+        assertEquals("俯身飛鳥（啞鈴）", payload.title)
+        assertEquals("下一個：第 1/4 組 · 2.5 kg × 12 次", payload.contentText)
+        assertEquals(25, payload.progress)
+        assertEquals(ClockTimerState.RUNNING, timer.state)
+        assertEquals(55_000L, timer.endElapsedRealtimeMillis)
+        assertEquals(ClockTimerLanguage.CHINESE, timer.language)
+    }
+
+    @Test
+    fun hevyExpiredRestPayloadReturnsToSetContentWithoutZeroCountdown() {
+        val update = HevyWorkoutUpdate(
+            sourceKey = "hevy|workout",
+            startedAtEpochMillis = 1_700_000_000_000L,
+            exerciseName = "俯身飛鳥（啞鈴）",
+            phase = HevyWorkoutPhase.REST,
+            setNumber = 1,
+            totalSets = 4,
+            setDetail = "2.5 kg × 12 次",
+            sourceContentText = "下一個: 第1 組（共 4組） (2.5 kg x 12 次)\n休息 0:00",
+            restRemainingSeconds = 0,
+        )
+
+        val payload = LiveStatusReminder.hevyWorkoutPayload(update)
+
+        assertEquals(false, update.hasActiveRestCountdown)
+        assertEquals("第 1/4 組", payload.criticalText)
+        assertEquals("第 1/4 組 · 2.5 kg × 12 次", payload.contentText)
+    }
+
+    @Test
+    fun yptStudyPayloadUsesChineseCopyAndSourceContent() {
+        val payload = LiveStatusReminder.yptStudyPayload(
+            update = YptStudyUpdate(
+                sourceKey = "ypt|1001",
+                startedAtEpochMillis = 1_700_000_000_000L,
+                sourceContentText = "YPT - Study Group",
+            ),
+            appName = "YPT",
+            criticalText = "讀書中",
+            title = "正在記錄讀書時間",
+            fallbackContentText = "讀書時間持續累積中",
+        )
+
+        assertEquals(R.drawable.ic_timer_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_timer_notification, payload.leftIconRes)
+        assertEquals("YPT", payload.appName)
+        assertEquals("讀書中", payload.criticalText)
+        assertEquals("正在記錄讀書時間", payload.title)
+        assertEquals("YPT - Study Group", payload.contentText)
+    }
+
+    @Test
+    fun yptStudyPayloadFallsBackWhenSourceContentIsMissing() {
+        val payload = LiveStatusReminder.yptStudyPayload(
+            update = YptStudyUpdate(
+                sourceKey = "debug-ypt-study",
+                startedAtEpochMillis = 1_700_000_000_000L,
+                sourceContentText = null,
+            ),
+            appName = "YPT",
+            criticalText = "讀書中",
+            title = "正在記錄讀書時間",
+            fallbackContentText = "讀書時間持續累積中",
+        )
+
+        assertEquals("讀書時間持續累積中", payload.contentText)
+    }
+
+    @Test
     fun ridePayloadUsesQrIconAppNameAndCriticalText() {
         val payload = LiveStatusReminder.ridePayload()
 

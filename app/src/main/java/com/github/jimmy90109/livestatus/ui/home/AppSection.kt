@@ -77,6 +77,10 @@ internal fun AppsSection(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
+    onOpenYptDebug: () -> Unit,
+    onOpenHevyDebug: () -> Unit,
+    onOpenDiscordDebug: () -> Unit,
+    onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
         APP_CATEGORY_PAGE_COUNT
@@ -267,21 +271,43 @@ internal fun AppsSection(
                         },
                         onOpenDebug = onOpenYouBikeDebug,
                     )
-                    CATEGORY_GAME -> PikminBloomCard(
-                        installed = status.pikminBloomInstalled,
-                        enabled = status.pikminBloomEnabled,
-                        interactionEnabled = status.requiredSettingsComplete,
-                        onEnabledChange = {
-                            onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
-                        },
-                    )
-                    CATEGORY_TOOL -> {
-                        MediaPlaybackCard(
-                            enabled = status.mediaPlaybackEnabled,
+                    CATEGORY_SPORT -> {
+                        HevyCard(
+                            installed = status.hevyInstalled,
+                            enabled = status.hevyEnabled,
                             interactionEnabled = status.requiredSettingsComplete,
                             onEnabledChange = {
-                                onAppEnabledChange(AppReminderPreferences.App.MEDIA_PLAYBACK, it)
+                                onAppEnabledChange(AppReminderPreferences.App.HEVY, it)
                             },
+                            onOpenDebug = onOpenHevyDebug,
+                        )
+                        PikminBloomCard(
+                            installed = status.pikminBloomInstalled,
+                            enabled = status.pikminBloomEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
+                            },
+                        )
+                    }
+                    CATEGORY_TOOL -> {
+                        GoogleRecorderCard(
+                            installed = status.googleRecorderInstalled,
+                            enabled = status.googleRecorderEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.GOOGLE_RECORDER, it)
+                            },
+                            onOpenDebug = onOpenGoogleRecorderDebug,
+                        )
+                        YptCard(
+                            installed = status.yptInstalled,
+                            enabled = status.yptEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.YPT, it)
+                            },
+                            onOpenDebug = onOpenYptDebug,
                         )
                         ClockCard(
                             installed = status.clockInstalled,
@@ -291,6 +317,24 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.CLOCK, it)
                             },
                             onOpenDebug = onOpenClockDebug,
+                        )
+                    }
+                    CATEGORY_MEDIA -> {
+                        DiscordVoiceCard(
+                            installed = status.discordInstalled,
+                            enabled = status.discordVoiceEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.DISCORD_VOICE, it)
+                            },
+                            onOpenDebug = onOpenDiscordDebug,
+                        )
+                        MediaPlaybackCard(
+                            enabled = status.mediaPlaybackEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.MEDIA_PLAYBACK, it)
+                            },
                         )
                     }
                     else -> {
@@ -461,8 +505,8 @@ private fun AppTabs(
                 onSelect,
             )
             AppTab(
-                stringResource(R.string.app_category_game),
-                CATEGORY_GAME,
+                stringResource(R.string.app_category_sport),
+                CATEGORY_SPORT,
                 currentPage,
                 currentPageOffsetFraction,
                 transitionFromPage,
@@ -476,6 +520,19 @@ private fun AppTabs(
             AppTab(
                 stringResource(R.string.app_category_tool),
                 CATEGORY_TOOL,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
+                stringResource(R.string.app_category_media),
+                CATEGORY_MEDIA,
                 currentPage,
                 currentPageOffsetFraction,
                 transitionFromPage,
@@ -577,9 +634,10 @@ private const val CATEGORY_TRANSIT_CODE = 0
 private const val CATEGORY_DELIVERY = 1
 private const val CATEGORY_RIDE = 2
 private const val CATEGORY_RENTAL = 3
-private const val CATEGORY_GAME = 4
+private const val CATEGORY_SPORT = 4
 private const val CATEGORY_TOOL = 5
-private const val APP_CATEGORY_PAGE_COUNT = 6
+private const val CATEGORY_MEDIA = 6
+private const val APP_CATEGORY_PAGE_COUNT = 7
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
 private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

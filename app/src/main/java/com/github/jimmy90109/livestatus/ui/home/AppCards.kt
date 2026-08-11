@@ -17,15 +17,109 @@ import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.ClockTimerSource
 import com.github.jimmy90109.livestatus.ClockTimerState
 import com.github.jimmy90109.livestatus.ClockTimerUpdate
+import com.github.jimmy90109.livestatus.DiscordVoiceUpdate
 import com.github.jimmy90109.livestatus.LiveStatusReminder
+import com.github.jimmy90109.livestatus.HevyWorkoutPhase
+import com.github.jimmy90109.livestatus.HevyWorkoutNotificationParser
+import com.github.jimmy90109.livestatus.HevyWorkoutUpdate
+import com.github.jimmy90109.livestatus.GoogleRecorderNotificationParser
+import com.github.jimmy90109.livestatus.RecorderState
+import com.github.jimmy90109.livestatus.RecorderUpdate
 import com.github.jimmy90109.livestatus.YouBikeNotificationParser
 import com.github.jimmy90109.livestatus.YouBikeEvent
 import com.github.jimmy90109.livestatus.YouBikeRideManager
 import com.github.jimmy90109.livestatus.YouBikeRideSessionStore
 import com.github.jimmy90109.livestatus.YouBikeRideUpdate
+import com.github.jimmy90109.livestatus.YptStudyNotificationParser
+import com.github.jimmy90109.livestatus.YptStudyUpdate
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
+@Composable
+internal fun GoogleRecorderCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.google_recorder_card_app_name),
+        appPackageName = GoogleRecorderNotificationParser.PACKAGE_NAME,
+        fallbackIconRes = R.drawable.ic_microphone_notification,
+        title = stringResource(R.string.google_recorder_card_title),
+        description = stringResource(R.string.google_recorder_card_description),
+        supportedLanguages = listOf(
+            stringResource(R.string.google_recorder_language),
+        ),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.recorderContainer,
+        labelColor = colors.recorderSecondaryContainer,
+        foregroundColor = colors.recorderText,
+        actionColor = colors.recorderPrimary,
+    ) {
+        AppActionDivider(colors.recorderText)
+        AppCardActionButton(
+            stringResource(R.string.google_recorder_simulate_running),
+            colors.recorderPrimary,
+            colors.recorderText,
+            supportingText = stringResource(R.string.monitoring_google_recorder_running),
+            enabled = enabled,
+        ) {
+            val now = System.currentTimeMillis()
+            LiveStatusReminder.showGoogleRecorder(
+                context,
+                RecorderUpdate(
+                    sourceKey = "debug-google-recorder",
+                    state = RecorderState.RUNNING,
+                    elapsedMillis = 7_000L,
+                    startedAtEpochMillis = now - 7_000L,
+                    postedAtEpochMillis = now,
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.google_recorder_simulate_paused),
+            colors.recorderPrimary,
+            colors.recorderText,
+            supportingText = stringResource(R.string.monitoring_google_recorder_paused),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showGoogleRecorder(
+                context,
+                RecorderUpdate(
+                    sourceKey = "debug-google-recorder",
+                    state = RecorderState.PAUSED,
+                    elapsedMillis = 7_000L,
+                    startedAtEpochMillis = null,
+                    postedAtEpochMillis = System.currentTimeMillis(),
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.google_recorder_simulate_clear),
+            colors.recorderPrimary,
+            colors.recorderText,
+            supportingText = stringResource(R.string.monitoring_google_recorder_stopped),
+        ) {
+            LiveStatusReminder.clearGoogleRecorder(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.google_recorder_debug_open_payload),
+                colors.recorderPrimary,
+                colors.recorderText,
+                enabled = installed,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
 
 @Composable
 internal fun MediaPlaybackCard(
@@ -57,6 +151,221 @@ internal fun MediaPlaybackCard(
             )
         },
     )
+}
+
+@Composable
+internal fun DiscordVoiceCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "Discord",
+        appPackageName = DISCORD_PACKAGE,
+        fallbackIconRes = R.drawable.ic_voice_notification,
+        title = stringResource(R.string.discord_voice_card_title),
+        description = stringResource(R.string.discord_voice_card_description),
+        supportedLanguages = listOf(stringResource(R.string.media_playback_language_independent)),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.discordContainer,
+        labelColor = colors.discordSecondaryContainer,
+        foregroundColor = colors.discordText,
+        actionColor = colors.discordPrimary,
+    ) {
+        AppActionDivider(colors.discordText)
+        AppCardActionButton(
+            stringResource(R.string.discord_voice_simulate_connected),
+            colors.discordPrimary,
+            colors.discordText,
+            supportingText = stringResource(R.string.discord_voice_monitoring_connected),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showDiscordVoice(
+                context,
+                DiscordVoiceUpdate(
+                    sourceKey = "debug-discord-voice",
+                    postedAtEpochMillis = System.currentTimeMillis(),
+                    sourceTitle = "語音已連線 — 點選即可回到通話",
+                    sourceContentText = "[測試] 語音頻道",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.discord_voice_simulate_clear),
+            colors.discordPrimary,
+            colors.discordText,
+            supportingText = stringResource(R.string.discord_voice_monitoring_disconnected),
+        ) {
+            LiveStatusReminder.clearDiscordVoice(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.discord_debug_open_payload),
+                colors.discordPrimary,
+                colors.discordText,
+                enabled = installed,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun YptCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.ypt_card_app_name),
+        appPackageName = YPT_PACKAGE,
+        fallbackIconRes = R.drawable.ic_timer_notification,
+        title = stringResource(R.string.ypt_card_title),
+        description = stringResource(R.string.ypt_card_description),
+        supportedLanguages = listOf(stringResource(R.string.media_playback_language_independent)),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.yptContainer,
+        labelColor = colors.yptSecondaryContainer,
+        foregroundColor = colors.yptText,
+        actionColor = colors.yptPrimary,
+    ) {
+        AppActionDivider(colors.yptText)
+        AppCardActionButton(
+            stringResource(R.string.ypt_simulate_start),
+            colors.yptPrimary,
+            colors.yptText,
+            supportingText = stringResource(R.string.monitoring_ypt_running),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showYptStudy(
+                context,
+                YptStudyUpdate(
+                    sourceKey = "debug-ypt-study",
+                    startedAtEpochMillis = System.currentTimeMillis() - 10 * 60_000L,
+                    sourceContentText = "YPT - Study Group",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.ypt_simulate_stop),
+            colors.yptPrimary,
+            colors.yptText,
+            supportingText = stringResource(R.string.monitoring_ypt_stopped),
+        ) {
+            LiveStatusReminder.clearYptStudy(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.ypt_debug_open_payload),
+                colors.yptPrimary,
+                colors.yptText,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun HevyCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = stringResource(R.string.hevy_card_app_name),
+        appPackageName = HEVY_PACKAGE,
+        fallbackIconRes = R.drawable.ic_fitness_notification,
+        title = stringResource(R.string.hevy_card_title),
+        description = stringResource(R.string.hevy_card_description),
+        supportedLanguages = listOf(stringResource(R.string.media_playback_language_independent)),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.commonContainer,
+        labelColor = colors.commonSurface,
+        foregroundColor = colors.onSurface,
+        actionColor = colors.commonPrimary,
+    ) {
+        AppActionDivider(colors.onSurface)
+        AppCardActionButton(
+            stringResource(R.string.hevy_simulate_active_set),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_hevy_active_set),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showHevyWorkout(
+                context,
+                HevyWorkoutUpdate(
+                    sourceKey = "debug-hevy-workout",
+                    startedAtEpochMillis = System.currentTimeMillis() - 3 * 60_000L,
+                    exerciseName = "肩推（啞鈴）",
+                    phase = HevyWorkoutPhase.ACTIVE_SET,
+                    setNumber = 4,
+                    totalSets = 4,
+                    setDetail = "7.5 kg × 12 次",
+                    sourceContentText = "第 4/4 組 - 7.5 kg x 12 次",
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.hevy_simulate_rest),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_hevy_rest),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showHevyWorkout(
+                context,
+                HevyWorkoutUpdate(
+                    sourceKey = "debug-hevy-workout",
+                    startedAtEpochMillis = System.currentTimeMillis() - 4 * 60_000L,
+                    exerciseName = "俯身飛鳥（啞鈴）",
+                    phase = HevyWorkoutPhase.REST,
+                    setNumber = 1,
+                    totalSets = 4,
+                    setDetail = "2.5 kg × 12 次",
+                    sourceContentText = "下一個: 第1 組（共 4組） (2.5 kg x 12 次)\n休息 0:45",
+                    restRemainingSeconds = 45,
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.hevy_simulate_finish),
+            colors.commonPrimary,
+            colors.onSurface,
+            supportingText = stringResource(R.string.monitoring_hevy_finished),
+        ) {
+            LiveStatusReminder.clearHevyWorkout(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.hevy_debug_open_payload),
+                colors.commonPrimary,
+                colors.onSurface,
+                onClick = onOpenDebug,
+            )
+        }
+    }
 }
 
 
@@ -393,6 +702,9 @@ private const val IPASS_PACKAGE = "com.ipass.ipassmoney"
 private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
 private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
 private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
+private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
+private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
+private const val DISCORD_PACKAGE = "com.discord"
 
 private fun youBikeTestTimestamp(secondsAgo: Long = 0): String =
     java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei"))

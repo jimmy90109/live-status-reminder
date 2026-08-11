@@ -16,6 +16,10 @@ import android.widget.TextView
 
 class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val clockTimerTracker = ClockTimerTracker()
+    private val yptStudyTracker = YptStudyTracker()
+    private val hevyWorkoutTracker = HevyWorkoutTracker()
+    private val discordVoiceTracker = DiscordVoiceTracker()
+    private val recorderTracker = RecorderTracker()
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
     private val clockTimerRefreshRunnable = Runnable(::refreshClockTimer)
@@ -50,6 +54,37 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            GOOGLE_RECORDER_PACKAGE -> {
+                val extraction = GoogleRecorderNotificationExtractor.extract(
+                    statusBarNotification,
+                    notificationText,
+                )
+                if (BuildConfig.DEBUG) {
+                    recordGoogleRecorder(statusBarNotification, "POSTED", extraction)
+                }
+                if (AppReminderPreferences.App.GOOGLE_RECORDER.isEnabled(this)) {
+                    handleRecorderDecision(
+                        recorderTracker.onPosted(statusBarNotification.key, extraction),
+                    )
+                } else {
+                    recorderTracker.reset()
+                    LiveStatusReminder.clearGoogleRecorder(this)
+                }
+            }
+            DISCORD_PACKAGE -> {
+                val extraction = DiscordVoiceNotificationExtractor.extract(statusBarNotification)
+                if (BuildConfig.DEBUG) {
+                    recordDiscord(statusBarNotification, "POSTED", extraction)
+                }
+                if (AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this)) {
+                    handleDiscordVoiceDecision(
+                        discordVoiceTracker.onPosted(statusBarNotification.key, extraction.update),
+                    )
+                } else {
+                    discordVoiceTracker.reset()
+                    LiveStatusReminder.clearDiscordVoice(this)
+                }
+            }
             CLOCK_PACKAGE -> {
                 val extraction = ClockTimerNotificationExtractor.extract(this, statusBarNotification)
                 if (BuildConfig.DEBUG) {
@@ -223,11 +258,156 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             PIKMIN_BLOOM_PACKAGE -> if (AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this)) {
                 handlePikminBloomNotification(notificationText)
             }
+            YPT_PACKAGE -> {
+                val extraction = YptStudyNotificationExtractor.extract(statusBarNotification)
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordYpt(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                        extraction,
+                    )
+                }
+                if (AppReminderPreferences.App.YPT.isEnabled(this)) {
+                    handleYptStudyDecision(
+                        yptStudyTracker.onPosted(statusBarNotification.key, extraction.update),
+                    )
+                } else {
+                    yptStudyTracker.reset()
+                    LiveStatusReminder.clearYptStudy(this)
+                }
+            }
+            HEVY_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = parseHevyWorkout(statusBarNotification, notificationText)
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordHevy(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        "POSTED",
+                        update,
+                    )
+                }
+                if (AppReminderPreferences.App.HEVY.isEnabled(this)) {
+                    handleHevyWorkoutDecision(
+                        hevyWorkoutTracker.onPosted(statusBarNotification.key, update),
+                    )
+                } else {
+                    hevyWorkoutTracker.reset()
+                    LiveStatusReminder.clearHevyWorkout(this)
+                }
+            }
         }
+    }
+
+    private fun parseHevyWorkout(
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+    ): HevyWorkoutUpdate? {
+        val notification = statusBarNotification.notification
+        return HevyWorkoutNotificationParser.parse(
+            sourceKey = statusBarNotification.key,
+            channelId = notification.channelId,
+            category = notification.category,
+            startedAtEpochMillis = notification.`when`,
+            notificationText = notificationText,
+            nowEpochMillis = System.currentTimeMillis(),
+            contentIntent = notification.contentIntent,
+            sourceActions = notification.actions.orEmpty().toList(),
+        )
+    }
+
+    private fun recordRemovedHevy(statusBarNotification: StatusBarNotification) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        val notificationText = readNotificationText(
+            this,
+            statusBarNotification.packageName,
+            notification,
+        )
+        NotificationDebugPayloadStore.recordHevy(
+            this,
+            statusBarNotification,
+            notificationText,
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            "REMOVED",
+            parseHevyWorkout(statusBarNotification, notificationText),
+        )
+    }
+
+    private fun recordDiscord(
+        statusBarNotification: StatusBarNotification,
+        lifecycle: String,
+        extraction: DiscordVoiceExtraction =
+            DiscordVoiceNotificationExtractor.extract(statusBarNotification),
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        NotificationDebugPayloadStore.recordDiscord(
+            this,
+            statusBarNotification,
+            readNotificationText(this, statusBarNotification.packageName, notification),
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            lifecycle,
+            extraction,
+        )
+    }
+
+    private fun recordGoogleRecorder(
+        statusBarNotification: StatusBarNotification,
+        lifecycle: String,
+        extraction: RecorderExtraction? = null,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        val notificationText = readNotificationText(
+            this,
+            statusBarNotification.packageName,
+            notification,
+        )
+        val resolvedExtraction = extraction ?: if (lifecycle == "REMOVED") {
+            null
+        } else {
+            GoogleRecorderNotificationExtractor.extract(statusBarNotification, notificationText)
+        }
+        NotificationDebugPayloadStore.recordGoogleRecorder(
+            this,
+            statusBarNotification,
+            notificationText,
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            lifecycle,
+            resolvedExtraction,
+        )
     }
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (statusBarNotification.packageName == GOOGLE_RECORDER_PACKAGE) {
+            if (BuildConfig.DEBUG) recordGoogleRecorder(statusBarNotification, "REMOVED")
+            handleRecorderDecision(recorderTracker.onRemoved(statusBarNotification.key))
+            return
+        }
+        if (statusBarNotification.packageName == DISCORD_PACKAGE) {
+            if (BuildConfig.DEBUG) recordDiscord(statusBarNotification, "REMOVED")
+            handleDiscordVoiceDecision(
+                discordVoiceTracker.onRemoved(statusBarNotification.key),
+            )
+            return
+        }
+        if (statusBarNotification.packageName == HEVY_PACKAGE) {
+            recordRemovedHevy(statusBarNotification)
+            handleHevyWorkoutDecision(hevyWorkoutTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (
             BuildConfig.DEBUG &&
             statusBarNotification.packageName == TAIWAN_PAY_PACKAGE
@@ -253,6 +433,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             handleClockTimerDecision(clockTimerTracker.onRemoved(statusBarNotification.key))
             return
         }
+        if (statusBarNotification.packageName == YPT_PACKAGE) {
+            handleYptStudyDecision(yptStudyTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
 
         val notificationText = readNotificationText(statusBarNotification.notification)
@@ -272,7 +456,20 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        mediaPlaybackMonitor.start(getActiveNotifications())
+        val activeNotifications = getActiveNotifications()
+        mediaPlaybackMonitor.start(activeNotifications)
+        if (BuildConfig.DEBUG) {
+            activeNotifications
+                .filter { it.packageName == DISCORD_PACKAGE }
+                .forEach { recordDiscord(it, "ACTIVE_SNAPSHOT") }
+            activeNotifications
+                .filter { it.packageName == GOOGLE_RECORDER_PACKAGE }
+                .forEach { recordGoogleRecorder(it, "ACTIVE_SNAPSHOT") }
+        }
+        restoreDiscordVoice(activeNotifications)
+        restoreGoogleRecorder(activeNotifications)
+        restoreYptStudy(activeNotifications)
+        restoreHevyWorkout(activeNotifications)
         YouBikeRideManager.restore(this)
     }
 
@@ -295,6 +492,116 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             }
             ClockTimerDecision.None -> Unit
         }
+    }
+
+    private fun handleYptStudyDecision(decision: YptStudyDecision) {
+        when (decision) {
+            is YptStudyDecision.Show -> LiveStatusReminder.showYptStudy(this, decision.update)
+            YptStudyDecision.Clear -> LiveStatusReminder.clearYptStudy(this)
+            YptStudyDecision.None -> Unit
+        }
+    }
+
+    private fun handleHevyWorkoutDecision(decision: HevyWorkoutDecision) {
+        when (decision) {
+            is HevyWorkoutDecision.Show -> LiveStatusReminder.showHevyWorkout(this, decision.update)
+            HevyWorkoutDecision.Clear -> LiveStatusReminder.clearHevyWorkout(this)
+            HevyWorkoutDecision.None -> Unit
+        }
+    }
+
+    private fun handleDiscordVoiceDecision(decision: DiscordVoiceDecision) {
+        when (decision) {
+            is DiscordVoiceDecision.Show -> LiveStatusReminder.showDiscordVoice(this, decision.update)
+            DiscordVoiceDecision.Clear -> LiveStatusReminder.clearDiscordVoice(this)
+            DiscordVoiceDecision.None -> Unit
+        }
+    }
+
+    private fun handleRecorderDecision(decision: RecorderDecision) {
+        when (decision) {
+            is RecorderDecision.Show -> LiveStatusReminder.showGoogleRecorder(this, decision.update)
+            RecorderDecision.Clear -> LiveStatusReminder.clearGoogleRecorder(this)
+            RecorderDecision.None -> Unit
+        }
+    }
+
+    private fun restoreDiscordVoice(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this)) {
+            discordVoiceTracker.reset()
+            LiveStatusReminder.clearDiscordVoice(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { DiscordVoiceNotificationParser.supportsPackage(it.packageName) }
+            .mapNotNull { DiscordVoiceNotificationExtractor.extract(it).update }
+            .toList()
+        handleDiscordVoiceDecision(discordVoiceTracker.restore(updates))
+    }
+
+    private fun restoreGoogleRecorder(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.GOOGLE_RECORDER.isEnabled(this)) {
+            recorderTracker.reset()
+            LiveStatusReminder.clearGoogleRecorder(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { GoogleRecorderNotificationParser.supportsPackage(it.packageName) }
+            .mapNotNull { statusBarNotification ->
+                GoogleRecorderNotificationExtractor.extract(
+                    statusBarNotification,
+                    readNotificationText(
+                        this,
+                        statusBarNotification.packageName,
+                        statusBarNotification.notification,
+                    ),
+                ).update
+            }
+            .toList()
+        handleRecorderDecision(recorderTracker.restore(updates))
+    }
+
+    private fun restoreYptStudy(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.YPT.isEnabled(this)) {
+            yptStudyTracker.reset()
+            LiveStatusReminder.clearYptStudy(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { it.packageName == YPT_PACKAGE }
+            .mapNotNull { YptStudyNotificationExtractor.extract(it).update }
+            .toList()
+        handleYptStudyDecision(yptStudyTracker.restore(updates))
+    }
+
+    private fun restoreHevyWorkout(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.HEVY.isEnabled(this)) {
+            hevyWorkoutTracker.reset()
+            LiveStatusReminder.clearHevyWorkout(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { it.packageName == HEVY_PACKAGE }
+            .mapNotNull { statusBarNotification ->
+                parseHevyWorkout(
+                    statusBarNotification,
+                    readNotificationText(
+                        this,
+                        statusBarNotification.packageName,
+                        statusBarNotification.notification,
+                    ),
+                )
+            }
+            .toList()
+        handleHevyWorkoutDecision(hevyWorkoutTracker.restore(updates))
     }
 
     private fun showAndScheduleClockTimer(update: ClockTimerUpdate) {
@@ -505,6 +812,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
+        private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
+        private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
+        private const val DISCORD_PACKAGE = DiscordVoiceNotificationParser.PACKAGE_NAME
+        private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME
 
         @JvmStatic
         fun readNotificationText(notification: Notification): String {

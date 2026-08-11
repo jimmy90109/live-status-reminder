@@ -1,5 +1,5 @@
 # Generated station-name index. Refresh with tools/update_youbike_station_index.py.
-# generatedAt=2026-08-04T17:03:02+00:00 source=TDX rows=9409
+# generatedAt=2026-08-11T03:24:01+00:00 source=TDX rows=9435
 YouBike2.0_(竹科)介壽路	HsinchuSciencePark
 YouBike2.0_(竹科)創新三路	HsinchuSciencePark
 YouBike2.0_(竹科)力行一路力行六路口	HsinchuSciencePark
@@ -189,6 +189,7 @@ YouBike2.0_三芝兒一公園	NewTaipei
 YouBike2.0_三芝兒三公園(三民街)	NewTaipei
 YouBike2.0_三芝區公所	NewTaipei
 YouBike2.0_三芝國中	NewTaipei
+YouBike2.0_三芝遊客中心	NewTaipei
 YouBike2.0_三角公園	Tainan
 YouBike2.0_三角公園	Taoyuan
 YouBike2.0_三角埔(福雅路)	Taichung
@@ -1011,6 +1012,7 @@ YouBike2.0_仁美社區公園	Taichung
 YouBike2.0_仁美街/三和路四段145巷口	NewTaipei
 YouBike2.0_仁美里(環中路)	Taichung
 YouBike2.0_仁義三號公園	Tainan
+YouBike2.0_仁義元信一街口	NewTaipei
 YouBike2.0_仁義北路河堤涼亭	Taitung
 YouBike2.0_仁義北路與豐里橋交叉口	Taitung
 YouBike2.0_仁義街26巷	NewTaipei
@@ -1058,6 +1060,10 @@ YouBike2.0_佳里區仁愛國小	Tainan
 YouBike2.0_佳里區公所	Tainan
 YouBike2.0_佳里國中	Tainan
 YouBike2.0_佳里國小(文化路)	Tainan
+YouBike2.0_佳里子龍廟永昌宮	Tainan
+YouBike2.0_佳里復興公園	Tainan
+YouBike2.0_佳里體育公園特色遊戲場	Tainan
+YouBike2.0_佳鋐新邑	Taichung
 YouBike2.0_來義高中	Pingtung
 YouBike2.0_俊興三龍街口	NewTaipei
 YouBike2.0_俊興俊安街口	NewTaipei
@@ -1713,6 +1719,7 @@ YouBike2.0_南京東路四段179巷口	Taipei
 YouBike2.0_南京林森路口	Taipei
 YouBike2.0_南京漢口路口	ChiayiCity
 YouBike2.0_南京西寧北路口(西北側)	Taipei
+YouBike2.0_南京進德路口	Taichung
 YouBike2.0_南京遼寧街口	Taipei
 YouBike2.0_南京龍江路口	Taipei
 YouBike2.0_南光高中	Tainan
@@ -2151,6 +2158,7 @@ YouBike2.0_啟明學校	Taipei
 YouBike2.0_啟英高中	Taoyuan
 YouBike2.0_喀哩國小	Taichung
 YouBike2.0_善化區公所(公園路)	Tainan
+YouBike2.0_善化啤酒廠	Tainan
 YouBike2.0_善化大同國小	Tainan
 YouBike2.0_善化市場	Tainan
 YouBike2.0_善化游泳池	Tainan
@@ -2777,6 +2785,7 @@ YouBike2.0_大社東勢北極殿	Tainan
 YouBike2.0_大秀國小	Taichung
 YouBike2.0_大稻埕公園	Taipei
 YouBike2.0_大稻埕碼頭	Taipei
+YouBike2.0_大竹北路(嘉綠墅社區)	Taoyuan
 YouBike2.0_大竹國小	Taoyuan
 YouBike2.0_大竹游泳池	Taoyuan
 YouBike2.0_大義三樹路口	NewTaipei
@@ -3038,6 +3047,7 @@ YouBike2.0_安康高中	NewTaipei
 YouBike2.0_安德停車場	NewTaipei
 YouBike2.0_安心醫院	ChiayiCity
 YouBike2.0_安成安德街口	NewTaipei
+YouBike2.0_安新一路686號旁	Tainan
 YouBike2.0_安東公園	Tainan
 YouBike2.0_安樂宜安路口	NewTaipei
 YouBike2.0_安民街35巷口	NewTaipei
@@ -3117,6 +3127,7 @@ YouBike2.0_富岡車站	Taoyuan
 YouBike2.0_富岡運動公園	Taoyuan
 YouBike2.0_富新國慶九街口	Kaohsiung
 YouBike2.0_富春國小	Taichung
+YouBike2.0_富林富安一	Tainan
 YouBike2.0_富榮公園	Kaohsiung
 YouBike2.0_富民太原街口	Kaohsiung
 YouBike2.0_富民路145巷口	Taipei
@@ -3367,6 +3378,7 @@ YouBike2.0_左營高中	Kaohsiung
 YouBike2.0_左鎮化石園區	Tainan
 YouBike2.0_巧聖先師廟	Taichung
 YouBike2.0_巨大大甲分公司	Taichung
+YouBike2.0_巨大機械外埔宿舍	Taichung
 YouBike2.0_巨大集團總部	Taichung
 YouBike2.0_巨輪協和路口	Kaohsiung
 YouBike2.0_巴克禮公園	Tainan
@@ -3502,6 +3514,7 @@ YouBike2.0_廣停三停車場	Miaoli
 YouBike2.0_廣停二停車場	NewTaipei
 YouBike2.0_廣停二公有停車場	Taichung
 YouBike2.0_廣停五停車場	Taichung
+YouBike2.0_廣停四停車場	Taichung
 YouBike2.0_廣八公園	HsinchuCounty
 YouBike2.0_廣兼停8停車場	Taichung
 YouBike2.0_廣十地下停車場	Taichung
@@ -4760,6 +4773,7 @@ YouBike2.0_新市區公所	Tainan
 YouBike2.0_新市區公所游泳池	Tainan
 YouBike2.0_新市國小	NewTaipei
 YouBike2.0_新市營尾站	Tainan
+YouBike2.0_新市生態休閒公園	Tainan
 YouBike2.0_新市車站	Tainan
 YouBike2.0_新平公園	Taichung
 YouBike2.0_新平國小	Taichung
@@ -6181,6 +6195,7 @@ YouBike2.0_沙田天仁街口	Taichung
 YouBike2.0_沙田沙田路三段889巷口	Taichung
 YouBike2.0_沙田興和路口(東北側)	Taichung
 YouBike2.0_沙田興和路口(東南側)	Taichung
+YouBike2.0_沙田路一段550巷口	Taichung
 YouBike2.0_沙田路五段315巷口	Taichung
 YouBike2.0_沙田路永和巷口	Taichung
 YouBike2.0_沙鹿區兒童公園	Taichung
@@ -6366,6 +6381,7 @@ YouBike2.0_渡船頭平面停車場	NewTaipei
 YouBike2.0_渭水八德路口	Taipei
 YouBike2.0_港信港源街口	Kaohsiung
 YouBike2.0_港南濱海風景區	HsinchuCity
+YouBike2.0_港口段路外停車場	Tainan
 YouBike2.0_港嘴活動中心	NewTaipei
 YouBike2.0_港坪運動公園(大同路)	ChiayiCity
 YouBike2.0_港埔國小	Kaohsiung
@@ -6588,6 +6604,8 @@ YouBike2.0_牯嶺街9巷口	Taipei
 YouBike2.0_犁頭店公園	Taichung
 YouBike2.0_狀元公園	NewTaipei
 YouBike2.0_猴硐火車站	NewTaipei
+YouBike2.0_猴硐礦工文史館	NewTaipei
+YouBike2.0_猴硐遊客中心	NewTaipei
 YouBike2.0_獅子亭公園(南工宿舍)	Tainan
 YouBike2.0_獅子公園	NewTaipei
 YouBike2.0_獅子林社區活動中心	Taoyuan
@@ -6733,6 +6751,7 @@ YouBike2.0_環河民樂街59巷26弄口	NewTaipei
 YouBike2.0_環河爽文路口	Taichung
 YouBike2.0_環河福德南路口	NewTaipei
 YouBike2.0_環河福德宮	Taipei
+YouBike2.0_環河西中原一街口	NewTaipei
 YouBike2.0_環河西大漢街口	NewTaipei
 YouBike2.0_環河西新月一街口(新月天地社區)	NewTaipei
 YouBike2.0_環河西華江六路口(翠亨村社區)	NewTaipei
@@ -6857,6 +6876,7 @@ YouBike2.0_碧華國中(三賢街)	NewTaipei
 YouBike2.0_磁瑤公園	Taichung
 YouBike2.0_磐石高中	HsinchuCity
 YouBike2.0_磐石高中(西大路)	HsinchuCity
+YouBike2.0_磺港漁港	NewTaipei
 YouBike2.0_磺溪書院	Taichung
 YouBike2.0_礫間停車場	NewTaipei
 YouBike2.0_社中街384巷口	Taipei
@@ -7668,6 +7688,7 @@ YouBike2.0_臺大新生教室南側	Taipei
 YouBike2.0_臺大新體育館東南側	Taipei
 YouBike2.0_臺大明達館北側(員工宿舍)	Taipei
 YouBike2.0_臺大明達館機車停車場	Taipei
+YouBike2.0_臺大普通教學館東側	Taipei
 YouBike2.0_臺大森林館北側	Taipei
 YouBike2.0_臺大椰林小舖	Taipei
 YouBike2.0_臺大樂學館東側	Taipei
@@ -8124,6 +8145,7 @@ YouBike2.0_蔗廍里社區活動中心	Taichung
 YouBike2.0_蔡文國小	Kaohsiung
 YouBike2.0_蔣渭水紀念公園	Taipei
 YouBike2.0_蕭壠文化園區	Tainan
+YouBike2.0_蕭壠足球場	Tainan
 YouBike2.0_薇多綠雅社區(活動中心)	NewTaipei
 YouBike2.0_薇多綠雅社區(警衛亭)	NewTaipei
 YouBike2.0_薇閣高中	Taipei
@@ -8246,6 +8268,7 @@ YouBike2.0_西川二西川一路口(西南側)	Taichung
 YouBike2.0_西市場(國華街)	ChiayiCity
 YouBike2.0_西康二號公園	Taipei
 YouBike2.0_西康公園	Taipei
+YouBike2.0_西拉雅陽光	Tainan
 YouBike2.0_西本願寺廣場	Taipei
 YouBike2.0_西松公園	Taipei
 YouBike2.0_西松高中	Taipei
@@ -8305,6 +8328,7 @@ YouBike2.0_觸覺體驗區(經貿五路)	Taichung
 YouBike2.0_訊塘廣場(義民中華路口)	NewTaipei
 YouBike2.0_訊塘社區公園	NewTaipei
 YouBike2.0_訊庄埔公園	NewTaipei
+YouBike2.0_許中營	Tainan
 YouBike2.0_許厝港濕地低碳轉運中心	Taoyuan
 YouBike2.0_詔安街37巷口	Taipei
 YouBike2.0_試院公園	Taipei
@@ -8519,6 +8543,7 @@ YouBike2.0_進業公園(東英十五街)	Taichung
 YouBike2.0_逸仙松高路口	Taipei
 YouBike2.0_遊園北遠東街口	Taichung
 YouBike2.0_遊園南遊園南路314巷口	Taichung
+YouBike2.0_遊園路一段8巷遊園路口	Taichung
 YouBike2.0_運五棒球場	Taichung
 YouBike2.0_運河公園	Tainan
 YouBike2.0_運河星鑽停車場	Tainan
@@ -9212,6 +9237,7 @@ YouBike2.0_鶯歌永利街	NewTaipei
 YouBike2.0_鶯歌火車站(仁愛路)	NewTaipei
 YouBike2.0_鶯歌火車站(仁愛路62號)	NewTaipei
 YouBike2.0_鶯歌火車站(文化路)	NewTaipei
+YouBike2.0_鶯歌環河自行車道	NewTaipei
 YouBike2.0_鶯歌老街第二停車場	NewTaipei
 YouBike2.0_鶯歌陶瓷博物館	NewTaipei
 YouBike2.0_鶯歌陶瓷老街	NewTaipei

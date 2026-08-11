@@ -95,6 +95,10 @@ internal fun HomeContentWide(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
+    onOpenYptDebug: () -> Unit,
+    onOpenHevyDebug: () -> Unit,
+    onOpenDiscordDebug: () -> Unit,
+    onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     AppsSection(
         modifier = Modifier
@@ -125,6 +129,10 @@ internal fun HomeContentWide(
         onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
         onOpenUberDebug = onOpenUberDebug,
         onOpenUberEatsDebug = onOpenUberEatsDebug,
+        onOpenYptDebug = onOpenYptDebug,
+        onOpenHevyDebug = onOpenHevyDebug,
+        onOpenDiscordDebug = onOpenDiscordDebug,
+        onOpenGoogleRecorderDebug = onOpenGoogleRecorderDebug,
     )
 }
 
@@ -148,6 +156,10 @@ internal fun HomeContentNarrow(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
+    onOpenYptDebug: () -> Unit,
+    onOpenHevyDebug: () -> Unit,
+    onOpenDiscordDebug: () -> Unit,
+    onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val appsViewportHeight =
@@ -318,6 +330,10 @@ internal fun HomeContentNarrow(
                 onOpenTaiwanTaxiDebug = onOpenTaiwanTaxiDebug,
                 onOpenUberDebug = onOpenUberDebug,
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
+                onOpenYptDebug = onOpenYptDebug,
+                onOpenHevyDebug = onOpenHevyDebug,
+                onOpenDiscordDebug = onOpenDiscordDebug,
+                onOpenGoogleRecorderDebug = onOpenGoogleRecorderDebug,
             )
         }
     }

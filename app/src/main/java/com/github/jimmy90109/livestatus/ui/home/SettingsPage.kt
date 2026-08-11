@@ -21,8 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 @Composable
@@ -96,7 +98,7 @@ internal fun RequiredSettingsSection(
     Column {
         SectionHeader(
             title = "必要設定",
-            subtitle = "完成設定後，App 就能把媒體播放、倒數計時、乘車、外送與種花狀態變成即時通知。",
+            subtitle = stringResource(R.string.required_settings_description),
             expanded = expanded,
             collapsible = collapsible,
             onToggle = onToggle,
@@ -110,7 +112,7 @@ internal fun RequiredSettingsSection(
                 SettingCard(
                     number = "01",
                     title = "讀取狀態通知",
-                    description = "允許 App 辨識媒體播放、Clock、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
+                    description = "允許 App 辨識媒體播放、Clock、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態。",
                     enabled = status.notificationAccess,
                     enabledText = "已開啟",
                     disabledText = "尚未開啟",
@@ -139,7 +141,7 @@ internal fun BrandWarningCard(
     onDismiss: (() -> Unit)? = null,
 ) {
     val colors = LocalAppColors.current
-    CardSurface(colors.warningContainer, 26, 18) {
+    CardSurface(background = colors.warningContainer, radius = 26, padding = 18) {
         Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
                 AppText(

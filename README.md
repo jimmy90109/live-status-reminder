@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Google 時鐘、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Discord、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -11,6 +11,15 @@
 - 來源通知尚未成為 Live Update 時，另外顯示曲名、作者與專輯、可取得時的播放進度，以及來源支援的切歌、播放、暫停或 podcast 倒退／快轉 15 秒控制；暫停後保留 1 分鐘，方便直接恢復播放。
 - Android 不允許修改其他 App 的通知，因此原始媒體通知仍會保留；若來源已由系統提升，則不建立備援提醒。
 
+### Discord
+
+- 偵測 Discord `mediaConnections` 的伺服器語音頻道前景通知，將來源連線狀態與伺服器／頻道名稱鏡像成 Live Update。
+- 點擊提醒會回到目前通話；來源提供的中斷、靜音與拒聽操作會依原始標題及順序同步至 Live Update，不依文案猜測用途。
+- 來源通知更新時同步連線狀態與操作，離開語音頻道或來源通知移除後立即清除；通知監聽器重連時可從現有通知恢復。
+- 來源沒有可靠的通話開始時間，因此不顯示通話時長；若 Discord 原始通知已由系統提升，則不建立重複提醒。
+- 目前只支援伺服器語音頻道，不包含私人／群組通話與響鈴中的來電。功能位於「媒體」分類、預設開啟，可由卡片單獨關閉。
+- 原始 Discord 通知仍會保留。Debug build 另在程序記憶體保留最近 30 筆 Discord payload，正式版不提供查看入口。
+
 ### Google 時鐘
 
 - 當 Google 時鐘原生 Live Update 未生效時，將 `com.google.android.deskclock` 的主要倒數計時器同步成備援 Live Update。
@@ -18,6 +27,28 @@
 - 支援運行、暫停、繼續與加一分鐘造成的時間更新；倒數結束或來源通知移除後自動清除。
 - Android 17 優先讀取 `MetricStyle` timer，Android 16 則使用通知 chronometer；不解析畫面文字猜測剩餘時間。
 - 點擊提醒可開啟原始 Clock 計時器，但不複製暫停或加一分鐘操作按鈕。
+
+### Google Recorder
+
+- 精確辨識繁中「準備錄音」、「正在錄音」、「已暫停錄音」與英文 `Prepare to record`、`Currently recording`、`Recording paused` 前景通知；初始化階段不建立提醒，錄音開始後顯示正向計時 Live Update。
+- 暫停時固定顯示目前錄音長度，並同步來源提供的「繼續錄製」／「儲存錄製內容」或 Resume recording／Save recording 操作；錄音中通知沒有公開操作，因此點擊提醒會開啟 Recorder。
+- 來源通知移除、功能關閉或通知不再符合時自動清除；通知監聽器重連時可由現有錄音通知恢復。
+- 功能位於「工具」分類、預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆 payload，正式版不提供查看入口。
+
+### YPT（Yeolpumta）
+
+- 偵測 `com.pallo.passiontimerscoped` 的讀書正向計時通知後，以 Live Update 持續顯示目前累積時長。
+- Android 17 使用 `MetricStyle` stopwatch，Android 16 使用通知 chronometer；來源通知已由系統提升時不建立重複提醒。
+- 點擊提醒可開啟 YPT；來源計時通知移除或不再符合計時狀態後自動清除。
+- 功能暫時放在「工具」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆原始 payload，正式版不提供查看入口。
+
+### Hevy
+
+- 偵測 `com.hevy` 的健身前景通知；進行組直接顯示來源的動作與組內文，不另外顯示訓練時間。
+- 組間休息時以 Live Update 計時指標顯示 `M:SS` 休息倒數及下一個動作；來源通知每秒更新時同步校正。
+- 來源通知透過公開 `Notification.Action` 提供的操作會同步至 Live Update；沒有來源 action 時提供「開啟 Hevy」。
+- 點擊提醒可開啟 Hevy；結束訓練並移除來源通知後自動清除，通知監聽器重連時可從現有訓練通知恢復。
+- 功能位於「運動」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆原始 payload 與移除事件，正式版不提供查看入口。
 
 ### iPASS MONEY
 
@@ -108,7 +139,7 @@
 3. 允許 App 顯示通知。
 4. 在各 App 分頁使用模擬按鈕驗證狀態與進度。
 
-「媒體播放」功能在 Google／Pixel 預設開啟；Samsung、小米及其他 OEM 因通常已有系統媒體即時介面而預設關閉，仍可在工具分頁手動開啟。手動設定後會保留使用者選擇。媒體備援通知使用靜音頻道，切歌或 metadata 更新不會主動發出提示音。
+「Discord 語音頻道」功能預設開啟，可在媒體分頁單獨關閉。「媒體播放」功能在 Google／Pixel 預設開啟；Samsung、小米及其他 OEM 因通常已有系統媒體即時介面而預設關閉，仍可在媒體分頁手動開啟。手動設定後會保留使用者選擇。Discord 與媒體備援通知都使用靜音頻道，來源狀態更新不會主動發出提示音。
 
 Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 [Samsung Now Bar 疑難排解](https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html)。
@@ -123,6 +154,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 - 第一版分別只追蹤一筆 55688 行程、一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
 - Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
 - 媒體播放只讀取目前活躍工作階段的曲名、作者、專輯、播放狀態與控制能力；不會保存完整來源通知或媒體 metadata。
+- Discord 語音頻道只在記憶體中保留目前 notification key、來源標題、頻道名稱與 actions；離開頻道、功能關閉或程序結束後不再保留。
 
 ## 建置與驗證
 
