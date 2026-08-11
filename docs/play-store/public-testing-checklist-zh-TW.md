@@ -1,16 +1,6 @@
-# 封閉測試 Alpha 驗證清單
+# 公開測試 Beta 驗證清單
 
-已審查通過版本：`2608050 (1.0.5)`
-
-最新 Alpha 上傳版本：`2608050 (1.0.5)`
-
-Alpha 審查狀態：`2608050 (1.0.5)` 已於 2026-08-05 通過審查並發布，可供測試人員使用
-
-本機發版候選：`2608050 (1.0.5)`，已用於 Alpha
-
-候選 AAB SHA-256：`c8ca6a6db099d3e75b750393357047bdd5a27f936c9820ec696620fd9c9cc559`
-
-候選 native debug symbols SHA-256：`528bb0393812360b3257a6f08eb06ab981a1138676f8bb7b40b0dcfb2c1b2b0a`
+本清單在 Beta／Open testing（公開測試）版本通過審查並發布後執行。實際版本、審查狀態、AAB 與 native debug symbols 雜湊以 `release-status.md` 為準，不在本檔永久寫入個別版本狀態。
 
 ## 首次啟動與權限流程
 

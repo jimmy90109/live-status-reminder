@@ -104,12 +104,12 @@ LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或
 
 ## 發布版本名稱
 
-1.0.6
+1.0.7
 
 ## 發布說明
 
-1.0.6 更新：
+1.0.7 更新：
 
-- 新增 YPT 讀書計時 Live Update，顯示目前科目、已讀時間與休息狀態。
-- 新增 Hevy 運動 Live Update，顯示訓練進度、目前動作與已完成組數。
-- 更新通知除錯頁面與相關隱私、資料安全說明。
+- 新增 Discord 伺服器語音頻道 Live Update，顯示連線狀態、伺服器／頻道名稱與來源提供的通話操作。
+- 新增 Google Recorder 錄音 Live Update，顯示錄音時間、暫停狀態與來源提供的繼續／儲存操作。
+- 修正 Discord 與 Google Recorder Live Update 無法在鎖定畫面顯示的問題。

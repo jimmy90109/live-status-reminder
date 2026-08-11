@@ -99,6 +99,8 @@
     <string name="hevy_live_open_action">開啟 Hevy</string>
     <string name="notification_debug_copy_payload">複製所有通知 payload</string>
     <string name="notification_debug_payload_copied">已複製通知 payload</string>
+    <string name="notification_debug_copy_single_payload">複製這筆通知 payload</string>
+    <string name="notification_debug_single_payload_copied">已複製這筆通知 payload</string>
 
     <string name="you_bike_tracking_title">YouBike 騎乘費用追蹤</string>
     <string name="you_bike_tracking_description">YouBike 騎乘中顯示目前預估費用與下一次費用變更時間。目前支援全臺 YouBike 服務區域的一般會員費率；站點無法辨識時，可在還車後選擇寄送回報。</string>

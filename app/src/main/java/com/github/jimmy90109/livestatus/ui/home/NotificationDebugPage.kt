@@ -178,6 +178,7 @@ private fun NotificationDebugPayloadRow(
     onToggle: () -> Unit,
 ) {
     val colors = LocalAppColors.current
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -206,6 +207,33 @@ private fun NotificationDebugPayloadRow(
                         fontSize = 12.sp,
                     )
                 }
+            }
+            IconButton(
+                onClick = rememberHapticAction {
+                    val clip = ClipData.newPlainText(
+                        "${payload.appLabel} payload",
+                        payload.toDebugText(showPinDetails),
+                    ).apply {
+                        description.extras = PersistableBundle().apply {
+                            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+                        }
+                    }
+                    context.getSystemService(ClipboardManager::class.java)
+                        .setPrimaryClip(clip)
+                    Toast.makeText(
+                        context,
+                        R.string.notification_debug_single_payload_copied,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ContentCopy,
+                    contentDescription = stringResource(
+                        R.string.notification_debug_copy_single_payload,
+                    ),
+                    tint = actionColor,
+                )
             }
             Text(
                 text = if (expanded) "收合" else "展開",
