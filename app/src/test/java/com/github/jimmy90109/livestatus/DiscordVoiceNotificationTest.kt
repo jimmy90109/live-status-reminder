@@ -28,9 +28,14 @@ class DiscordVoiceNotificationTest {
     fun parsesObservedServerVoiceStructureWithoutDependingOnText() {
         val update = DiscordVoiceNotificationParser.parse(validSignals)
 
+        assertEquals(
+            android.app.NotificationManager.IMPORTANCE_DEFAULT,
+            LiveStatusReminder.DISCORD_VOICE_CHANNEL_IMPORTANCE,
+        )
         assertEquals("discord|voice", update?.sourceKey)
         assertEquals("語音已連線 — 點選即可回到通話", update?.sourceTitle)
         assertEquals("[beta] office hours", update?.sourceContentText)
+        assertEquals(android.app.Notification.VISIBILITY_PUBLIC, LiveStatusReminder.DISCORD_VOICE_VISIBILITY)
     }
 
     @Test

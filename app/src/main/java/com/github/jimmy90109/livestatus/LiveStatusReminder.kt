@@ -18,11 +18,16 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 object LiveStatusReminder {
+    internal const val DISCORD_VOICE_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
+    internal const val DISCORD_VOICE_VISIBILITY = Notification.VISIBILITY_PUBLIC
+    internal const val GOOGLE_RECORDER_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
     internal const val GOOGLE_RECORDER_VISIBILITY = Notification.VISIBILITY_PUBLIC
     private const val CHANNEL_ID = "live_status"
     private const val MEDIA_CHANNEL_ID = "media_live_status"
-    private const val DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status"
-    private const val GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status"
+    private const val DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status_v2"
+    private const val LEGACY_DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status"
+    private const val GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status_v2"
+    private const val LEGACY_GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
     private const val FOODPANDA_NOTIFICATION_ID = 1002
     private const val UBER_EATS_NOTIFICATION_ID = 1003
@@ -76,28 +81,34 @@ object LiveStatusReminder {
         val channel = NotificationChannel(
             DISCORD_VOICE_CHANNEL_ID,
             context.getString(R.string.discord_voice_notification_channel_name),
-            NotificationManager.IMPORTANCE_LOW,
+            DISCORD_VOICE_CHANNEL_IMPORTANCE,
         ).apply {
             description = context.getString(R.string.discord_voice_notification_channel_description)
-            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            lockscreenVisibility = DISCORD_VOICE_VISIBILITY
             setSound(null, null)
             enableVibration(false)
         }
-        notificationManager(context).createNotificationChannel(channel)
+        notificationManager(context).run {
+            createNotificationChannel(channel)
+            deleteNotificationChannel(LEGACY_DISCORD_VOICE_CHANNEL_ID)
+        }
     }
 
     private fun createGoogleRecorderChannel(context: Context) {
         val channel = NotificationChannel(
             GOOGLE_RECORDER_CHANNEL_ID,
             context.getString(R.string.google_recorder_notification_channel_name),
-            NotificationManager.IMPORTANCE_LOW,
+            GOOGLE_RECORDER_CHANNEL_IMPORTANCE,
         ).apply {
             description = context.getString(R.string.google_recorder_notification_channel_description)
             lockscreenVisibility = GOOGLE_RECORDER_VISIBILITY
             setSound(null, null)
             enableVibration(false)
         }
-        notificationManager(context).createNotificationChannel(channel)
+        notificationManager(context).run {
+            createNotificationChannel(channel)
+            deleteNotificationChannel(LEGACY_GOOGLE_RECORDER_CHANNEL_ID)
+        }
     }
 
     @JvmStatic
@@ -658,7 +669,7 @@ object LiveStatusReminder {
             .setCategory(Notification.CATEGORY_STATUS)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setVisibility(DISCORD_VOICE_VISIBILITY)
             .setColor(Color.rgb(88, 101, 242))
             .setWhen(0)
             .setShowWhen(false)

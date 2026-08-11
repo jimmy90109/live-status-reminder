@@ -59,7 +59,7 @@
     <string name="google_recorder_live_metric_label_en">Recording time</string>
     <string name="google_recorder_live_open_action">開啟錄音工具</string>
     <string name="google_recorder_live_open_action_en">Open Recorder</string>
-    <string name="google_recorder_notification_channel_name">Google Recorder Live Update</string>
+    <string name="google_recorder_notification_channel_name">Google Recorder 即時通知</string>
     <string name="google_recorder_notification_channel_description">靜音顯示錄音時間與暫停狀態，不播放提示音或震動。</string>
     <string name="media_playback_unknown_title">正在播放媒體</string>
     <string name="media_playback_now_playing">正在播放</string>

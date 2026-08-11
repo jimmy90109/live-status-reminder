@@ -72,6 +72,10 @@ class LiveStatusPayloadTest {
 
     @Test
     fun googleRecorderUsesPublicVisibility() {
+        assertEquals(
+            android.app.NotificationManager.IMPORTANCE_DEFAULT,
+            LiveStatusReminder.GOOGLE_RECORDER_CHANNEL_IMPORTANCE,
+        )
         assertEquals(android.app.Notification.VISIBILITY_PUBLIC, LiveStatusReminder.GOOGLE_RECORDER_VISIBILITY)
     }
 
