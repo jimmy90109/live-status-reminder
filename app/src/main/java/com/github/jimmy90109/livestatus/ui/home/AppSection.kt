@@ -80,6 +80,7 @@ internal fun AppsSection(
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
+    onOpenTeamsDebug: () -> Unit,
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
@@ -320,6 +321,15 @@ internal fun AppsSection(
                         )
                     }
                     CATEGORY_MEDIA -> {
+                        TeamsCallCard(
+                            installed = status.teamsInstalled,
+                            enabled = status.teamsCallEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TEAMS_CALL, it)
+                            },
+                            onOpenDebug = onOpenTeamsDebug,
+                        )
                         DiscordVoiceCard(
                             installed = status.discordInstalled,
                             enabled = status.discordVoiceEnabled,

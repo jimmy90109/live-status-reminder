@@ -17,6 +17,7 @@
         <package android:name="com.pallo.passiontimerscoped" />
         <package android:name="com.hevy" />
         <package android:name="com.discord" />
+        <package android:name="com.microsoft.teams" />
         <package android:name="com.google.android.apps.recorder" />
     </queries>
 

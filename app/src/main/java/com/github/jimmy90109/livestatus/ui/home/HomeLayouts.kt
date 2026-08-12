@@ -98,6 +98,7 @@ internal fun HomeContentWide(
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
+    onOpenTeamsDebug: () -> Unit,
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     AppsSection(
@@ -132,6 +133,7 @@ internal fun HomeContentWide(
         onOpenYptDebug = onOpenYptDebug,
         onOpenHevyDebug = onOpenHevyDebug,
         onOpenDiscordDebug = onOpenDiscordDebug,
+        onOpenTeamsDebug = onOpenTeamsDebug,
         onOpenGoogleRecorderDebug = onOpenGoogleRecorderDebug,
     )
 }
@@ -159,6 +161,7 @@ internal fun HomeContentNarrow(
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
+    onOpenTeamsDebug: () -> Unit,
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -333,6 +336,7 @@ internal fun HomeContentNarrow(
                 onOpenYptDebug = onOpenYptDebug,
                 onOpenHevyDebug = onOpenHevyDebug,
                 onOpenDiscordDebug = onOpenDiscordDebug,
+                onOpenTeamsDebug = onOpenTeamsDebug,
                 onOpenGoogleRecorderDebug = onOpenGoogleRecorderDebug,
             )
         }

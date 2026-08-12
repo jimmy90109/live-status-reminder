@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Discord、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -19,6 +19,14 @@
 - 來源沒有可靠的通話開始時間，因此不顯示通話時長；若 Discord 原始通知已由系統提升，則不建立重複提醒。
 - 目前只支援伺服器語音頻道，不包含私人／群組通話與響鈴中的來電。功能位於「媒體」分類、預設開啟，可由卡片單獨關閉。
 - 原始 Discord 通知仍會保留。Debug build 另在程序記憶體保留最近 30 筆 Discord payload，正式版不提供查看入口。
+
+### Microsoft Teams
+
+- 偵測 `com.microsoft.teams.CallsOngoing.*` 的進行中會議通知，顯示對方名稱與從來源開始時間累積的通話時長。
+- 同步來源提供的靜音／解除靜音與掛斷操作；實機通知中的「啟用通知」會正規化顯示為「解除靜音」，操作仍交由 Teams 原始 `PendingIntent` 執行。
+- 點擊提醒會回到目前會議；離開會議、來源通知移除或關閉功能時立即清除，通知監聽器重連時可從現有通知恢復。
+- 第一版只支援已接通的進行中會議，不包含響鈴中、未接來電或一般訊息通知。功能位於「媒體」分類並預設開啟，可由卡片單獨關閉。
+- Debug build 另在程序記憶體保留最近 30 筆 Teams payload，正式版不保存原始 payload。
 
 ### Google 時鐘
 
@@ -159,6 +167,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 - Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
 - 媒體播放只讀取目前活躍工作階段的曲名、作者、專輯、播放狀態與控制能力；不會保存完整來源通知或媒體 metadata。
 - Discord 語音頻道只在記憶體中保留目前 notification key、來源標題、頻道名稱與 actions；離開頻道、功能關閉或程序結束後不再保留。
+- Microsoft Teams 只在記憶體中保留目前通話的 notification key、開始時間、對方名稱與 actions；離開會議、功能關閉或程序結束後不再保留。原始 payload 只由 Debug build 暫存最多 30 筆。
 
 ## 建置與驗證
 

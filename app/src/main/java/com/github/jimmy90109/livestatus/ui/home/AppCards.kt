@@ -1,6 +1,9 @@
 package com.github.jimmy90109.livestatus.ui.home
 
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.SystemClock
 import android.provider.Settings
 import androidx.core.net.toUri
@@ -25,6 +28,8 @@ import com.github.jimmy90109.livestatus.HevyWorkoutUpdate
 import com.github.jimmy90109.livestatus.GoogleRecorderNotificationParser
 import com.github.jimmy90109.livestatus.RecorderState
 import com.github.jimmy90109.livestatus.RecorderUpdate
+import com.github.jimmy90109.livestatus.TeamsCallUpdate
+import com.github.jimmy90109.livestatus.TeamsCallLanguage
 import com.github.jimmy90109.livestatus.YouBikeNotificationParser
 import com.github.jimmy90109.livestatus.YouBikeEvent
 import com.github.jimmy90109.livestatus.YouBikeRideManager
@@ -210,6 +215,106 @@ internal fun DiscordVoiceCard(
                 stringResource(R.string.discord_debug_open_payload),
                 colors.discordPrimary,
                 colors.discordText,
+                enabled = installed,
+                onClick = onOpenDebug,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun TeamsCallCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    val openTeams = PendingIntent.getActivity(
+        context,
+        12,
+        HomeScreenHostActivity.createOpenTeamsIntent(context),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+    fun teamsAction(title: String): Notification.Action = Notification.Action.Builder(
+        Icon.createWithResource(context, R.drawable.ic_voice_notification),
+        title,
+        openTeams,
+    ).build()
+    AppCard(
+        appName = stringResource(R.string.teams_card_app_name),
+        appPackageName = TEAMS_PACKAGE,
+        fallbackIconRes = R.drawable.ic_voice_notification,
+        title = stringResource(R.string.teams_card_title),
+        description = stringResource(R.string.teams_card_description),
+        supportedLanguages = listOf(
+            stringResource(R.string.media_playback_language_independent),
+        ),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.teamsContainer,
+        labelColor = colors.teamsSecondaryContainer,
+        foregroundColor = colors.teamsText,
+        actionColor = colors.teamsPrimary,
+    ) {
+        AppActionDivider(colors.teamsText)
+        AppCardActionButton(
+            stringResource(R.string.teams_simulate_active),
+            colors.teamsPrimary,
+            colors.teamsText,
+            supportingText = stringResource(R.string.teams_monitoring_active),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showTeamsCall(
+                context,
+                TeamsCallUpdate(
+                    sourceKey = "debug-teams-call",
+                    startedAtEpochMillis = System.currentTimeMillis() - 90_000L,
+                    sourceTitle = "Meeting with Demo User",
+                    participantName = "Demo User",
+                    language = TeamsCallLanguage.ENGLISH,
+                    contentIntent = openTeams,
+                    sourceActions = listOf(teamsAction("靜音"), teamsAction("掛斷")),
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.teams_simulate_muted),
+            colors.teamsPrimary,
+            colors.teamsText,
+            supportingText = stringResource(R.string.teams_monitoring_muted),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showTeamsCall(
+                context,
+                TeamsCallUpdate(
+                    sourceKey = "debug-teams-call-muted",
+                    startedAtEpochMillis = System.currentTimeMillis() - 90_000L,
+                    sourceTitle = "Meeting with Demo User",
+                    participantName = "Demo User",
+                    language = TeamsCallLanguage.ENGLISH,
+                    contentIntent = openTeams,
+                    sourceActions = listOf(teamsAction("啟用通知"), teamsAction("掛斷")),
+                ),
+            )
+        }
+        AppCardActionButton(
+            stringResource(R.string.teams_simulate_clear),
+            colors.teamsPrimary,
+            colors.teamsText,
+            supportingText = stringResource(R.string.teams_monitoring_ended),
+        ) {
+            LiveStatusReminder.clearTeamsCall(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.teams_debug_open_payload),
+                colors.teamsPrimary,
+                colors.teamsText,
                 enabled = installed,
                 onClick = onOpenDebug,
             )
@@ -705,6 +810,7 @@ private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
 private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
 private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
 private const val DISCORD_PACKAGE = "com.discord"
+private const val TEAMS_PACKAGE = "com.microsoft.teams"
 
 private fun youBikeTestTimestamp(secondsAgo: Long = 0): String =
     java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Taipei"))

@@ -50,6 +50,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_YPT -> openYpt()
             ACTION_OPEN_HEVY -> openHevy()
             ACTION_OPEN_DISCORD -> openDiscord()
+            ACTION_OPEN_TEAMS -> openTeams()
             ACTION_OPEN_GOOGLE_RECORDER -> openGoogleRecorder()
             else -> {
                 setContent {
@@ -90,6 +91,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val yptInstalled = isPackageInstalled(YPT_PACKAGE)
         val hevyInstalled = isPackageInstalled(HEVY_PACKAGE)
         val discordInstalled = isPackageInstalled(DISCORD_PACKAGE)
+        val teamsInstalled = isPackageInstalled(TEAMS_PACKAGE)
         val googleRecorderInstalled = isPackageInstalled(GOOGLE_RECORDER_PACKAGE)
         val brandWarning = detectBrandWarning()
         statusSnapshot = StatusSnapshot(
@@ -107,6 +109,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             yptInstalled = yptInstalled,
             hevyInstalled = hevyInstalled,
             discordInstalled = discordInstalled,
+            teamsInstalled = teamsInstalled,
             googleRecorderInstalled = googleRecorderInstalled,
             brandWarning = brandWarning,
             brandWarningDismissed =
@@ -130,6 +133,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             hevyEnabled = AppReminderPreferences.App.HEVY.isEnabled(this, hevyInstalled),
             discordVoiceEnabled =
                 AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this, discordInstalled),
+            teamsCallEnabled =
+                AppReminderPreferences.App.TEAMS_CALL.isEnabled(this, teamsInstalled),
             googleRecorderEnabled =
                 AppReminderPreferences.App.GOOGLE_RECORDER.isEnabled(
                     this,
@@ -220,6 +225,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openDiscord() = openPackage(DISCORD_PACKAGE, "Discord")
 
+    private fun openTeams() = openPackage(TEAMS_PACKAGE, "Microsoft Teams")
+
     private fun openGoogleRecorder() = openPackage(GOOGLE_RECORDER_PACKAGE, "Google Recorder")
 
     private fun openPackage(targetPackageName: String, appName: String) {
@@ -255,6 +262,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.HEVY -> LiveStatusReminder.clearHevyWorkout(this)
             AppReminderPreferences.App.DISCORD_VOICE ->
                 LiveStatusReminder.clearDiscordVoice(this)
+            AppReminderPreferences.App.TEAMS_CALL ->
+                LiveStatusReminder.clearTeamsCall(this)
             AppReminderPreferences.App.GOOGLE_RECORDER ->
                 LiveStatusReminder.clearGoogleRecorder(this)
         }
@@ -291,6 +300,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_HEVY"
         private const val ACTION_OPEN_DISCORD =
             "com.github.jimmy90109.livestatus.action.OPEN_DISCORD"
+        private const val ACTION_OPEN_TEAMS =
+            "com.github.jimmy90109.livestatus.action.OPEN_TEAMS"
         private const val ACTION_OPEN_GOOGLE_RECORDER =
             "com.github.jimmy90109.livestatus.action.OPEN_GOOGLE_RECORDER"
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
@@ -305,6 +316,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
         private const val DISCORD_PACKAGE = "com.discord"
+        private const val TEAMS_PACKAGE = "com.microsoft.teams"
         private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME
         private const val SAMSUNG_NOW_BAR_GUIDE_URL =
             "https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html"
@@ -360,6 +372,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             openAppIntent(context, ACTION_OPEN_DISCORD)
 
         @JvmStatic
+        fun createOpenTeamsIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_TEAMS)
+
+        @JvmStatic
         fun createOpenGoogleRecorderIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_GOOGLE_RECORDER)
 
@@ -385,6 +401,7 @@ internal data class StatusSnapshot(
     val yptInstalled: Boolean = false,
     val hevyInstalled: Boolean = false,
     val discordInstalled: Boolean = false,
+    val teamsInstalled: Boolean = false,
     val googleRecorderInstalled: Boolean = false,
     val brandWarning: BrandWarning? = null,
     val brandWarningDismissed: Boolean = false,
@@ -402,6 +419,7 @@ internal data class StatusSnapshot(
     val yptEnabled: Boolean = false,
     val hevyEnabled: Boolean = false,
     val discordVoiceEnabled: Boolean = false,
+    val teamsCallEnabled: Boolean = false,
     val googleRecorderEnabled: Boolean = false,
 ) {
     val requiredSettingsComplete: Boolean

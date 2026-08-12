@@ -20,12 +20,15 @@ import java.util.Locale
 object LiveStatusReminder {
     internal const val DISCORD_VOICE_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
     internal const val DISCORD_VOICE_VISIBILITY = Notification.VISIBILITY_PUBLIC
+    internal const val TEAMS_CALL_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
+    internal const val TEAMS_CALL_VISIBILITY = Notification.VISIBILITY_PUBLIC
     internal const val GOOGLE_RECORDER_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
     internal const val GOOGLE_RECORDER_VISIBILITY = Notification.VISIBILITY_PUBLIC
     private const val CHANNEL_ID = "live_status"
     private const val MEDIA_CHANNEL_ID = "media_live_status"
     private const val DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status_v2"
     private const val LEGACY_DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status"
+    private const val TEAMS_CALL_CHANNEL_ID = "teams_call_live_status_v1"
     private const val GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status_v2"
     private const val LEGACY_GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
@@ -42,6 +45,7 @@ object LiveStatusReminder {
     private const val HEVY_WORKOUT_NOTIFICATION_ID = 1012
     private const val DISCORD_VOICE_NOTIFICATION_ID = 1013
     private const val GOOGLE_RECORDER_NOTIFICATION_ID = 1014
+    private const val TEAMS_CALL_NOTIFICATION_ID = 1015
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -92,6 +96,20 @@ object LiveStatusReminder {
             createNotificationChannel(channel)
             deleteNotificationChannel(LEGACY_DISCORD_VOICE_CHANNEL_ID)
         }
+    }
+
+    private fun createTeamsCallChannel(context: Context) {
+        val channel = NotificationChannel(
+            TEAMS_CALL_CHANNEL_ID,
+            context.getString(R.string.teams_call_notification_channel_name),
+            TEAMS_CALL_CHANNEL_IMPORTANCE,
+        ).apply {
+            description = context.getString(R.string.teams_call_notification_channel_description)
+            lockscreenVisibility = TEAMS_CALL_VISIBILITY
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).createNotificationChannel(channel)
     }
 
     private fun createGoogleRecorderChannel(context: Context) {
@@ -708,6 +726,97 @@ object LiveStatusReminder {
 
     internal fun discordVoiceContentText(update: DiscordVoiceUpdate, fallback: String): String =
         update.sourceContentText ?: fallback
+
+    internal fun showTeamsCall(context: Context, update: TeamsCallUpdate) {
+        createTeamsCallChannel(context)
+        val openTeams = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            12,
+            HomeScreenHostActivity.createOpenTeamsIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val english = update.language == TeamsCallLanguage.ENGLISH
+        val participantText = TeamsCallText.contentText(
+            update,
+            context.getString(
+                if (english) {
+                    R.string.teams_call_fallback_content_en
+                } else {
+                    R.string.teams_call_fallback_content
+                },
+            ),
+        )
+        val payload = LiveStatusPayload(
+            id = TEAMS_CALL_NOTIFICATION_ID,
+            appName = context.getString(R.string.teams_card_app_name),
+            smallIconRes = R.drawable.ic_voice_notification,
+            leftIconRes = R.drawable.ic_voice_notification,
+            criticalText = context.getString(
+                if (english) R.string.teams_call_critical_text_en else R.string.teams_call_critical_text,
+            ),
+            title = context.getString(R.string.teams_call_title_format, participantText),
+            contentText = context.getString(
+                if (english) R.string.teams_call_live_title_en else R.string.teams_call_live_title,
+            ),
+            contentIntent = openTeams,
+        )
+        val builder = Notification.Builder(context, TEAMS_CALL_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_CALL)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(TEAMS_CALL_VISIBILITY)
+            .setColor(Color.rgb(98, 100, 167))
+            .also {
+                TeamsCallNotificationStyle.apply(
+                    it,
+                    update.startedAtEpochMillis,
+                    context.getString(
+                        if (english) {
+                            R.string.teams_call_metric_label_en
+                        } else {
+                            R.string.teams_call_metric_label
+                        },
+                    ),
+                )
+            }
+            .also { notificationBuilder ->
+                update.sourceActions.take(2).forEach { sourceAction ->
+                    notificationBuilder.addAction(
+                        normalizedTeamsAction(sourceAction, update.language),
+                    )
+                }
+            }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(TEAMS_CALL_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearTeamsCall(context: Context) {
+        notificationManager(context).cancel(TEAMS_CALL_NOTIFICATION_ID)
+    }
+
+    private fun normalizedTeamsAction(
+        sourceAction: Notification.Action,
+        language: TeamsCallLanguage,
+    ): Notification.Action {
+        val builder = Notification.Action.Builder(
+            sourceAction.getIcon(),
+            TeamsCallText.actionTitle(sourceAction.title ?: "", language),
+            requireNotNull(sourceAction.actionIntent),
+        )
+            .addExtras(sourceAction.extras)
+            .setAllowGeneratedReplies(sourceAction.allowGeneratedReplies)
+            .setSemanticAction(sourceAction.semanticAction)
+            .setContextual(sourceAction.isContextual)
+            .setAuthenticationRequired(sourceAction.isAuthenticationRequired)
+        sourceAction.remoteInputs.orEmpty().forEach(builder::addRemoteInput)
+        return builder.build()
+    }
 
     @JvmStatic
     internal fun showMediaPlayback(context: Context, update: MediaPlaybackUpdate) {
