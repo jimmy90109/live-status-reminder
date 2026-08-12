@@ -18,6 +18,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val clockTimerTracker = ClockTimerTracker()
     private val yptStudyTracker = YptStudyTracker()
     private val hevyWorkoutTracker = HevyWorkoutTracker()
+    private val stravaRecordingTracker = StravaRecordingTracker()
     private val discordVoiceTracker = DiscordVoiceTracker()
     private val teamsCallTracker = TeamsCallTracker()
     private val recorderTracker = RecorderTracker()
@@ -52,6 +53,34 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            STRAVA_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = parseStravaRecording(
+                    statusBarNotification,
+                    notificationTitle,
+                    notificationContentText,
+                )
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordStrava(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        "POSTED",
+                        update,
+                    )
+                }
+                if (AppReminderPreferences.App.STRAVA.isEnabled(this)) {
+                    handleStravaRecordingDecision(
+                        stravaRecordingTracker.onPosted(statusBarNotification.key, update),
+                    )
+                } else {
+                    stravaRecordingTracker.reset()
+                    LiveStatusReminder.clearStravaRecording(this)
+                }
+            }
             TEAMS_PACKAGE -> {
                 val extraction = TeamsCallNotificationExtractor.extract(statusBarNotification)
                 if (BuildConfig.DEBUG) {
@@ -434,6 +463,23 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (BuildConfig.DEBUG && statusBarNotification.packageName == STRAVA_PACKAGE) {
+            val notification = statusBarNotification.notification
+            NotificationDebugPayloadStore.recordStrava(
+                this,
+                statusBarNotification,
+                readNotificationText(this, statusBarNotification.packageName, notification),
+                readNotificationTitle(notification),
+                readNotificationContentText(notification),
+                "REMOVED",
+            )
+        }
+        if (statusBarNotification.packageName == STRAVA_PACKAGE) {
+            handleStravaRecordingDecision(
+                stravaRecordingTracker.onRemoved(statusBarNotification.key),
+            )
+            return
+        }
         if (statusBarNotification.packageName == TEAMS_PACKAGE) {
             if (BuildConfig.DEBUG) recordTeams(statusBarNotification, "REMOVED")
             handleTeamsCallDecision(teamsCallTracker.onRemoved(statusBarNotification.key))
@@ -526,12 +572,31 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             activeNotifications
                 .filter { it.packageName == GOOGLE_RECORDER_PACKAGE }
                 .forEach { recordGoogleRecorder(it, "ACTIVE_SNAPSHOT") }
+            activeNotifications
+                .filter { it.packageName == STRAVA_PACKAGE }
+                .forEach {
+                    val notification = it.notification
+                    NotificationDebugPayloadStore.recordStrava(
+                        this,
+                        it,
+                        readNotificationText(this, it.packageName, notification),
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                        "ACTIVE_SNAPSHOT",
+                        parseStravaRecording(
+                            it,
+                            readNotificationTitle(notification),
+                            readNotificationContentText(notification),
+                        ),
+                    )
+                }
         }
         restoreDiscordVoice(activeNotifications)
         restoreTeamsCall(activeNotifications)
         restoreGoogleRecorder(activeNotifications)
         restoreYptStudy(activeNotifications)
         restoreHevyWorkout(activeNotifications)
+        restoreStravaRecording(activeNotifications)
         YouBikeRideManager.restore(this)
     }
 
@@ -569,6 +634,15 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             is HevyWorkoutDecision.Show -> LiveStatusReminder.showHevyWorkout(this, decision.update)
             HevyWorkoutDecision.Clear -> LiveStatusReminder.clearHevyWorkout(this)
             HevyWorkoutDecision.None -> Unit
+        }
+    }
+
+    private fun handleStravaRecordingDecision(decision: StravaRecordingDecision) {
+        when (decision) {
+            is StravaRecordingDecision.Show ->
+                LiveStatusReminder.showStravaRecording(this, decision.update)
+            StravaRecordingDecision.Clear -> LiveStatusReminder.clearStravaRecording(this)
+            StravaRecordingDecision.None -> Unit
         }
     }
 
@@ -687,6 +761,46 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             }
             .toList()
         handleHevyWorkoutDecision(hevyWorkoutTracker.restore(updates))
+    }
+
+    private fun restoreStravaRecording(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.STRAVA.isEnabled(this)) {
+            stravaRecordingTracker.reset()
+            LiveStatusReminder.clearStravaRecording(this)
+            return
+        }
+        val updates = activeNotifications
+            .asSequence()
+            .filter { it.packageName == STRAVA_PACKAGE }
+            .mapNotNull { statusBarNotification ->
+                val notification = statusBarNotification.notification
+                parseStravaRecording(
+                    statusBarNotification,
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                )
+            }
+            .toList()
+        handleStravaRecordingDecision(stravaRecordingTracker.restore(updates))
+    }
+
+    private fun parseStravaRecording(
+        statusBarNotification: StatusBarNotification,
+        notificationTitle: String?,
+        notificationContentText: String?,
+    ): StravaRecordingUpdate? {
+        val notification = statusBarNotification.notification
+        return StravaRecordingNotificationParser.parse(
+            sourceKey = statusBarNotification.key,
+            channelId = notification.channelId,
+            isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0,
+            isForegroundService =
+                notification.flags and Notification.FLAG_FOREGROUND_SERVICE != 0,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            contentIntent = notification.contentIntent,
+            sourceActions = notification.actions.orEmpty().toList(),
+        )
     }
 
     private fun showAndScheduleClockTimer(update: ClockTimerUpdate) {
@@ -846,6 +960,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
+        private const val STRAVA_PACKAGE = "com.strava"
         private const val DISCORD_PACKAGE = DiscordVoiceNotificationParser.PACKAGE_NAME
         private const val TEAMS_PACKAGE = "com.microsoft.teams"
         private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME

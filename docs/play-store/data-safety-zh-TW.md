@@ -14,7 +14,8 @@
 即使「資料安全」回答未收集資料，隱私權政策與 App 內仍須清楚說明：
 
 - App 會在使用者授權後讀取通知內容。
-- 用途限於辨識媒體播放、Discord 伺服器語音頻道、Microsoft Teams 進行中通話、Google 時鐘、Google Recorder 錄音、YPT 讀書計時、Hevy 健身、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
+- 用途限於辨識媒體播放、Discord 伺服器語音頻道、Microsoft Teams 進行中通話、Google 時鐘、Google Recorder 錄音、YPT 讀書計時、Hevy 健身、Strava 運動記錄、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
+- Strava 只在記憶體中暫時處理運動記錄狀態、官方通知標題與可用操作；來源通知移除後即清除，不上傳或永久保存。Debug build 另暫存最近 30 筆 payload，正式版不提供查看入口。
 - 媒體播放只在記憶體中暫時處理系統首選活躍工作階段的來源套件、曲名、作者、專輯、播放狀態與控制能力，不永久保存。
 - Discord 只在記憶體中暫時處理伺服器語音頻道連線狀態、來源顯示文字與可用操作；離開頻道或來源通知移除後即清除，不上傳或永久保存。
 - Microsoft Teams 只在記憶體中暫時處理目前通話的開始時間、對方名稱與可用操作；離開會議、功能關閉或來源通知移除後即清除，不上傳或永久保存。

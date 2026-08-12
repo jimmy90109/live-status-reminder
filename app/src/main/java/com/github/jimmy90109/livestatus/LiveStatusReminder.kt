@@ -46,6 +46,7 @@ object LiveStatusReminder {
     private const val DISCORD_VOICE_NOTIFICATION_ID = 1013
     private const val GOOGLE_RECORDER_NOTIFICATION_ID = 1014
     private const val TEAMS_CALL_NOTIFICATION_ID = 1015
+    private const val STRAVA_RECORDING_NOTIFICATION_ID = 1016
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -667,6 +668,60 @@ object LiveStatusReminder {
 
     internal fun clearHevyWorkout(context: Context) {
         notificationManager(context).cancel(HEVY_WORKOUT_NOTIFICATION_ID)
+    }
+
+    internal fun showStravaRecording(context: Context, update: StravaRecordingUpdate) {
+        createChannel(context)
+        val openStrava = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            13,
+            HomeScreenHostActivity.createOpenStravaIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = stravaRecordingPayload(update, openStrava)
+        val isEnglish = update.language == StravaRecordingLanguage.ENGLISH
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory("workout")
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setWhen(0)
+            .setShowWhen(false)
+            .setUsesChronometer(false)
+            .setChronometerCountDown(false)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .also { notificationBuilder ->
+                if (update.sourceActions.isEmpty()) {
+                    notificationBuilder.addAction(
+                        Notification.Action.Builder(
+                            Icon.createWithResource(context, payload.leftIconRes),
+                            context.getString(
+                                if (isEnglish) {
+                                    R.string.strava_live_open_action_en
+                                } else {
+                                    R.string.strava_live_open_action
+                                },
+                            ),
+                            openStrava,
+                        ).build(),
+                    )
+                } else {
+                    update.sourceActions.forEach(notificationBuilder::addAction)
+                }
+            }
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(STRAVA_RECORDING_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearStravaRecording(context: Context) {
+        notificationManager(context).cancel(STRAVA_RECORDING_NOTIFICATION_ID)
     }
 
     internal fun showDiscordVoice(context: Context, update: DiscordVoiceUpdate) {
@@ -1450,6 +1505,37 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
     }
+
+    internal fun stravaRecordingPayload(
+        update: StravaRecordingUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload = LiveStatusPayload(
+        id = STRAVA_RECORDING_NOTIFICATION_ID,
+        appName = "Strava",
+        smallIconRes = R.drawable.ic_running_notification,
+        leftIconRes = R.drawable.ic_running_notification,
+        criticalText = when (update.language) {
+            StravaRecordingLanguage.TRADITIONAL_CHINESE -> when (update.state) {
+                StravaRecordingState.RECORDING -> "運動中"
+                StravaRecordingState.WAITING_FOR_GPS -> "等待 GPS"
+                StravaRecordingState.PAUSED -> "已暫停"
+            }
+            StravaRecordingLanguage.ENGLISH -> when (update.state) {
+                StravaRecordingState.RECORDING -> "Active"
+                StravaRecordingState.WAITING_FOR_GPS -> "Locating"
+                StravaRecordingState.PAUSED -> "Paused"
+            }
+        },
+        title = update.officialTitle,
+        contentText = update.officialText ?: if (
+            update.language == StravaRecordingLanguage.ENGLISH
+        ) {
+            "Strava activity in progress"
+        } else {
+            "Strava 運動記錄中"
+        },
+        contentIntent = contentIntent,
+    )
 
     internal fun formatHevyRestDuration(totalSeconds: Int): String {
         val safeSeconds = totalSeconds.coerceAtLeast(0)

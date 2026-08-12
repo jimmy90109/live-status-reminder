@@ -28,6 +28,7 @@ object NotificationDebugPayloadStore {
     private val _teamsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _googleRecorderPayloads =
         MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _stravaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
     val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
@@ -42,6 +43,35 @@ object NotificationDebugPayloadStore {
     val teamsPayloads: StateFlow<List<NotificationDebugPayload>> = _teamsPayloads
     val googleRecorderPayloads: StateFlow<List<NotificationDebugPayload>> =
         _googleRecorderPayloads
+    val stravaPayloads: StateFlow<List<NotificationDebugPayload>> = _stravaPayloads
+
+    internal fun recordStrava(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+        update: StravaRecordingUpdate? = null,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = if (lifecycle == "REMOVED") lifecycle else update?.state?.name ?: "NONE",
+            parsedPin = null,
+            parsedDetails = linkedMapOf(
+                "lifecycle" to lifecycle,
+                "language" to update?.language?.name.orEmpty(),
+                "officialTitle" to update?.officialTitle.orEmpty(),
+                "officialText" to update?.officialText.orEmpty(),
+            ),
+        )
+        _stravaPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
 
     internal fun recordGoogleRecorder(
         context: Context,
@@ -412,6 +442,10 @@ object NotificationDebugPayloadStore {
 
     fun clearGoogleRecorder() {
         _googleRecorderPayloads.value = emptyList()
+    }
+
+    fun clearStrava() {
+        _stravaPayloads.value = emptyList()
     }
 
     private fun createPayload(

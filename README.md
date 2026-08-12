@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -57,6 +57,13 @@
 - 來源通知透過公開 `Notification.Action` 提供的操作會同步至 Live Update；沒有來源 action 時提供「開啟 Hevy」。
 - 點擊提醒可開啟 Hevy；結束訓練並移除來源通知後自動清除，通知監聽器重連時可從現有訓練通知恢復。
 - 功能位於「運動」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆原始 payload 與移除事件，正式版不提供查看入口。
+
+### Strava
+
+- 偵測 `com.strava` 的 `recording` 前景常駐通知，將來源官方標題原樣同步至 Live Update，不自行拆解運動類型、時間或距離格式。
+- 支援繁中與英文來源；通知內容為「沒有 GPS」／`No GPS` 時顯示同語言的等待 GPS 文案，「已停止」／`Paused`／`Stopped` 代表暫停，並保留提醒及來源操作。
+- 點擊提醒可開啟 Strava；來源記錄通知移除、功能關閉或通知不再符合時自動清除，通知監聽器重連時可從現有通知恢復。
+- 功能位於「運動」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆 payload，正式版不提供查看入口。
 
 ### iPASS MONEY
 

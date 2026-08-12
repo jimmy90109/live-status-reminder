@@ -15,7 +15,7 @@
     <string name="home_intro_hide">隱藏首頁介紹</string>
     <string name="home_intro_collapsed">首頁介紹已收合</string>
     <string name="home_intro_expanded">首頁介紹已展開</string>
-    <string name="home_intro_description">媒體播放、Discord 與 Teams 通話、倒數計時、Google Recorder 錄音、YPT 讀書、Hevy 健身、乘車、YouBike 騎乘、外送與 Pikmin Bloom 種花期間，持續顯示重要狀態。</string>
+    <string name="home_intro_description">媒體播放、Discord 與 Teams 通話、倒數計時、Google Recorder 錄音、YPT 讀書、Hevy 與 Strava 運動、乘車、YouBike 騎乘、外送與 Pikmin Bloom 種花期間，持續顯示重要狀態。</string>
     <string name="required_settings_description">完成設定後，App 就能把媒體播放、Discord 與 Teams 通話、倒數計時、讀書與健身、乘車、外送與種花狀態變成即時通知。</string>
     <string name="app_card_collapsed">試用選項已收起</string>
     <string name="app_card_expanded">試用選項已展開</string>
@@ -111,6 +111,18 @@
     <string name="hevy_card_title">健身進度</string>
     <string name="hevy_card_description">Hevy 訓練期間同步顯示目前動作、組數、重量、次數、休息倒數與來源操作；結束訓練時自動移除。</string>
     <string name="hevy_debug_open_payload">查看通知 payload</string>
+    <string name="strava_card_app_name">Strava</string>
+    <string name="strava_card_title">運動記錄</string>
+    <string name="strava_card_description">Strava 記錄活動時，沿用官方通知標題顯示運動類型、經過時間與距離；等待 GPS、暫停及結束狀態會同步更新。</string>
+    <string name="strava_debug_open_payload">查看 Strava payload</string>
+    <string name="strava_simulate_recording">模擬記錄中</string>
+    <string name="strava_simulate_paused">模擬已暫停</string>
+    <string name="strava_simulate_finish">模擬結束活動</string>
+    <string name="monitoring_strava_recording">複製 Strava 官方通知標題，不自行解析距離格式。</string>
+    <string name="monitoring_strava_paused">通知內容為「已停止」時保留提醒並顯示已暫停。</string>
+    <string name="monitoring_strava_finished">來源記錄通知被移除時清除即時通知。</string>
+    <string name="strava_live_open_action">開啟 Strava</string>
+    <string name="strava_live_open_action_en">Open Strava</string>
     <string name="hevy_simulate_active_set">模擬進行訓練組</string>
     <string name="hevy_simulate_rest">模擬組間休息</string>
     <string name="hevy_simulate_finish">模擬結束訓練</string>

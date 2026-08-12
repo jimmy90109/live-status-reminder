@@ -12,7 +12,7 @@ LiveStatus 即時狀態提醒
 
 LiveStatus 即時狀態提醒是一款為 Android 16 設計的通知輔助工具，會監聽媒體播放與指定應用程式的通知，將重要狀態轉換成持續顯示的 Live Update，讓你不用反覆打開 App，也能快速掌握正在播放內容、Discord 語音頻道、Microsoft Teams 通話、倒數計時、讀書與健身、外送、乘車與種花狀態。
 
-支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Microsoft Teams 進行中會議、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom。
+支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Microsoft Teams 進行中會議、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom。
 
 【媒體播放】
 當系統首選的活躍媒體工作階段正在播放、但來源通知尚未成為 Live Update 時，LiveStatus 會另外顯示曲名、作者、專輯與可用的切歌、播放、暫停或 podcast 倒退／快轉 15 秒控制。暫停後保留 1 分鐘方便恢復播放；停止、播放錯誤、工作階段或來源通知消失後會立即清除。Android 不允許修改其他 App 的通知，因此原始媒體通知仍會保留；備援通知是否被系統提升則依裝置支援情況而定。
@@ -34,6 +34,9 @@ YPT 開始記錄讀書時間後，LiveStatus 會持續顯示目前累積時長�
 
 【Hevy】
 Hevy 健身期間同步顯示目前或下一個動作、組數、重量、次數與來源提供的操作；組間休息以 Live Update 計時指標顯示休息倒數。結束訓練並移除來源通知後自動清除，功能可在運動分頁單獨關閉。
+
+【Strava】
+Strava 記錄活動時，LiveStatus 會沿用官方通知標題顯示運動類型、經過時間與距離，不自行猜測距離格式。繁中與英文來源的運動中、等待 GPS 與暫停文案會使用相同語言；來源通知移除後自動清除，功能可在運動分頁單獨關閉。
 
 【iPASS MONEY】
 當偵測到乘車碼交易與尚未出站狀態時，LiveStatus 會顯示下車提醒。點擊提醒即可快速開啟 iPASS MONEY。當偵測到出站交易完成後，提醒會自動移除。
@@ -72,7 +75,7 @@ LiveStatus 可依照通知內容顯示 Uber Eats 訂單進度，包含：
 
 【主要特色】
 ・將重要通知轉換成 Android 16 Live Update
-・支援媒體播放、Discord 語音頻道、Microsoft Teams 通話、倒數與 Google Recorder 錄音計時、YPT 讀書、Hevy 健身、外送、乘車碼、YouBike 費用、55688／Uber 乘車與 Pikmin Bloom 種花狀態提醒
+・支援媒體播放、Discord 語音頻道、Microsoft Teams 通話、倒數與 Google Recorder 錄音計時、YPT 讀書、Hevy／Strava 運動、外送、乘車碼、YouBike 費用、55688／Uber 乘車與 Pikmin Bloom 種花狀態提醒
 ・狀態結束後自動移除提醒
 ・點擊提醒可快速開啟對應 App
 ・保守解析 PIN、驗證碼、取餐碼與交付碼，避免錯誤顯示
@@ -93,7 +96,7 @@ LiveStatus 需要通知存取權，才能讀取媒體工作階段與指定 App �
 系統需求：Android 16 或更新版本。Live Update 顯示方式依裝置支援情況而定。
 
 【注意事項】
-LiveStatus 是第三方通知輔助工具，並非 Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
+LiveStatus 是第三方通知輔助工具，並非 Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
 
 LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或格式不明確，App 可能不會顯示部分資訊，以避免誤判。
 
