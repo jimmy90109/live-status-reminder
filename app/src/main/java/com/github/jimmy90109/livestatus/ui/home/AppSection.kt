@@ -331,15 +331,6 @@ internal fun AppsSection(
                         )
                     }
                     CATEGORY_MEDIA -> {
-                        TeamsCallCard(
-                            installed = status.teamsInstalled,
-                            enabled = status.teamsCallEnabled,
-                            interactionEnabled = status.requiredSettingsComplete,
-                            onEnabledChange = {
-                                onAppEnabledChange(AppReminderPreferences.App.TEAMS_CALL, it)
-                            },
-                            onOpenDebug = onOpenTeamsDebug,
-                        )
                         DiscordVoiceCard(
                             installed = status.discordInstalled,
                             enabled = status.discordVoiceEnabled,
@@ -348,6 +339,15 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.DISCORD_VOICE, it)
                             },
                             onOpenDebug = onOpenDiscordDebug,
+                        )
+                        TeamsCallCard(
+                            installed = status.teamsInstalled,
+                            enabled = status.teamsCallEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TEAMS_CALL, it)
+                            },
+                            onOpenDebug = onOpenTeamsDebug,
                         )
                         MediaPlaybackCard(
                             enabled = status.mediaPlaybackEnabled,
