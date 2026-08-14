@@ -492,7 +492,7 @@ internal fun StravaCard(
         fallbackIconRes = R.drawable.ic_running_notification,
         title = stringResource(R.string.strava_card_title),
         description = stringResource(R.string.strava_card_description),
-        supportedLanguages = listOf("繁中", "English"),
+        supportedLanguages = listOf("繁中 / En"),
         installed = installed,
         enabled = enabled,
         interactionEnabled = interactionEnabled,
