@@ -112,12 +112,13 @@ LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或
 
 ## 發布版本名稱
 
-1.0.7
+1.0.8
 
 ## 發布說明
 
-1.0.7 更新：
+1.0.8 更新：
 
-- 新增 Discord 伺服器語音頻道 Live Update，顯示連線狀態、伺服器／頻道名稱與來源提供的通話操作。
-- 新增 Google Recorder 錄音 Live Update，顯示錄音時間、暫停狀態與來源提供的繼續／儲存操作。
-- 修正 Discord 與 Google Recorder Live Update 無法在鎖定畫面顯示的問題。
+- 新增 Microsoft Teams 進行中會議 Live Update，顯示對方名稱、通話時間與來源提供的靜音／掛斷操作。
+- 新增 Strava 活動記錄 Live Update，支援繁中與英文的運動中、等待 GPS 與暫停狀態。
+- Uber Eats Live Update 新增英文通知文案與英文階段顯示支援。
+- 修正 foodpanda、Uber Eats 與 Strava App 卡片顯示的支援語言標籤。
