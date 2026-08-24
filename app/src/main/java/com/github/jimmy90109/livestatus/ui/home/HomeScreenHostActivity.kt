@@ -49,7 +49,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_PIKMIN_BLOOM -> openPikminBloom()
             ACTION_OPEN_YPT -> openYpt()
             ACTION_OPEN_HEVY -> openHevy()
+            ACTION_OPEN_STRAVA -> openStrava()
             ACTION_OPEN_DISCORD -> openDiscord()
+            ACTION_OPEN_TEAMS -> openTeams()
             ACTION_OPEN_GOOGLE_RECORDER -> openGoogleRecorder()
             else -> {
                 setContent {
@@ -89,7 +91,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
         val yptInstalled = isPackageInstalled(YPT_PACKAGE)
         val hevyInstalled = isPackageInstalled(HEVY_PACKAGE)
+        val stravaInstalled = isPackageInstalled(STRAVA_PACKAGE)
         val discordInstalled = isPackageInstalled(DISCORD_PACKAGE)
+        val teamsInstalled = isPackageInstalled(TEAMS_PACKAGE)
         val googleRecorderInstalled = isPackageInstalled(GOOGLE_RECORDER_PACKAGE)
         val brandWarning = detectBrandWarning()
         statusSnapshot = StatusSnapshot(
@@ -106,7 +110,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
             pikminBloomInstalled = pikminBloomInstalled,
             yptInstalled = yptInstalled,
             hevyInstalled = hevyInstalled,
+            stravaInstalled = stravaInstalled,
             discordInstalled = discordInstalled,
+            teamsInstalled = teamsInstalled,
             googleRecorderInstalled = googleRecorderInstalled,
             brandWarning = brandWarning,
             brandWarningDismissed =
@@ -128,8 +134,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
                 AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this, pikminBloomInstalled),
             yptEnabled = AppReminderPreferences.App.YPT.isEnabled(this, yptInstalled),
             hevyEnabled = AppReminderPreferences.App.HEVY.isEnabled(this, hevyInstalled),
+            stravaEnabled = AppReminderPreferences.App.STRAVA.isEnabled(this, stravaInstalled),
             discordVoiceEnabled =
                 AppReminderPreferences.App.DISCORD_VOICE.isEnabled(this, discordInstalled),
+            teamsCallEnabled =
+                AppReminderPreferences.App.TEAMS_CALL.isEnabled(this, teamsInstalled),
             googleRecorderEnabled =
                 AppReminderPreferences.App.GOOGLE_RECORDER.isEnabled(
                     this,
@@ -218,7 +227,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openHevy() = openPackage(HEVY_PACKAGE, "Hevy")
 
+    private fun openStrava() = openPackage(STRAVA_PACKAGE, "Strava")
+
     private fun openDiscord() = openPackage(DISCORD_PACKAGE, "Discord")
+
+    private fun openTeams() = openPackage(TEAMS_PACKAGE, "Microsoft Teams")
 
     private fun openGoogleRecorder() = openPackage(GOOGLE_RECORDER_PACKAGE, "Google Recorder")
 
@@ -253,8 +266,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.PIKMIN_BLOOM -> LiveStatusReminder.clearPikminBloom(this)
             AppReminderPreferences.App.YPT -> LiveStatusReminder.clearYptStudy(this)
             AppReminderPreferences.App.HEVY -> LiveStatusReminder.clearHevyWorkout(this)
+            AppReminderPreferences.App.STRAVA -> LiveStatusReminder.clearStravaRecording(this)
             AppReminderPreferences.App.DISCORD_VOICE ->
                 LiveStatusReminder.clearDiscordVoice(this)
+            AppReminderPreferences.App.TEAMS_CALL ->
+                LiveStatusReminder.clearTeamsCall(this)
             AppReminderPreferences.App.GOOGLE_RECORDER ->
                 LiveStatusReminder.clearGoogleRecorder(this)
         }
@@ -289,8 +305,12 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_YPT"
         private const val ACTION_OPEN_HEVY =
             "com.github.jimmy90109.livestatus.action.OPEN_HEVY"
+        private const val ACTION_OPEN_STRAVA =
+            "com.github.jimmy90109.livestatus.action.OPEN_STRAVA"
         private const val ACTION_OPEN_DISCORD =
             "com.github.jimmy90109.livestatus.action.OPEN_DISCORD"
+        private const val ACTION_OPEN_TEAMS =
+            "com.github.jimmy90109.livestatus.action.OPEN_TEAMS"
         private const val ACTION_OPEN_GOOGLE_RECORDER =
             "com.github.jimmy90109.livestatus.action.OPEN_GOOGLE_RECORDER"
         private const val CLOCK_PACKAGE = ClockTimerNotificationExtractor.CLOCK_PACKAGE
@@ -304,7 +324,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
+        private const val STRAVA_PACKAGE = "com.strava"
         private const val DISCORD_PACKAGE = "com.discord"
+        private const val TEAMS_PACKAGE = "com.microsoft.teams"
         private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME
         private const val SAMSUNG_NOW_BAR_GUIDE_URL =
             "https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html"
@@ -356,8 +378,16 @@ open class HomeScreenHostActivity : ComponentActivity() {
             openAppIntent(context, ACTION_OPEN_HEVY)
 
         @JvmStatic
+        fun createOpenStravaIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_STRAVA)
+
+        @JvmStatic
         fun createOpenDiscordIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_DISCORD)
+
+        @JvmStatic
+        fun createOpenTeamsIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_TEAMS)
 
         @JvmStatic
         fun createOpenGoogleRecorderIntent(context: Context): Intent =
@@ -384,7 +414,9 @@ internal data class StatusSnapshot(
     val pikminBloomInstalled: Boolean = false,
     val yptInstalled: Boolean = false,
     val hevyInstalled: Boolean = false,
+    val stravaInstalled: Boolean = false,
     val discordInstalled: Boolean = false,
+    val teamsInstalled: Boolean = false,
     val googleRecorderInstalled: Boolean = false,
     val brandWarning: BrandWarning? = null,
     val brandWarningDismissed: Boolean = false,
@@ -401,7 +433,9 @@ internal data class StatusSnapshot(
     val pikminBloomEnabled: Boolean = false,
     val yptEnabled: Boolean = false,
     val hevyEnabled: Boolean = false,
+    val stravaEnabled: Boolean = false,
     val discordVoiceEnabled: Boolean = false,
+    val teamsCallEnabled: Boolean = false,
     val googleRecorderEnabled: Boolean = false,
 ) {
     val requiredSettingsComplete: Boolean

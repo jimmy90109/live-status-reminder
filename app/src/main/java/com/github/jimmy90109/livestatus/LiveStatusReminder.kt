@@ -20,12 +20,15 @@ import java.util.Locale
 object LiveStatusReminder {
     internal const val DISCORD_VOICE_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
     internal const val DISCORD_VOICE_VISIBILITY = Notification.VISIBILITY_PUBLIC
+    internal const val TEAMS_CALL_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
+    internal const val TEAMS_CALL_VISIBILITY = Notification.VISIBILITY_PUBLIC
     internal const val GOOGLE_RECORDER_CHANNEL_IMPORTANCE = NotificationManager.IMPORTANCE_DEFAULT
     internal const val GOOGLE_RECORDER_VISIBILITY = Notification.VISIBILITY_PUBLIC
     private const val CHANNEL_ID = "live_status"
     private const val MEDIA_CHANNEL_ID = "media_live_status"
     private const val DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status_v2"
     private const val LEGACY_DISCORD_VOICE_CHANNEL_ID = "discord_voice_live_status"
+    private const val TEAMS_CALL_CHANNEL_ID = "teams_call_live_status_v1"
     private const val GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status_v2"
     private const val LEGACY_GOOGLE_RECORDER_CHANNEL_ID = "google_recorder_live_status"
     private const val RIDE_NOTIFICATION_ID = 1001
@@ -42,6 +45,8 @@ object LiveStatusReminder {
     private const val HEVY_WORKOUT_NOTIFICATION_ID = 1012
     private const val DISCORD_VOICE_NOTIFICATION_ID = 1013
     private const val GOOGLE_RECORDER_NOTIFICATION_ID = 1014
+    private const val TEAMS_CALL_NOTIFICATION_ID = 1015
+    private const val STRAVA_RECORDING_NOTIFICATION_ID = 1016
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -92,6 +97,20 @@ object LiveStatusReminder {
             createNotificationChannel(channel)
             deleteNotificationChannel(LEGACY_DISCORD_VOICE_CHANNEL_ID)
         }
+    }
+
+    private fun createTeamsCallChannel(context: Context) {
+        val channel = NotificationChannel(
+            TEAMS_CALL_CHANNEL_ID,
+            context.getString(R.string.teams_call_notification_channel_name),
+            TEAMS_CALL_CHANNEL_IMPORTANCE,
+        ).apply {
+            description = context.getString(R.string.teams_call_notification_channel_description)
+            lockscreenVisibility = TEAMS_CALL_VISIBILITY
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).createNotificationChannel(channel)
     }
 
     private fun createGoogleRecorderChannel(context: Context) {
@@ -285,6 +304,8 @@ object LiveStatusReminder {
         context: Context,
         event: LiveStatusNotificationParser.UberEatsEvent,
         pin: String?,
+        language: LiveStatusNotificationParser.UberEatsLanguage =
+            LiveStatusNotificationParser.UberEatsLanguage.TRADITIONAL_CHINESE,
         officialTitle: String? = null,
         officialText: String? = null,
     ) {
@@ -295,18 +316,30 @@ object LiveStatusReminder {
             HomeScreenHostActivity.createOpenUberEatsIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val payload = uberEatsPayload(event, officialTitle, officialText, openUberEats)
-        val privatePayload = uberEatsPrivatePayload(event, payload, pin)
+        val payload = uberEatsPayload(
+            event,
+            language,
+            officialTitle,
+            officialText,
+            openUberEats,
+        )
+        val displayPayload = uberEatsPayloadWithPin(event, language, payload, pin)
 
         val builder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(privatePayload.smallIconRes)
-            .setContentTitle(privatePayload.title)
-            .setContentText(privatePayload.contentText)
-            .setContentIntent(privatePayload.contentIntent)
+            .setSmallIcon(displayPayload.smallIconRes)
+            .setContentTitle(displayPayload.title)
+            .setContentText(displayPayload.contentText)
+            .setContentIntent(displayPayload.contentIntent)
             .addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(context, privatePayload.leftIconRes),
-                    "開啟 Uber Eats",
+                    Icon.createWithResource(context, displayPayload.leftIconRes),
+                    context.getString(
+                        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+                            R.string.uber_eats_open_action_en
+                        } else {
+                            R.string.uber_eats_open_action
+                        },
+                    ),
                     openUberEats,
                 ).build(),
             )
@@ -315,9 +348,9 @@ object LiveStatusReminder {
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .also { applyUberEatsStyle(it, event) }
-            .setShortCriticalText(pin ?: uberEatsShortText(event))
+            .setShortCriticalText(pin ?: uberEatsShortText(event, language))
             .also(::requestPromotedOngoing)
-            .also { XiaomiHyperIslandRenderer.apply(context, it, privatePayload) }
+            .also { XiaomiHyperIslandRenderer.apply(context, it, displayPayload) }
 
         notificationManager(context).notify(UBER_EATS_NOTIFICATION_ID, builder.build())
     }
@@ -637,6 +670,60 @@ object LiveStatusReminder {
         notificationManager(context).cancel(HEVY_WORKOUT_NOTIFICATION_ID)
     }
 
+    internal fun showStravaRecording(context: Context, update: StravaRecordingUpdate) {
+        createChannel(context)
+        val openStrava = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            13,
+            HomeScreenHostActivity.createOpenStravaIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = stravaRecordingPayload(update, openStrava)
+        val isEnglish = update.language == StravaRecordingLanguage.ENGLISH
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory("workout")
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setWhen(0)
+            .setShowWhen(false)
+            .setUsesChronometer(false)
+            .setChronometerCountDown(false)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .also { notificationBuilder ->
+                if (update.sourceActions.isEmpty()) {
+                    notificationBuilder.addAction(
+                        Notification.Action.Builder(
+                            Icon.createWithResource(context, payload.leftIconRes),
+                            context.getString(
+                                if (isEnglish) {
+                                    R.string.strava_live_open_action_en
+                                } else {
+                                    R.string.strava_live_open_action
+                                },
+                            ),
+                            openStrava,
+                        ).build(),
+                    )
+                } else {
+                    update.sourceActions.forEach(notificationBuilder::addAction)
+                }
+            }
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(STRAVA_RECORDING_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearStravaRecording(context: Context) {
+        notificationManager(context).cancel(STRAVA_RECORDING_NOTIFICATION_ID)
+    }
+
     internal fun showDiscordVoice(context: Context, update: DiscordVoiceUpdate) {
         createDiscordVoiceChannel(context)
         val openDiscord = update.contentIntent ?: PendingIntent.getActivity(
@@ -694,6 +781,97 @@ object LiveStatusReminder {
 
     internal fun discordVoiceContentText(update: DiscordVoiceUpdate, fallback: String): String =
         update.sourceContentText ?: fallback
+
+    internal fun showTeamsCall(context: Context, update: TeamsCallUpdate) {
+        createTeamsCallChannel(context)
+        val openTeams = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            12,
+            HomeScreenHostActivity.createOpenTeamsIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val english = update.language == TeamsCallLanguage.ENGLISH
+        val participantText = TeamsCallText.contentText(
+            update,
+            context.getString(
+                if (english) {
+                    R.string.teams_call_fallback_content_en
+                } else {
+                    R.string.teams_call_fallback_content
+                },
+            ),
+        )
+        val payload = LiveStatusPayload(
+            id = TEAMS_CALL_NOTIFICATION_ID,
+            appName = context.getString(R.string.teams_card_app_name),
+            smallIconRes = R.drawable.ic_voice_notification,
+            leftIconRes = R.drawable.ic_voice_notification,
+            criticalText = context.getString(
+                if (english) R.string.teams_call_critical_text_en else R.string.teams_call_critical_text,
+            ),
+            title = context.getString(R.string.teams_call_title_format, participantText),
+            contentText = context.getString(
+                if (english) R.string.teams_call_live_title_en else R.string.teams_call_live_title,
+            ),
+            contentIntent = openTeams,
+        )
+        val builder = Notification.Builder(context, TEAMS_CALL_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_CALL)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(TEAMS_CALL_VISIBILITY)
+            .setColor(Color.rgb(98, 100, 167))
+            .also {
+                TeamsCallNotificationStyle.apply(
+                    it,
+                    update.startedAtEpochMillis,
+                    context.getString(
+                        if (english) {
+                            R.string.teams_call_metric_label_en
+                        } else {
+                            R.string.teams_call_metric_label
+                        },
+                    ),
+                )
+            }
+            .also { notificationBuilder ->
+                update.sourceActions.take(2).forEach { sourceAction ->
+                    notificationBuilder.addAction(
+                        normalizedTeamsAction(sourceAction, update.language),
+                    )
+                }
+            }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(TEAMS_CALL_NOTIFICATION_ID, builder.build())
+    }
+
+    internal fun clearTeamsCall(context: Context) {
+        notificationManager(context).cancel(TEAMS_CALL_NOTIFICATION_ID)
+    }
+
+    private fun normalizedTeamsAction(
+        sourceAction: Notification.Action,
+        language: TeamsCallLanguage,
+    ): Notification.Action {
+        val builder = Notification.Action.Builder(
+            sourceAction.getIcon(),
+            TeamsCallText.actionTitle(sourceAction.title ?: "", language),
+            requireNotNull(sourceAction.actionIntent),
+        )
+            .addExtras(sourceAction.extras)
+            .setAllowGeneratedReplies(sourceAction.allowGeneratedReplies)
+            .setSemanticAction(sourceAction.semanticAction)
+            .setContextual(sourceAction.isContextual)
+            .setAuthenticationRequired(sourceAction.isAuthenticationRequired)
+        sourceAction.remoteInputs.orEmpty().forEach(builder::addRemoteInput)
+        return builder.build()
+    }
 
     @JvmStatic
     internal fun showMediaPlayback(context: Context, update: MediaPlaybackUpdate) {
@@ -894,57 +1072,105 @@ object LiveStatusReminder {
 
     private fun uberEatsTitle(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         officialTitle: String?,
     ): String {
         val cleanOfficialTitle = officialTitle
             ?.takeUnless { it.contains("Uber Eats", ignoreCase = true) && it.contains("·") }
             ?.takeUnless { it.equals("Uber Eats", ignoreCase = true) }
         return cleanOfficialTitle?.let { title ->
-            if (title.startsWith("Uber Eats", ignoreCase = true)) title else "Uber Eats $title"
-        } ?: uberEatsFallbackTitle(event)
+            if (title.startsWith("Uber Eats", ignoreCase = true)) {
+                title
+            } else if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+                "Uber Eats · $title"
+            } else {
+                "Uber Eats $title"
+            }
+        } ?: uberEatsFallbackTitle(event, language)
     }
 
-    private fun uberEatsFallbackTitle(event: LiveStatusNotificationParser.UberEatsEvent): String =
-        when (event) {
-            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
-            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
-            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "Uber Eats 正前往您所在位置"
-            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
-            else -> "Uber Eats 訂單已收到"
-        }
-
-    private fun uberEatsStatusText(event: LiveStatusNotificationParser.UberEatsEvent): String =
-        when (event) {
-            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "抵達時間更新中"
-            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "外送夥伴正在取餐。"
-            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "外送夥伴正前往您所在位置。"
-            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "外送夥伴即將抵達，請準備取餐。"
-            else -> "抵達時間更新中"
-        }
-
-    internal fun uberEatsPrivateText(
+    private fun uberEatsFallbackTitle(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
+    ): String =
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING ->
+                    "Uber Eats · Preparing your order"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP ->
+                    "Uber Eats · Picking up your order"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "Uber Eats · Heading your way"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING ->
+                    "Uber Eats · Almost here!"
+                else -> "Uber Eats · Order received"
+            }
+        } else {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Uber Eats 正在準備訂單"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Uber Eats 正在取餐"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "Uber Eats 正前往您所在位置"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Uber Eats 快到了！"
+                else -> "Uber Eats 訂單已收到"
+            }
+        }
+
+    private fun uberEatsStatusText(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
+    ): String =
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP ->
+                    "Your courier is picking up your order."
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "Your courier is heading your way."
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING ->
+                    "Your courier is almost here."
+                else -> "Arrival time is updating."
+            }
+        } else {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "抵達時間更新中"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "外送夥伴正在取餐。"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY ->
+                    "外送夥伴正前往您所在位置。"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING ->
+                    "外送夥伴即將抵達，請準備取餐。"
+                else -> "抵達時間更新中"
+            }
+        }
+
+    internal fun uberEatsDisplayText(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         contentText: String,
         pin: String?,
     ): String {
-        val officialDetails = uberEatsOfficialDetails(event, contentText)
+        val officialDetails = uberEatsOfficialDetails(event, language, contentText)
         return pin?.let { "$officialDetails · PIN $it" } ?: officialDetails
     }
 
-    internal fun uberEatsPrivatePayload(
+    internal fun uberEatsPayloadWithPin(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         payload: LiveStatusPayload,
         pin: String?,
     ): LiveStatusPayload =
         payload.copy(
             criticalText = pin ?: payload.criticalText,
-            contentText = uberEatsPrivateText(event, payload.contentText, pin),
+            contentText = uberEatsDisplayText(event, language, payload.contentText, pin),
         )
 
     private fun uberEatsOfficialDetails(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
         contentText: String,
     ): String {
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            return uberEatsEnglishOfficialDetails(event, contentText)
+        }
         val lines = contentText
             .lineSequence()
             .map { it.trim() }
@@ -962,16 +1188,63 @@ object LiveStatusReminder {
             ?: uberEatsArrivalEstimate.find(contentText)?.groupValues?.getOrNull(1)?.let {
                 "預估 $it"
             }
-            ?: uberEatsStatusText(event)
+            ?: uberEatsStatusText(event, language)
     }
 
-    private fun uberEatsShortText(event: LiveStatusNotificationParser.UberEatsEvent): String =
-        when (event) {
-            LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "備餐中"
-            LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "取餐中"
-            LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "配送中"
-            LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "快到了"
-            else -> "已接單"
+    private fun uberEatsEnglishOfficialDetails(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        contentText: String,
+    ): String {
+        val statusLines = setOf(
+            "order received",
+            "preparing your order",
+            "picking up your order",
+            "heading your way",
+            "almost here!",
+        )
+        val lines = contentText
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .filterNot { it.lowercase(Locale.ROOT) in statusLines }
+            .filterNot { it.length == 1 && it[0].isDigit() }
+            .distinct()
+            .toList()
+        val details = lines.filterNot { line ->
+            lines.any { other ->
+                other != line && other.startsWith("$line •", ignoreCase = true)
+            }
+        }.joinToString(" · ")
+            .replace(Regex("""\s+"""), " ")
+            .trim()
+
+        return details.takeIf(String::isNotEmpty)
+            ?: uberEatsStatusText(
+                event,
+                LiveStatusNotificationParser.UberEatsLanguage.ENGLISH,
+            )
+    }
+
+    private fun uberEatsShortText(
+        event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage,
+    ): String =
+        if (language == LiveStatusNotificationParser.UberEatsLanguage.ENGLISH) {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "Preparing"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "Picking up"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "On the way"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "Almost here"
+                else -> "Received"
+            }
+        } else {
+            when (event) {
+                LiveStatusNotificationParser.UberEatsEvent.PREPARING -> "備餐中"
+                LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> "取餐中"
+                LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> "配送中"
+                LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> "快到了"
+                else -> "已接單"
+            }
         }
 
     internal fun ridePayload(contentIntent: PendingIntent? = null): LiveStatusPayload =
@@ -1023,6 +1296,8 @@ object LiveStatusReminder {
 
     internal fun uberEatsPayload(
         event: LiveStatusNotificationParser.UberEatsEvent,
+        language: LiveStatusNotificationParser.UberEatsLanguage =
+            LiveStatusNotificationParser.UberEatsLanguage.TRADITIONAL_CHINESE,
         officialTitle: String? = null,
         officialText: String? = null,
         contentIntent: PendingIntent? = null,
@@ -1032,9 +1307,9 @@ object LiveStatusReminder {
             appName = "Uber Eats",
             smallIconRes = R.drawable.ic_food_delivery_notification,
             leftIconRes = R.drawable.ic_food_delivery_notification,
-            criticalText = uberEatsShortText(event),
-            title = uberEatsTitle(event, officialTitle),
-            contentText = officialText ?: uberEatsStatusText(event),
+            criticalText = uberEatsShortText(event, language),
+            title = uberEatsTitle(event, language, officialTitle),
+            contentText = officialText ?: uberEatsStatusText(event, language),
             progress = uberEatsProgress(event),
             contentIntent = contentIntent,
         )
@@ -1230,6 +1505,37 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
     }
+
+    internal fun stravaRecordingPayload(
+        update: StravaRecordingUpdate,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload = LiveStatusPayload(
+        id = STRAVA_RECORDING_NOTIFICATION_ID,
+        appName = "Strava",
+        smallIconRes = R.drawable.ic_running_notification,
+        leftIconRes = R.drawable.ic_running_notification,
+        criticalText = when (update.language) {
+            StravaRecordingLanguage.TRADITIONAL_CHINESE -> when (update.state) {
+                StravaRecordingState.RECORDING -> "運動中"
+                StravaRecordingState.WAITING_FOR_GPS -> "等待 GPS"
+                StravaRecordingState.PAUSED -> "已暫停"
+            }
+            StravaRecordingLanguage.ENGLISH -> when (update.state) {
+                StravaRecordingState.RECORDING -> "Active"
+                StravaRecordingState.WAITING_FOR_GPS -> "Locating"
+                StravaRecordingState.PAUSED -> "Paused"
+            }
+        },
+        title = update.officialTitle,
+        contentText = update.officialText ?: if (
+            update.language == StravaRecordingLanguage.ENGLISH
+        ) {
+            "Strava activity in progress"
+        } else {
+            "Strava 運動記錄中"
+        },
+        contentIntent = contentIntent,
+    )
 
     internal fun formatHevyRestDuration(totalSeconds: Int): String {
         val safeSeconds = totalSeconds.coerceAtLeast(0)

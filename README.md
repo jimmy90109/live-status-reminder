@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Discord、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -19,6 +19,14 @@
 - 來源沒有可靠的通話開始時間，因此不顯示通話時長；若 Discord 原始通知已由系統提升，則不建立重複提醒。
 - 目前只支援伺服器語音頻道，不包含私人／群組通話與響鈴中的來電。功能位於「媒體」分類、預設開啟，可由卡片單獨關閉。
 - 原始 Discord 通知仍會保留。Debug build 另在程序記憶體保留最近 30 筆 Discord payload，正式版不提供查看入口。
+
+### Microsoft Teams
+
+- 偵測 `com.microsoft.teams.CallsOngoing.*` 的進行中會議通知，顯示對方名稱與從來源開始時間累積的通話時長。
+- 同步來源提供的靜音／解除靜音與掛斷操作；實機通知中的「啟用通知」會正規化顯示為「解除靜音」，操作仍交由 Teams 原始 `PendingIntent` 執行。
+- 點擊提醒會回到目前會議；離開會議、來源通知移除或關閉功能時立即清除，通知監聽器重連時可從現有通知恢復。
+- 第一版只支援已接通的進行中會議，不包含響鈴中、未接來電或一般訊息通知。功能位於「媒體」分類並預設開啟，可由卡片單獨關閉。
+- Debug build 另在程序記憶體保留最近 30 筆 Teams payload，正式版不保存原始 payload。
 
 ### Google 時鐘
 
@@ -49,6 +57,13 @@
 - 來源通知透過公開 `Notification.Action` 提供的操作會同步至 Live Update；沒有來源 action 時提供「開啟 Hevy」。
 - 點擊提醒可開啟 Hevy；結束訓練並移除來源通知後自動清除，通知監聽器重連時可從現有訓練通知恢復。
 - 功能位於「運動」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆原始 payload 與移除事件，正式版不提供查看入口。
+
+### Strava
+
+- 偵測 `com.strava` 的 `recording` 前景常駐通知，將來源官方標題原樣同步至 Live Update，不自行拆解運動類型、時間或距離格式。
+- 支援繁中與英文來源；通知內容為「沒有 GPS」／`No GPS` 時顯示同語言的等待 GPS 文案，「已停止」／`Paused`／`Stopped` 代表暫停，並保留提醒及來源操作。
+- 點擊提醒可開啟 Strava；來源記錄通知移除、功能關閉或通知不再符合時自動清除，通知監聽器重連時可從現有通知恢復。
+- 功能位於「運動」分類並預設開啟，可由卡片單獨關閉。Debug build 另在程序記憶體保留最近 30 筆 payload，正式版不提供查看入口。
 
 ### iPASS MONEY
 
@@ -101,9 +116,13 @@
   3. 正在取餐
   4. 正前往您所在位置
   5. 快到了
-- 只從 Android 16 `shortCriticalText` 解析剛好四位數的 PIN。
+- 支援繁體中文與英文自訂樣式常駐通知；英文階段依序為 `Order received`、
+  `Preparing your order`、`Picking up your order`、`Heading your way` 與
+  `Almost here!`。
+- 只從 Android 16 `shortCriticalText` 的剛好四位數，或通知 View 中四個各自成行的數字解析 PIN。
 - 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
-- 訂單送達或取消後自動移除提醒。
+- 英文來源會以英文顯示 Live Update，並保留 ETA、外送員、車牌及車輛資訊。
+- 收到 `Order delivered`、繁中送達／取消狀態，或來源常駐通知被移除後，自動移除提醒。
 
 ### Uber
 
@@ -155,6 +174,7 @@ Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 - Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
 - 媒體播放只讀取目前活躍工作階段的曲名、作者、專輯、播放狀態與控制能力；不會保存完整來源通知或媒體 metadata。
 - Discord 語音頻道只在記憶體中保留目前 notification key、來源標題、頻道名稱與 actions；離開頻道、功能關閉或程序結束後不再保留。
+- Microsoft Teams 只在記憶體中保留目前通話的 notification key、開始時間、對方名稱與 actions；離開會議、功能關閉或程序結束後不再保留。原始 payload 只由 Debug build 暫存最多 30 筆。
 
 ## 建置與驗證
 

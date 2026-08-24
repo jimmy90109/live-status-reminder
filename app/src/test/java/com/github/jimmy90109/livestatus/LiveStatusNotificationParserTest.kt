@@ -5,6 +5,7 @@ import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.RideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideType
@@ -150,6 +151,55 @@ class LiveStatusNotificationParserTest {
                 assertUberEatsEvent(event, "Uber Eats\n$alternative")
             }
         }
+    }
+
+    @Test
+    fun uberEatsParsesAllEnglishProgressStagesFromObservedPersistentPayloads() {
+        mapOf(
+            UberEatsEvent.ORDER_RECEIVED to
+                "Order received\n0\n1\n5\n2\nArrives 12:39-1:12 PM",
+            UberEatsEvent.PREPARING to
+                "Preparing your order\n0\n1\n5\n2\nArrives 12:33-1:06 PM",
+            UberEatsEvent.PICKING_UP to
+                "Picking up your order\n0\n1\n5\n2\n" +
+                "Courier · NJS-7055 • Arrives 12:33-12:42 PM\n" +
+                "Courier · NJS-7055\nCrimson Uber Motorbike",
+            UberEatsEvent.ON_THE_WAY to
+                "Heading your way\n0\n1\n5\n2\nOn-time • Arrives at 12:37 PM\n" +
+                "Courier · NJS-7055\nCrimson Uber Motorbike",
+            UberEatsEvent.ARRIVING to
+                "Almost here!\n0\n1\n5\n2\nOn-time • Arriving now\n" +
+                "Courier · NJS-7055\nCrimson Uber Motorbike",
+        ).forEach { (event, text) ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, "")
+
+            assertEquals(event, update.event)
+            assertEquals(UberEatsLanguage.ENGLISH, update.language)
+            assertEquals("0152", update.pin)
+        }
+    }
+
+    @Test
+    fun uberEatsParsesEnglishDeliveredBeforeOtherProgressText() {
+        listOf(
+            "Order delivered\nOrder delivered at 12:39 PM",
+            "  ORDER DELIVERED AT 12:39 PM  \nHeading your way",
+        ).forEach { text ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, null)
+
+            assertEquals(UberEatsEvent.ORDER_ENDED, update.event)
+            assertEquals(UberEatsLanguage.ENGLISH, update.language)
+        }
+    }
+
+    @Test
+    fun uberEatsDoesNotMatchEnglishStatusInsideUnrelatedSentence() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "Learn what happens after your order is received",
+            null,
+        )
+
+        assertEquals(UberEatsEvent.NONE, update.event)
     }
 
     @Test

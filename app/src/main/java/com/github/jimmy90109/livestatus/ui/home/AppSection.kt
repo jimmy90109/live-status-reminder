@@ -79,7 +79,9 @@ internal fun AppsSection(
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
+    onOpenStravaDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
+    onOpenTeamsDebug: () -> Unit,
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
@@ -272,6 +274,15 @@ internal fun AppsSection(
                         onOpenDebug = onOpenYouBikeDebug,
                     )
                     CATEGORY_SPORT -> {
+                        StravaCard(
+                            installed = status.stravaInstalled,
+                            enabled = status.stravaEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.STRAVA, it)
+                            },
+                            onOpenDebug = onOpenStravaDebug,
+                        )
                         HevyCard(
                             installed = status.hevyInstalled,
                             enabled = status.hevyEnabled,
@@ -328,6 +339,15 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.DISCORD_VOICE, it)
                             },
                             onOpenDebug = onOpenDiscordDebug,
+                        )
+                        TeamsCallCard(
+                            installed = status.teamsInstalled,
+                            enabled = status.teamsCallEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TEAMS_CALL, it)
+                            },
+                            onOpenDebug = onOpenTeamsDebug,
                         )
                         MediaPlaybackCard(
                             enabled = status.mediaPlaybackEnabled,

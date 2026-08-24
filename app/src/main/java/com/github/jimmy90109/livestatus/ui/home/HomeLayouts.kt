@@ -97,7 +97,9 @@ internal fun HomeContentWide(
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
+    onOpenStravaDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
+    onOpenTeamsDebug: () -> Unit,
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     AppsSection(
@@ -131,7 +133,9 @@ internal fun HomeContentWide(
         onOpenUberEatsDebug = onOpenUberEatsDebug,
         onOpenYptDebug = onOpenYptDebug,
         onOpenHevyDebug = onOpenHevyDebug,
+        onOpenStravaDebug = onOpenStravaDebug,
         onOpenDiscordDebug = onOpenDiscordDebug,
+        onOpenTeamsDebug = onOpenTeamsDebug,
         onOpenGoogleRecorderDebug = onOpenGoogleRecorderDebug,
     )
 }
@@ -158,7 +162,9 @@ internal fun HomeContentNarrow(
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
+    onOpenStravaDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
+    onOpenTeamsDebug: () -> Unit,
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -332,7 +338,9 @@ internal fun HomeContentNarrow(
                 onOpenUberEatsDebug = onOpenUberEatsDebug,
                 onOpenYptDebug = onOpenYptDebug,
                 onOpenHevyDebug = onOpenHevyDebug,
+                onOpenStravaDebug = onOpenStravaDebug,
                 onOpenDiscordDebug = onOpenDiscordDebug,
+                onOpenTeamsDebug = onOpenTeamsDebug,
                 onOpenGoogleRecorderDebug = onOpenGoogleRecorderDebug,
             )
         }

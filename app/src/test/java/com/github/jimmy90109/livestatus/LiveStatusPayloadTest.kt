@@ -3,6 +3,7 @@ package com.github.jimmy90109.livestatus
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.FoodpandaEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.PikminLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsEvent
+import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberEatsLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideEvent
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideLanguage
 import com.github.jimmy90109.livestatus.LiveStatusNotificationParser.UberRideType
@@ -242,22 +243,24 @@ class LiveStatusPayloadTest {
     }
 
     @Test
-    fun uberEatsPrivatePayloadUsesPinAsCriticalText() {
+    fun uberEatsDisplayPayloadUsesPinAsCriticalText() {
         val payload = LiveStatusReminder.uberEatsPayload(UberEatsEvent.ARRIVING)
-        val privatePayload = LiveStatusReminder.uberEatsPrivatePayload(
+        val displayPayload = LiveStatusReminder.uberEatsPayloadWithPin(
             UberEatsEvent.ARRIVING,
+            UberEatsLanguage.TRADITIONAL_CHINESE,
             payload,
             "7616",
         )
 
-        assertEquals("7616", privatePayload.criticalText)
-        assertEquals("外送夥伴即將抵達，請準備取餐。 · PIN 7616", privatePayload.contentText)
+        assertEquals("7616", displayPayload.criticalText)
+        assertEquals("外送夥伴即將抵達，請準備取餐。 · PIN 7616", displayPayload.contentText)
     }
 
     @Test
     fun uberEatsOnTheWayPrivateTextKeepsOfficialDetailsWithoutDuplicateStatus() {
-        val text = LiveStatusReminder.uberEatsPrivateText(
+        val text = LiveStatusReminder.uberEatsDisplayText(
             UberEatsEvent.ON_THE_WAY,
+            UberEatsLanguage.TRADITIONAL_CHINESE,
             "正前往您所在位置\n0\n1\n5\n2\n秋發 · PAQ-8928 · 抵達時間：1:58-2:11 PM\n秋發 · PAQ-8928\nMidnightblue Uber Motorbike",
             "0152",
         )
@@ -267,13 +270,63 @@ class LiveStatusPayloadTest {
 
     @Test
     fun uberEatsOtherPrivateTextKeepsStatusAndPin() {
-        val text = LiveStatusReminder.uberEatsPrivateText(
+        val text = LiveStatusReminder.uberEatsDisplayText(
             UberEatsEvent.PICKING_UP,
+            UberEatsLanguage.TRADITIONAL_CHINESE,
             "外送夥伴正在取餐。",
             "0152",
         )
 
         assertEquals("外送夥伴正在取餐。 · PIN 0152", text)
+    }
+
+    @Test
+    fun uberEatsEnglishPayloadUsesLocalizedStatusAndTitle() {
+        val payload = LiveStatusReminder.uberEatsPayload(
+            event = UberEatsEvent.ON_THE_WAY,
+            language = UberEatsLanguage.ENGLISH,
+        )
+
+        assertEquals("On the way", payload.criticalText)
+        assertEquals("Uber Eats · Heading your way", payload.title)
+        assertEquals("Your courier is heading your way.", payload.contentText)
+        assertEquals(80, payload.progress)
+    }
+
+    @Test
+    fun uberEatsEnglishDisplayTextKeepsDetailsWithoutDuplicateCourierOrPinLines() {
+        val text = LiveStatusReminder.uberEatsDisplayText(
+            event = UberEatsEvent.PICKING_UP,
+            language = UberEatsLanguage.ENGLISH,
+            contentText = "Picking up your order\n0\n1\n5\n2\n" +
+                "Courier · NJS-7055 • Arrives 12:33-12:42 PM\n" +
+                "Courier · NJS-7055\nCrimson Uber Motorbike",
+            pin = "0152",
+        )
+
+        assertEquals(
+            "Courier · NJS-7055 • Arrives 12:33-12:42 PM · " +
+                "Crimson Uber Motorbike · PIN 0152",
+            text,
+        )
+    }
+
+    @Test
+    fun uberEatsEnglishPayloadWithoutPinFallsBackToLocalizedStatus() {
+        val payload = LiveStatusReminder.uberEatsPayload(
+            event = UberEatsEvent.ARRIVING,
+            language = UberEatsLanguage.ENGLISH,
+            officialText = "Almost here!\nOn-time • Arriving now",
+        )
+        val displayPayload = LiveStatusReminder.uberEatsPayloadWithPin(
+            event = UberEatsEvent.ARRIVING,
+            language = UberEatsLanguage.ENGLISH,
+            payload = payload,
+            pin = null,
+        )
+
+        assertEquals("Almost here", displayPayload.criticalText)
+        assertEquals("On-time • Arriving now", displayPayload.contentText)
     }
 
     @Test

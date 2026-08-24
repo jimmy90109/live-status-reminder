@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
+import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.CancellationException
@@ -63,7 +64,9 @@ private enum class DebugTarget(val appName: String) {
     UBER_EATS("Uber Eats"),
     YPT("YPT - Yeolpumta"),
     HEVY("Hevy"),
+    STRAVA("Strava"),
     DISCORD("Discord"),
+    TEAMS("Microsoft Teams"),
     GOOGLE_RECORDER("Google Recorder"),
 }
 
@@ -159,7 +162,9 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                     DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
                     DebugTarget.HEVY -> NotificationDebugPayloadStore.hevyPayloads
+                    DebugTarget.STRAVA -> NotificationDebugPayloadStore.stravaPayloads
                     DebugTarget.DISCORD -> NotificationDebugPayloadStore.discordPayloads
+                    DebugTarget.TEAMS -> NotificationDebugPayloadStore.teamsPayloads
                     DebugTarget.GOOGLE_RECORDER ->
                         NotificationDebugPayloadStore.googleRecorderPayloads
                 },
@@ -173,7 +178,9 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
                     DebugTarget.YPT -> colors.yptContainer
                     DebugTarget.HEVY -> colors.commonContainer
+                    DebugTarget.STRAVA -> colors.stravaContainer
                     DebugTarget.DISCORD -> colors.discordContainer
+                    DebugTarget.TEAMS -> colors.teamsContainer
                     DebugTarget.GOOGLE_RECORDER -> colors.recorderContainer
                 },
                 actionColor = when (currentDebugTarget) {
@@ -186,7 +193,9 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER_EATS -> colors.uberEatsText
                     DebugTarget.YPT -> colors.yptText
                     DebugTarget.HEVY -> colors.onSurface
+                    DebugTarget.STRAVA -> colors.stravaText
                     DebugTarget.DISCORD -> colors.discordText
+                    DebugTarget.TEAMS -> colors.teamsPrimary
                     DebugTarget.GOOGLE_RECORDER -> colors.recorderText
                 },
                 showPinDetails = currentDebugTarget == DebugTarget.UBER ||
@@ -205,7 +214,9 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
                         DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
                         DebugTarget.HEVY -> NotificationDebugPayloadStore.clearHevy()
+                        DebugTarget.STRAVA -> NotificationDebugPayloadStore.clearStrava()
                         DebugTarget.DISCORD -> NotificationDebugPayloadStore.clearDiscord()
+                        DebugTarget.TEAMS -> NotificationDebugPayloadStore.clearTeams()
                         DebugTarget.GOOGLE_RECORDER ->
                             NotificationDebugPayloadStore.clearGoogleRecorder()
                     }
@@ -246,7 +257,9 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                         onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                         onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                        onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
                         onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
+                        onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },
                         onOpenGoogleRecorderDebug = {
                             debugTarget = DebugTarget.GOOGLE_RECORDER
                         },
@@ -277,7 +290,9 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                         onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                         onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                        onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
                         onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
+                        onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },
                         onOpenGoogleRecorderDebug = {
                             debugTarget = DebugTarget.GOOGLE_RECORDER
                         },
@@ -371,15 +386,22 @@ private fun NotificationAccessDisclosureDialog(
     onDismiss: () -> Unit,
     onContinue: () -> Unit,
 ) {
+    val debugPayloadDisclosure = if (BuildConfig.DEBUG) {
+        "Debug build 也會在目前程序記憶體暫存最近 30 筆 Microsoft Teams 與 Strava 通知 payload，供通知規則校正使用；重啟 App 後即清除。\n\n"
+    } else {
+        ""
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("允許讀取通知前，請先了解") },
         text = {
             Text(
-                "即時狀態提醒會讀取媒體播放、Discord、Clock、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
-                    "用來辨識曲名與作者、Discord 語音通話連線狀態與對方／頻道名稱、倒數與錄音時間、讀書與健身進度、乘車、YouBike 騎乘費用、外送進度、55688 車牌、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
+                "即時狀態提醒會讀取媒體播放、Discord、Microsoft Teams、Clock、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
+                    "用來辨識曲名與作者、Discord 語音狀態、Teams 通話時間與對方名稱、倒數與錄音時間、讀書與健身進度、乘車、YouBike 騎乘費用、外送進度、55688 車牌、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
                     "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
-                    "也不會永久儲存通知內容、車牌或 PIN。Google Recorder 的錄音狀態與時間只在目前程序記憶體處理；Debug build 另暫存最近 30 筆 Recorder payload，重啟 App 後即清除。YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
+                    "也不會永久儲存通知內容、車牌或 PIN。Google Recorder 的錄音狀態與時間只在目前程序記憶體處理；Debug build 另暫存最近 30 筆 Recorder payload，重啟 App 後即清除。\n\n" +
+                    debugPayloadDisclosure +
+                    "YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
             )
         },
         confirmButton = {

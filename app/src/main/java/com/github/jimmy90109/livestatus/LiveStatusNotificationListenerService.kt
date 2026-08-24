@@ -18,7 +18,9 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val clockTimerTracker = ClockTimerTracker()
     private val yptStudyTracker = YptStudyTracker()
     private val hevyWorkoutTracker = HevyWorkoutTracker()
+    private val stravaRecordingTracker = StravaRecordingTracker()
     private val discordVoiceTracker = DiscordVoiceTracker()
+    private val teamsCallTracker = TeamsCallTracker()
     private val recorderTracker = RecorderTracker()
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
@@ -39,10 +41,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
     private var lastUberRideUpdate =
         LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
-    private var lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
-    private var lastUberEatsPin: String? = null
-    private var lastUberEatsTitle: String? = null
-    private var lastUberEatsText: String? = null
+    private val uberEatsTracker = UberEatsTracker()
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
         if (statusBarNotification.packageName == packageName) return
@@ -54,6 +53,48 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            STRAVA_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = parseStravaRecording(
+                    statusBarNotification,
+                    notificationTitle,
+                    notificationContentText,
+                )
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordStrava(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        "POSTED",
+                        update,
+                    )
+                }
+                if (AppReminderPreferences.App.STRAVA.isEnabled(this)) {
+                    handleStravaRecordingDecision(
+                        stravaRecordingTracker.onPosted(statusBarNotification.key, update),
+                    )
+                } else {
+                    stravaRecordingTracker.reset()
+                    LiveStatusReminder.clearStravaRecording(this)
+                }
+            }
+            TEAMS_PACKAGE -> {
+                val extraction = TeamsCallNotificationExtractor.extract(statusBarNotification)
+                if (BuildConfig.DEBUG) {
+                    recordTeams(statusBarNotification, "POSTED", notificationText, extraction)
+                }
+                if (AppReminderPreferences.App.TEAMS_CALL.isEnabled(this)) {
+                    handleTeamsCallDecision(
+                        teamsCallTracker.onPosted(statusBarNotification.key, extraction.update),
+                    )
+                } else {
+                    teamsCallTracker.reset()
+                    LiveStatusReminder.clearTeamsCall(this)
+                }
+            }
             GOOGLE_RECORDER_PACKAGE -> {
                 val extraction = GoogleRecorderNotificationExtractor.extract(
                     statusBarNotification,
@@ -244,15 +285,23 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                         update,
                     )
                 }
-                if (AppReminderPreferences.App.UBER_EATS.isEnabled(this)) {
-                    handleUberEatsNotification(
-                        update,
-                        notificationText,
-                        notificationTitle,
-                        notificationContentText,
-                    )
-                } else {
-                    resetUberEatsState()
+                val template = notification.extras.getString(Notification.EXTRA_TEMPLATE)
+                val isGroupSummary =
+                    notification.flags and Notification.FLAG_GROUP_SUMMARY != 0
+                if (UberEatsNotificationSourcePolicy.supports(template, isGroupSummary)) {
+                    if (AppReminderPreferences.App.UBER_EATS.isEnabled(this)) {
+                        handleUberEatsDecision(
+                            uberEatsTracker.onPosted(
+                                sourceKey = statusBarNotification.key,
+                                update = update,
+                                officialTitle = notificationTitle,
+                                officialText = notificationContentText ?: notificationText,
+                            ),
+                        )
+                    } else {
+                        uberEatsTracker.reset()
+                        LiveStatusReminder.clearUberEats(this)
+                    }
                 }
             }
             PIKMIN_BLOOM_PACKAGE -> if (AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this)) {
@@ -361,6 +410,29 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         )
     }
 
+    private fun recordTeams(
+        statusBarNotification: StatusBarNotification,
+        lifecycle: String,
+        notificationText: String = readNotificationText(
+            this,
+            statusBarNotification.packageName,
+            statusBarNotification.notification,
+        ),
+        extraction: TeamsCallExtraction? = null,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        NotificationDebugPayloadStore.recordTeams(
+            this,
+            statusBarNotification,
+            notificationText,
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            lifecycle,
+            extraction,
+        )
+    }
+
     private fun recordGoogleRecorder(
         statusBarNotification: StatusBarNotification,
         lifecycle: String,
@@ -391,6 +463,28 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (BuildConfig.DEBUG && statusBarNotification.packageName == STRAVA_PACKAGE) {
+            val notification = statusBarNotification.notification
+            NotificationDebugPayloadStore.recordStrava(
+                this,
+                statusBarNotification,
+                readNotificationText(this, statusBarNotification.packageName, notification),
+                readNotificationTitle(notification),
+                readNotificationContentText(notification),
+                "REMOVED",
+            )
+        }
+        if (statusBarNotification.packageName == STRAVA_PACKAGE) {
+            handleStravaRecordingDecision(
+                stravaRecordingTracker.onRemoved(statusBarNotification.key),
+            )
+            return
+        }
+        if (statusBarNotification.packageName == TEAMS_PACKAGE) {
+            if (BuildConfig.DEBUG) recordTeams(statusBarNotification, "REMOVED")
+            handleTeamsCallDecision(teamsCallTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (statusBarNotification.packageName == GOOGLE_RECORDER_PACKAGE) {
             if (BuildConfig.DEBUG) recordGoogleRecorder(statusBarNotification, "REMOVED")
             handleRecorderDecision(recorderTracker.onRemoved(statusBarNotification.key))
@@ -437,6 +531,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             handleYptStudyDecision(yptStudyTracker.onRemoved(statusBarNotification.key))
             return
         }
+        if (statusBarNotification.packageName == UBER_EATS_PACKAGE) {
+            handleUberEatsDecision(uberEatsTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
 
         val notificationText = readNotificationText(statusBarNotification.notification)
@@ -460,16 +558,45 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         mediaPlaybackMonitor.start(activeNotifications)
         if (BuildConfig.DEBUG) {
             activeNotifications
+                .filter { it.packageName == TEAMS_PACKAGE }
+                .forEach {
+                    recordTeams(
+                        it,
+                        "ACTIVE_SNAPSHOT",
+                        extraction = TeamsCallNotificationExtractor.extract(it),
+                    )
+                }
+            activeNotifications
                 .filter { it.packageName == DISCORD_PACKAGE }
                 .forEach { recordDiscord(it, "ACTIVE_SNAPSHOT") }
             activeNotifications
                 .filter { it.packageName == GOOGLE_RECORDER_PACKAGE }
                 .forEach { recordGoogleRecorder(it, "ACTIVE_SNAPSHOT") }
+            activeNotifications
+                .filter { it.packageName == STRAVA_PACKAGE }
+                .forEach {
+                    val notification = it.notification
+                    NotificationDebugPayloadStore.recordStrava(
+                        this,
+                        it,
+                        readNotificationText(this, it.packageName, notification),
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                        "ACTIVE_SNAPSHOT",
+                        parseStravaRecording(
+                            it,
+                            readNotificationTitle(notification),
+                            readNotificationContentText(notification),
+                        ),
+                    )
+                }
         }
         restoreDiscordVoice(activeNotifications)
+        restoreTeamsCall(activeNotifications)
         restoreGoogleRecorder(activeNotifications)
         restoreYptStudy(activeNotifications)
         restoreHevyWorkout(activeNotifications)
+        restoreStravaRecording(activeNotifications)
         YouBikeRideManager.restore(this)
     }
 
@@ -510,11 +637,28 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    private fun handleStravaRecordingDecision(decision: StravaRecordingDecision) {
+        when (decision) {
+            is StravaRecordingDecision.Show ->
+                LiveStatusReminder.showStravaRecording(this, decision.update)
+            StravaRecordingDecision.Clear -> LiveStatusReminder.clearStravaRecording(this)
+            StravaRecordingDecision.None -> Unit
+        }
+    }
+
     private fun handleDiscordVoiceDecision(decision: DiscordVoiceDecision) {
         when (decision) {
             is DiscordVoiceDecision.Show -> LiveStatusReminder.showDiscordVoice(this, decision.update)
             DiscordVoiceDecision.Clear -> LiveStatusReminder.clearDiscordVoice(this)
             DiscordVoiceDecision.None -> Unit
+        }
+    }
+
+    private fun handleTeamsCallDecision(decision: TeamsCallDecision) {
+        when (decision) {
+            is TeamsCallDecision.Show -> LiveStatusReminder.showTeamsCall(this, decision.update)
+            TeamsCallDecision.Clear -> LiveStatusReminder.clearTeamsCall(this)
+            TeamsCallDecision.None -> Unit
         }
     }
 
@@ -539,6 +683,21 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             .mapNotNull { DiscordVoiceNotificationExtractor.extract(it).update }
             .toList()
         handleDiscordVoiceDecision(discordVoiceTracker.restore(updates))
+    }
+
+    private fun restoreTeamsCall(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.TEAMS_CALL.isEnabled(this)) {
+            teamsCallTracker.reset()
+            LiveStatusReminder.clearTeamsCall(this)
+            return
+        }
+
+        val updates = activeNotifications
+            .asSequence()
+            .filter { TeamsCallNotificationParser.supportsPackage(it.packageName) }
+            .mapNotNull { TeamsCallNotificationExtractor.extract(it).update }
+            .toList()
+        handleTeamsCallDecision(teamsCallTracker.restore(updates))
     }
 
     private fun restoreGoogleRecorder(activeNotifications: Array<StatusBarNotification>) {
@@ -602,6 +761,46 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             }
             .toList()
         handleHevyWorkoutDecision(hevyWorkoutTracker.restore(updates))
+    }
+
+    private fun restoreStravaRecording(activeNotifications: Array<StatusBarNotification>) {
+        if (!AppReminderPreferences.App.STRAVA.isEnabled(this)) {
+            stravaRecordingTracker.reset()
+            LiveStatusReminder.clearStravaRecording(this)
+            return
+        }
+        val updates = activeNotifications
+            .asSequence()
+            .filter { it.packageName == STRAVA_PACKAGE }
+            .mapNotNull { statusBarNotification ->
+                val notification = statusBarNotification.notification
+                parseStravaRecording(
+                    statusBarNotification,
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                )
+            }
+            .toList()
+        handleStravaRecordingDecision(stravaRecordingTracker.restore(updates))
+    }
+
+    private fun parseStravaRecording(
+        statusBarNotification: StatusBarNotification,
+        notificationTitle: String?,
+        notificationContentText: String?,
+    ): StravaRecordingUpdate? {
+        val notification = statusBarNotification.notification
+        return StravaRecordingNotificationParser.parse(
+            sourceKey = statusBarNotification.key,
+            channelId = notification.channelId,
+            isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0,
+            isForegroundService =
+                notification.flags and Notification.FLAG_FOREGROUND_SERVICE != 0,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            contentIntent = notification.contentIntent,
+            sourceActions = notification.actions.orEmpty().toList(),
+        )
     }
 
     private fun showAndScheduleClockTimer(update: ClockTimerUpdate) {
@@ -684,55 +883,18 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    private fun handleUberEatsNotification(
-        update: LiveStatusNotificationParser.UberEatsUpdate,
-        notificationText: String,
-        notificationTitle: String?,
-        notificationContentText: String?,
-    ) {
-        val event = update.event
-
-        if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_ENDED) {
-            resetUberEatsState()
-            LiveStatusReminder.clearUberEats(this)
-            return
-        }
-
-        if (event == LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED) {
-            lastUberEatsEvent = event
-            lastUberEatsPin = update.pin
-            lastUberEatsTitle = notificationTitle
-            lastUberEatsText = notificationContentText ?: notificationText
-        } else {
-            update.pin?.let { lastUberEatsPin = it }
-            notificationTitle?.let { lastUberEatsTitle = it }
-            (notificationContentText ?: notificationText).takeIf { it.isNotBlank() }?.let {
-                lastUberEatsText = it
-            }
-            if (
-                event != LiveStatusNotificationParser.UberEatsEvent.NONE &&
-                eventRank(event) >= eventRank(lastUberEatsEvent)
-            ) {
-                lastUberEatsEvent = event
-            }
-        }
-
-        if (
-            lastUberEatsEvent != LiveStatusNotificationParser.UberEatsEvent.NONE &&
-            (
-                event != LiveStatusNotificationParser.UberEatsEvent.NONE ||
-                    update.pin != null ||
-                    notificationTitle != null ||
-                    notificationContentText != null
-                )
-        ) {
-            LiveStatusReminder.showUberEats(
-                this,
-                lastUberEatsEvent,
-                lastUberEatsPin,
-                lastUberEatsTitle,
-                lastUberEatsText,
+    private fun handleUberEatsDecision(decision: UberEatsDecision) {
+        when (decision) {
+            is UberEatsDecision.Show -> LiveStatusReminder.showUberEats(
+                context = this,
+                event = decision.update.event,
+                pin = decision.update.pin,
+                language = decision.update.language,
+                officialTitle = decision.update.officialTitle,
+                officialText = decision.update.officialText,
             )
+            UberEatsDecision.Clear -> LiveStatusReminder.clearUberEats(this)
+            UberEatsDecision.None -> Unit
         }
     }
 
@@ -746,25 +908,9 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    private fun resetUberEatsState() {
-        lastUberEatsEvent = LiveStatusNotificationParser.UberEatsEvent.NONE
-        lastUberEatsPin = null
-        lastUberEatsTitle = null
-        lastUberEatsText = null
-    }
-
     private fun resetUberRideState() {
         lastUberRideUpdate =
             LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
-    }
-
-    private fun eventRank(event: LiveStatusNotificationParser.UberEatsEvent): Int = when (event) {
-        LiveStatusNotificationParser.UberEatsEvent.ORDER_RECEIVED -> 1
-        LiveStatusNotificationParser.UberEatsEvent.PREPARING -> 2
-        LiveStatusNotificationParser.UberEatsEvent.PICKING_UP -> 3
-        LiveStatusNotificationParser.UberEatsEvent.ON_THE_WAY -> 4
-        LiveStatusNotificationParser.UberEatsEvent.ARRIVING -> 5
-        else -> 0
     }
 
     private fun LiveStatusNotificationParser.UberRideUpdate.merge(
@@ -814,7 +960,9 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
+        private const val STRAVA_PACKAGE = "com.strava"
         private const val DISCORD_PACKAGE = DiscordVoiceNotificationParser.PACKAGE_NAME
+        private const val TEAMS_PACKAGE = "com.microsoft.teams"
         private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME
 
         @JvmStatic

@@ -6,19 +6,22 @@ LiveStatus 即時狀態提醒
 
 ## 簡短說明
 
-將媒體、Discord 語音、倒數、錄音、健身、乘車與外送通知轉成 Android Live Update。
+將媒體、Discord／Teams 通話、倒數、錄音、健身、乘車與外送通知轉成 Android Live Update。
 
 ## 完整說明
 
-LiveStatus 即時狀態提醒是一款為 Android 16 設計的通知輔助工具，會監聽媒體播放與指定應用程式的通知，將重要狀態轉換成持續顯示的 Live Update，讓你不用反覆打開 App，也能快速掌握正在播放內容、Discord 語音頻道、倒數計時、讀書與健身、外送、乘車與種花狀態。
+LiveStatus 即時狀態提醒是一款為 Android 16 設計的通知輔助工具，會監聽媒體播放與指定應用程式的通知，將重要狀態轉換成持續顯示的 Live Update，讓你不用反覆打開 App，也能快速掌握正在播放內容、Discord 語音頻道、Microsoft Teams 通話、倒數計時、讀書與健身、外送、乘車與種花狀態。
 
-支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom。
+支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Microsoft Teams 進行中會議、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom。
 
 【媒體播放】
 當系統首選的活躍媒體工作階段正在播放、但來源通知尚未成為 Live Update 時，LiveStatus 會另外顯示曲名、作者、專輯與可用的切歌、播放、暫停或 podcast 倒退／快轉 15 秒控制。暫停後保留 1 分鐘方便恢復播放；停止、播放錯誤、工作階段或來源通知消失後會立即清除。Android 不允許修改其他 App 的通知，因此原始媒體通知仍會保留；備援通知是否被系統提升則依裝置支援情況而定。
 
 【Discord】
 加入 Discord 伺服器語音頻道後，LiveStatus 會鏡像來源連線狀態、伺服器／頻道名稱及來源提供的三個通話操作；離開頻道或來源通知移除後立即清除。來源沒有可靠開始時間，因此不顯示通話時長。原始 Discord 通知仍會保留；目前不支援私人／群組通話與響鈴中的來電，功能可在媒體分頁單獨關閉。
+
+【Microsoft Teams】
+加入 Teams 會議後，LiveStatus 會顯示對方名稱、通話時間及來源提供的靜音與掛斷操作；離開會議或來源通知移除後立即清除。第一版只支援已接通的進行中會議，不處理響鈴中、未接來電或一般訊息通知，功能可在媒體分頁單獨關閉。
 
 【Google 時鐘】
 Google 時鐘原生 Live Update 未生效時，將主要倒數計時器同步成備援 Live Update。若來源通知已由系統即時顯示，則不建立重複提醒。倒數運行、暫停、繼續或加一分鐘時會同步更新；倒數結束或來源通知移除後，提醒會自動清除。
@@ -31,6 +34,9 @@ YPT 開始記錄讀書時間後，LiveStatus 會持續顯示目前累積時長�
 
 【Hevy】
 Hevy 健身期間同步顯示目前或下一個動作、組數、重量、次數與來源提供的操作；組間休息以 Live Update 計時指標顯示休息倒數。結束訓練並移除來源通知後自動清除，功能可在運動分頁單獨關閉。
+
+【Strava】
+Strava 記錄活動時，LiveStatus 會沿用官方通知標題顯示運動類型、經過時間與距離，不自行猜測距離格式。繁中與英文來源的運動中、等待 GPS 與暫停文案會使用相同語言；來源通知移除後自動清除，功能可在運動分頁單獨關閉。
 
 【iPASS MONEY】
 當偵測到乘車碼交易與尚未出站狀態時，LiveStatus 會顯示下車提醒。點擊提醒即可快速開啟 iPASS MONEY。當偵測到出站交易完成後，提醒會自動移除。
@@ -60,6 +66,8 @@ LiveStatus 可依照通知內容顯示 Uber Eats 訂單進度，包含：
 ・正前往您所在位置
 ・快到了
 
+支援繁體中文與英文 Uber Eats 自訂樣式常駐通知；英文來源會以英文顯示上述階段，並在訂單送達或來源常駐通知被移除時結束提醒。
+
 若通知中包含可可靠辨識的四位數 PIN、驗證碼、取餐碼或交付碼，LiveStatus 會顯示於 Live Update 中。若無法可靠辨識，則不會顯示，避免誤用預估抵達時間、訂單編號或其他數字。
 
 【Pikmin Bloom】
@@ -67,7 +75,7 @@ LiveStatus 可依照通知內容顯示 Uber Eats 訂單進度，包含：
 
 【主要特色】
 ・將重要通知轉換成 Android 16 Live Update
-・支援媒體播放、Discord 語音頻道、倒數與 Google Recorder 錄音計時、YPT 讀書、Hevy 健身、外送、乘車碼、YouBike 費用、55688／Uber 乘車與 Pikmin Bloom 種花狀態提醒
+・支援媒體播放、Discord 語音頻道、Microsoft Teams 通話、倒數與 Google Recorder 錄音計時、YPT 讀書、Hevy／Strava 運動、外送、乘車碼、YouBike 費用、55688／Uber 乘車與 Pikmin Bloom 種花狀態提醒
 ・狀態結束後自動移除提醒
 ・點擊提醒可快速開啟對應 App
 ・保守解析 PIN、驗證碼、取餐碼與交付碼，避免錯誤顯示
@@ -75,7 +83,7 @@ LiveStatus 可依照通知內容顯示 Uber Eats 訂單進度，包含：
 ・不會修改第三方 App 內容
 
 【權限說明】
-LiveStatus 需要通知存取權，才能讀取媒體工作階段與指定 App 的通知內容並轉換成即時狀態提醒。Discord 語音頻道功能預設開啟，可在媒體分頁單獨關閉。媒體功能在 Google／Pixel 預設開啟；Samsung、小米及其他 OEM 因通常已有系統媒體即時介面而預設關閉，仍可在媒體分頁手動開啟，且會保留使用者選擇。YPT 讀書功能可在工具分頁單獨關閉，Hevy 健身功能可在運動分頁單獨關閉。YouBike 可選擇允許「鬧鐘與提醒」，只用於在費用變更邊界重新計算本機通知；不會顯示鬧鐘、播放聲音、連網或執行背景同步。所有解析都在裝置上進行，App 不會登入你的媒體、通訊、外送、支付、乘車、讀書、健身或遊戲帳號，也不會替你操作第三方服務。
+LiveStatus 需要通知存取權，才能讀取媒體工作階段與指定 App 的通知內容並轉換成即時狀態提醒。Discord 語音頻道與 Microsoft Teams 通話功能預設開啟，可在媒體分頁單獨關閉。媒體功能在 Google／Pixel 預設開啟；Samsung、小米及其他 OEM 因通常已有系統媒體即時介面而預設關閉，仍可在媒體分頁手動開啟，且會保留使用者選擇。YPT 讀書功能可在工具分頁單獨關閉，Hevy 健身功能可在運動分頁單獨關閉。YouBike 可選擇允許「鬧鐘與提醒」，只用於在費用變更邊界重新計算本機通知；不會顯示鬧鐘、播放聲音、連網或執行背景同步。所有解析都在裝置上進行，App 不會登入你的媒體、通訊、外送、支付、乘車、讀書、健身或遊戲帳號，也不會替你操作第三方服務。
 
 【隱私優先】
 ・所有通知辨識都只在你的裝置上進行
@@ -88,7 +96,7 @@ LiveStatus 需要通知存取權，才能讀取媒體工作階段與指定 App �
 系統需求：Android 16 或更新版本。Live Update 顯示方式依裝置支援情況而定。
 
 【注意事項】
-LiveStatus 是第三方通知輔助工具，並非 Discord、Google 時鐘、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
+LiveStatus 是第三方通知輔助工具，並非 Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
 
 LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或格式不明確，App 可能不會顯示部分資訊，以避免誤判。
 
@@ -104,12 +112,13 @@ LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或
 
 ## 發布版本名稱
 
-1.0.7
+1.0.8
 
 ## 發布說明
 
-1.0.7 更新：
+1.0.8 更新：
 
-- 新增 Discord 伺服器語音頻道 Live Update，顯示連線狀態、伺服器／頻道名稱與來源提供的通話操作。
-- 新增 Google Recorder 錄音 Live Update，顯示錄音時間、暫停狀態與來源提供的繼續／儲存操作。
-- 修正 Discord 與 Google Recorder Live Update 無法在鎖定畫面顯示的問題。
+- 新增 Microsoft Teams 進行中會議 Live Update，顯示對方名稱、通話時間與來源提供的靜音／掛斷操作。
+- 新增 Strava 活動記錄 Live Update，支援繁中與英文的運動中、等待 GPS 與暫停狀態。
+- Uber Eats Live Update 新增英文通知文案與英文階段顯示支援。
+- 修正 foodpanda、Uber Eats 與 Strava App 卡片顯示的支援語言標籤。

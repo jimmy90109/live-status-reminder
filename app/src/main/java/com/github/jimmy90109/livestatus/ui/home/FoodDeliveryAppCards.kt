@@ -147,7 +147,7 @@ internal fun UberEatsCard(
         fallbackIconRes = R.drawable.ic_food_delivery_notification,
         title = "五階段訂單進度",
         description = "從接單到即將抵達持續更新；可辨識時也會顯示四位數 PIN。",
-        supportedLanguages = listOf("繁中"),
+        supportedLanguages = listOf("繁中 / En"),
         installed = installed,
         enabled = enabled,
         interactionEnabled = interactionEnabled,
@@ -238,7 +238,13 @@ private fun UberEatsTestButton(
         supportingText = supportingText,
         enabled = enabled,
     ) {
-        LiveStatusReminder.showUberEats(context, event, null, officialTitle, officialText)
+        LiveStatusReminder.showUberEats(
+            context = context,
+            event = event,
+            pin = null,
+            officialTitle = officialTitle,
+            officialText = officialText,
+        )
     }
 }
 

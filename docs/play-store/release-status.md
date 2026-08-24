@@ -8,12 +8,26 @@
 | --- | --- |
 | Alpha 最新上傳 | `2608060 (1.0.6)`，2026-08-06 已發布 |
 | Alpha 最新通過 | `2608060 (1.0.6)`，2026-08-06 23:46 通過審查並可供測試人員使用 |
-| 公開測試最新發布 | `2608110 (1.0.7)`，2026-08-11 已發布 |
+| 公開測試最新發布 | `2608140 (1.0.8)`，2026-08-15 02:56 已發布，可供不限數量的測試人員使用 |
 | 公開測試待審 | 無 |
-| Production | `2608110 (1.0.7)`，2026-08-11 已發布至 2 個國家／地區 |
+| Production | `2608140 (1.0.8)`，2026-08-15 02:56 已在 Google Play 上架，供應 2 個國家／地區 |
 | Production 待審 | 無 |
 
 Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>
+
+## 1.0.8 發版產物
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2608140 (1.0.8)`；2026-08-15 已發布至 Beta 公開測試與 Production，未上傳 Alpha |
+| 來源 revision | `bdcb8f9`；建置時工作目錄另含未提交的發版變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `76b89a06b88aaf79fda621029c5fa0f3d5f69a372f5ae9abb5145846f57f8bb1` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
+| Symbols SHA-256 | `0c0ff274f6363f7c551d8628a484ccc1ce762f1f3be2c5069c305166176e8741` |
+| YouBike 索引 | `generatedAt=2026-08-14T14:26:01+00:00`，TDX 來源 9,446 筆；相較 `2608120` 淨增 11 站、無刪除，服務區域未減少 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease` 成功；AAB 簽章與 bundle 內的 package、版本名稱及版本代碼已核對 |
+| Play 裝置支援 | 1,551 台；手機 1,036 台、平板 515 台，停止支援 0 台；Production 供應 2 個國家／地區 |
 
 ## 1.0.7 發版產物
 
@@ -46,6 +60,9 @@ Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy901
 
 | 日期 | 軌道 | 版本 | 狀態 |
 | --- | --- | --- | --- |
+| 2026-08-15 | Production | `2608140 (1.0.8)` | 02:56 已通過審查並在 Google Play 上架；Play Console 顯示為最新正式版，供應 2 個國家／地區 |
+| 2026-08-15 | 公開測試 | `2608140 (1.0.8)` | 02:56 已發布，可供不限數量的測試人員使用；Play Console 顯示 56 位活躍測試人員 |
+| 2026-08-12 | 公開測試 | `2608120 (1.0.8)` | 22:46 Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；23:20 通過審查並已發布 |
 | 2026-08-11 | Production | `2608110 (1.0.7)` | 已通過審查並發布；Play Console 顯示為最新正式版，供應 2 個國家／地區 |
 | 2026-08-11 | 公開測試 | `2608110 (1.0.7)` | 11:29 Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；同日通過審查並已發布 |
 | 2026-08-10 | 公開測試 | `2608100 (1.0.7)` | 21:32 Signed AAB 與 native debug symbols 已上傳並送審；21:47 通過審查並已發布 |
