@@ -112,13 +112,10 @@ LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或
 
 ## 發布版本名稱
 
-1.0.8
+1.0.9
 
 ## 發布說明
 
-1.0.8 更新：
+1.0.9 更新：
 
-- 新增 Microsoft Teams 進行中會議 Live Update，顯示對方名稱、通話時間與來源提供的靜音／掛斷操作。
-- 新增 Strava 活動記錄 Live Update，支援繁中與英文的運動中、等待 GPS 與暫停狀態。
-- Uber Eats Live Update 新增英文通知文案與英文階段顯示支援。
-- 修正 foodpanda、Uber Eats 與 Strava App 卡片顯示的支援語言標籤。
+- 新增小米、Redmi 與 POCO 的 HyperOS 背景執行與膠囊設定指引，並可從 App 內快速開啟系統 App 設定。

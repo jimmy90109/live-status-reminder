@@ -2,6 +2,7 @@ package com.github.jimmy90109.livestatus.ui.home
 
 import android.Manifest
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -19,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import com.github.jimmy90109.livestatus.AppReminderPreferences
+import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.GoogleRecorderNotificationParser
 import com.github.jimmy90109.livestatus.HevyWorkoutNotificationParser
@@ -61,6 +63,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
                             onOpenNotificationAccess = ::openNotificationListenerSettings,
                             onRequestNotificationPermission = ::requestNotificationPermission,
                             onOpenSamsungNowBarGuide = ::openSamsungNowBarGuide,
+                            onOpenAppSettings = ::openAppSettings,
                             onOpenPrivacyPolicy = ::openPrivacyPolicy,
                             onDismissBrandWarning = ::dismissBrandWarning,
                             onAppEnabledChange = ::setAppEnabled,
@@ -87,6 +90,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
         val taiwanTaxiInstalled = isPackageInstalled(TAIWAN_TAXI_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
+        val boltInstalled = BuildConfig.DEBUG && isPackageInstalled(BOLT_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
         val yptInstalled = isPackageInstalled(YPT_PACKAGE)
@@ -106,6 +110,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             foodpandaInstalled = foodpandaInstalled,
             taiwanTaxiInstalled = taiwanTaxiInstalled,
             uberInstalled = uberInstalled,
+            boltInstalled = boltInstalled,
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
             yptInstalled = yptInstalled,
@@ -174,6 +179,18 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openSamsungNowBarGuide() {
         openWebPage(SAMSUNG_NOW_BAR_GUIDE_URL)
+    }
+
+    private fun openAppSettings() {
+        val appDetailsIntent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            "package:$packageName".toUri(),
+        )
+        try {
+            startActivity(appDetailsIntent)
+        } catch (_: ActivityNotFoundException) {
+            startActivity(Intent(Settings.ACTION_SETTINGS))
+        }
     }
 
     private fun openPrivacyPolicy() {
@@ -320,6 +337,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
         private const val UBER_PACKAGE = "com.ubercab"
+        private const val BOLT_PACKAGE = "ee.mtakso.client"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
@@ -410,6 +428,7 @@ internal data class StatusSnapshot(
     val foodpandaInstalled: Boolean = false,
     val taiwanTaxiInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
+    val boltInstalled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val pikminBloomInstalled: Boolean = false,
     val yptInstalled: Boolean = false,

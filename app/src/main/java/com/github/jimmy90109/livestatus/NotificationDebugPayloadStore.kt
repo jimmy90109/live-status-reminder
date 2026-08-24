@@ -16,6 +16,7 @@ object NotificationDebugPayloadStore {
     private val fourDigitCandidate = Regex("""(?<!\d)\d{4}(?!\d)""")
     private val timeFormatter = SimpleDateFormat("MM/dd HH:mm:ss", Locale.TAIWAN)
     private val _uberPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _boltPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _taiwanTaxiPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _foodpandaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
@@ -31,6 +32,7 @@ object NotificationDebugPayloadStore {
     private val _stravaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
+    val boltPayloads: StateFlow<List<NotificationDebugPayload>> = _boltPayloads
     val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
     val foodpandaPayloads: StateFlow<List<NotificationDebugPayload>> = _foodpandaPayloads
     val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
@@ -329,6 +331,28 @@ object NotificationDebugPayloadStore {
         _uberPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
     }
 
+    fun recordBolt(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = lifecycle,
+            parsedPin = null,
+            parsedDetails = linkedMapOf("lifecycle" to lifecycle),
+        )
+        _boltPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
     fun recordTaiwanTaxi(
         context: Context,
         statusBarNotification: StatusBarNotification,
@@ -398,6 +422,10 @@ object NotificationDebugPayloadStore {
 
     fun clearUber() {
         _uberPayloads.value = emptyList()
+    }
+
+    fun clearBolt() {
+        _boltPayloads.value = emptyList()
     }
 
     fun clearTaiwanTaxi() {

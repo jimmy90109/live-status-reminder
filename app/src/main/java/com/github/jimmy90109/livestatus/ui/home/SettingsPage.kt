@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +37,7 @@ internal fun SettingsPage(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
 ) {
     val colors = LocalAppColors.current
@@ -73,6 +75,7 @@ internal fun SettingsPage(
             BrandWarningCard(
                 brandWarning = brandWarning,
                 onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                onOpenAppSettings = onOpenAppSettings,
             )
             Spacer(Modifier.height(10.dp))
         }
@@ -138,6 +141,7 @@ internal fun RequiredSettingsSection(
 internal fun BrandWarningCard(
     brandWarning: BrandWarning,
     onOpenSamsungNowBarGuide: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onDismiss: (() -> Unit)? = null,
 ) {
     val colors = LocalAppColors.current
@@ -149,7 +153,7 @@ internal fun BrandWarningCard(
                         BrandWarning.SAMSUNG_NOW_BAR ->
                             "⚠ Samsung Now Bar 可能限制第三方 Live Updates"
                         BrandWarning.XIAOMI_HYPER_ISLAND ->
-                            "小米 HyperOS 膠囊支援"
+                            stringResource(R.string.xiaomi_hyperos_warning_title)
                     },
                     18,
                     colors.warningText,
@@ -167,17 +171,14 @@ internal fun BrandWarningCard(
             }
         }
         Spacer(Modifier.height(10.dp))
-        AppText(
-            when (brandWarning) {
-                BrandWarning.SAMSUNG_NOW_BAR ->
-                    "如果通知已出現，但沒有上島，可以查看 Samsung One UI 的疑難排解流程。"
-                BrandWarning.XIAOMI_HYPER_ISLAND ->
-                    "如果膠囊沒有出現，請在 HyperOS 系統設定中允許浮動或焦點通知；" +
-                        "若系統不接受第三方膠囊，App 仍會顯示一般即時通知。"
-            },
-            15,
-            colors.warningText,
-        )
+        when (brandWarning) {
+            BrandWarning.SAMSUNG_NOW_BAR -> AppText(
+                "如果通知已出現，但沒有上島，可以查看 Samsung One UI 的疑難排解流程。",
+                15,
+                colors.warningText,
+            )
+            BrandWarning.XIAOMI_HYPER_ISLAND -> XiaomiWarningDescription()
+        }
         if (brandWarning == BrandWarning.SAMSUNG_NOW_BAR) {
             Spacer(Modifier.height(14.dp))
             ActionButton(
@@ -186,6 +187,48 @@ internal fun BrandWarningCard(
                 colors.warningContainer,
                 onClick = onOpenSamsungNowBarGuide,
             )
+        } else {
+            Spacer(Modifier.height(14.dp))
+            ActionButton(
+                stringResource(R.string.xiaomi_open_app_settings),
+                colors.warningText,
+                colors.warningContainer,
+                onClick = onOpenAppSettings,
+            )
+        }
+    }
+}
+
+@Composable
+private fun XiaomiWarningDescription() {
+    val textColor = LocalAppColors.current.warningText
+    AppText(
+        stringResource(R.string.xiaomi_hyperos_warning_intro),
+        15,
+        textColor,
+    )
+    Spacer(Modifier.height(8.dp))
+    XiaomiChecklistItem("1.", stringResource(R.string.xiaomi_hyperos_warning_autostart))
+    Spacer(Modifier.height(6.dp))
+    XiaomiChecklistItem("2.", stringResource(R.string.xiaomi_hyperos_warning_background_lock))
+    Spacer(Modifier.height(6.dp))
+    XiaomiChecklistItem("3.", stringResource(R.string.xiaomi_hyperos_warning_floating_notification))
+    Spacer(Modifier.height(10.dp))
+    AppText(
+        stringResource(R.string.xiaomi_hyperos_warning_footer),
+        15,
+        textColor,
+    )
+}
+
+@Composable
+private fun XiaomiChecklistItem(number: String, text: String) {
+    val textColor = LocalAppColors.current.warningText
+    Row(verticalAlignment = Alignment.Top) {
+        AppText(number, 15, textColor)
+        Spacer(Modifier.width(8.dp))
+        Column(Modifier.weight(1f)) {
+            AppText(text, 15, textColor)
         }
     }
 }

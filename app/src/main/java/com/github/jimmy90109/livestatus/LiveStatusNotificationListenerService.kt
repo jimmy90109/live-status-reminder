@@ -53,6 +53,16 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            BOLT_PACKAGE -> if (BuildConfig.DEBUG) {
+                NotificationDebugPayloadStore.recordBolt(
+                    this,
+                    statusBarNotification,
+                    notificationText,
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                    "POSTED",
+                )
+            }
             STRAVA_PACKAGE -> {
                 val notificationTitle = readNotificationTitle(notification)
                 val notificationContentText = readNotificationContentText(notification)
@@ -463,6 +473,18 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (BuildConfig.DEBUG && statusBarNotification.packageName == BOLT_PACKAGE) {
+            val notification = statusBarNotification.notification
+            NotificationDebugPayloadStore.recordBolt(
+                this,
+                statusBarNotification,
+                readNotificationText(this, statusBarNotification.packageName, notification),
+                readNotificationTitle(notification),
+                readNotificationContentText(notification),
+                "REMOVED",
+            )
+            return
+        }
         if (BuildConfig.DEBUG && statusBarNotification.packageName == STRAVA_PACKAGE) {
             val notification = statusBarNotification.notification
             NotificationDebugPayloadStore.recordStrava(
@@ -955,6 +977,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
+        private const val BOLT_PACKAGE = "ee.mtakso.client"
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"

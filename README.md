@@ -108,6 +108,12 @@
 - 收到「行程已完成」時自動移除提醒；目前不推測尚未觀察到的尋車中、取消或行程中狀態。
 - 點擊提醒可開啟 55688。Debug build 只在程序記憶體保留最近 30 筆 payload。
 
+### Bolt（Debug）
+
+- Debug build 的「叫車」分類會在 Uber 與 55688 之間顯示綠色 Bolt 卡片。
+- 目前只收集 Bolt 通知的新增與移除 payload，不解析或建立 Live Update。
+- 最近 30 筆 payload 只保留在目前 App 程序記憶體，重新啟動後即清除；正式版不查詢 Bolt 套件、不收集 payload，也不顯示此卡片。
+
 ### Uber Eats
 
 - 從訂單成立到外送員即將抵達，顯示五階段進度：
@@ -162,6 +168,12 @@
 
 Samsung One UI 8 若無法顯示在 Now Bar，可參考 GitHub Pages 的
 [Samsung Now Bar 疑難排解](https://jimmy90109.github.io/live-status-reminder/samsung-now-bar.html)。
+
+Xiaomi、Redmi 與 POCO 裝置若在重新啟動或清除最近使用的 App 後停止更新，請在
+HyperOS 的「設定 → 應用程式 → 權限 → 背景自啟動」允許本 App，並在安全中心的
+背景 App 鎖定功能中鎖定本 App。若一般通知已顯示但膠囊沒有出現，再允許浮動或
+焦點通知；不同 HyperOS 版本與地區的選單名稱可能略有差異。App 內的小米提示卡
+也提供「開啟 App 設定」按鈕。
 
 點擊提醒會開啟對應 App。若尚未安裝，則前往 Google Play。iPASS MONEY 與台灣 Pay 目前沒有公開乘車碼頁面的 deep link，因此只能開啟 App 首頁。
 

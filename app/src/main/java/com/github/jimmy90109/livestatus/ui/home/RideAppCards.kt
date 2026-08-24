@@ -253,6 +253,40 @@ internal fun UberRideCard(
 }
 
 @Composable
+internal fun BoltDebugCard(
+    installed: Boolean,
+    interactionEnabled: Boolean,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    AppCard(
+        appName = stringResource(R.string.bolt_app_name),
+        appPackageName = BOLT_PACKAGE,
+        fallbackIconRes = R.drawable.ic_car_notification,
+        title = stringResource(R.string.bolt_debug_card_title),
+        description = stringResource(R.string.bolt_debug_card_description),
+        supportedLanguages = listOf(stringResource(R.string.bolt_debug_language)),
+        installed = installed,
+        enabled = true,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = {},
+        showEnabledSwitch = false,
+        cardColor = colors.boltContainer,
+        labelColor = colors.boltSecondaryContainer,
+        foregroundColor = colors.boltText,
+        actionColor = colors.boltPrimary,
+    ) {
+        AppActionDivider(colors.boltText)
+        AppCardActionButton(
+            stringResource(R.string.bolt_debug_open_payload),
+            colors.boltPrimary,
+            colors.boltText,
+            onClick = onOpenDebug,
+        )
+    }
+}
+
+@Composable
 private fun UberRideSectionHeader(
     title: String,
     language: String,
@@ -336,5 +370,6 @@ internal fun PikminBloomCard(
 
 
 private const val UBER_PACKAGE = "com.ubercab"
+private const val BOLT_PACKAGE = "ee.mtakso.client"
 private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
 private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
