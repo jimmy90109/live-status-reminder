@@ -8,12 +8,26 @@
 | --- | --- |
 | Alpha 最新上傳 | `2608060 (1.0.6)`，2026-08-06 已發布 |
 | Alpha 最新通過 | `2608060 (1.0.6)`，2026-08-06 23:46 通過審查並可供測試人員使用 |
-| 公開測試最新發布 | `2608140 (1.0.8)`，2026-08-15 02:56 已發布，可供不限數量的測試人員使用 |
+| 公開測試最新發布 | `2608240 (1.0.9)`，2026-08-24 19:29 已發布，可供不限數量的測試人員使用 |
 | 公開測試待審 | 無 |
-| Production | `2608140 (1.0.8)`，2026-08-15 02:56 已在 Google Play 上架，供應 2 個國家／地區 |
+| Production | `2608240 (1.0.9)`，2026-08-24 20:12 已通過審查並在 Google Play 上架，供應 2 個國家／地區 |
 | Production 待審 | 無 |
 
 Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>
+
+## 1.0.9 發版產物
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2608240 (1.0.9)`；2026-08-24 已發布至 Beta 公開測試與 Production，未上傳 Alpha |
+| 來源 revision | `3267675`；建置時工作目錄另含未提交的發版變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `7113fabef9e581fe35b7282f1eb0bfab5966a08b861b83bc714ec39c0521dc13` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
+| Symbols SHA-256 | `de7b6bcd18786d836dc1227d1ff1610717de8275c9374d5fabedf3f0307e1438` |
+| YouBike 索引 | `generatedAt=2026-08-24T10:50:01+00:00`，TDX 來源 9,462 筆；較前版新增 17 站、移除 1 站，淨增 16 站，服務區域未減少 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease` 成功；AAB 簽章及 release manifest 內的 package、版本名稱與版本代碼已核對，release manifest 未加入 Bolt 套件查詢 |
+| Play 裝置支援 | 1,617 台；手機 1,074 台、平板 543 台，停止支援 0 台；Beta 公開測試與 Production 均供應 2 個國家／地區 |
 
 ## 1.0.8 發版產物
 
@@ -60,6 +74,8 @@ Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy901
 
 | 日期 | 軌道 | 版本 | 狀態 |
 | --- | --- | --- | --- |
+| 2026-08-24 | Production | `2608240 (1.0.9)` | 20:12 已通過審查並在 Google Play 上架；Play Console 顯示為最新正式版，供應 2 個國家／地區，支援 1,617 台裝置 |
+| 2026-08-24 | 公開測試 | `2608240 (1.0.9)` | 18:59 Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；19:29 已發布，可供不限數量的測試人員使用 |
 | 2026-08-15 | Production | `2608140 (1.0.8)` | 02:56 已通過審查並在 Google Play 上架；Play Console 顯示為最新正式版，供應 2 個國家／地區 |
 | 2026-08-15 | 公開測試 | `2608140 (1.0.8)` | 02:56 已發布，可供不限數量的測試人員使用；Play Console 顯示 56 位活躍測試人員 |
 | 2026-08-12 | 公開測試 | `2608120 (1.0.8)` | 22:46 Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；23:20 通過審查並已發布 |
