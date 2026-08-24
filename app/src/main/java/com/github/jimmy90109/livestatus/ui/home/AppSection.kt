@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.jimmy90109.livestatus.AppReminderPreferences
+import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.Job
@@ -76,6 +77,7 @@ internal fun AppsSection(
     onOpenFoodpandaDebug: () -> Unit,
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
+    onOpenBoltDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
@@ -253,6 +255,13 @@ internal fun AppsSection(
                             },
                             onOpenDebug = onOpenUberDebug,
                         )
+                        if (BuildConfig.DEBUG) {
+                            BoltDebugCard(
+                                installed = status.boltInstalled,
+                                interactionEnabled = status.requiredSettingsComplete,
+                                onOpenDebug = onOpenBoltDebug,
+                            )
+                        }
                         TaiwanTaxiCard(
                             installed = status.taiwanTaxiInstalled,
                             enabled = status.taiwanTaxiEnabled,
