@@ -77,6 +77,7 @@ internal fun HomeScreenHostActivity.MainScreen(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onDismissBrandWarning: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
@@ -251,6 +252,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         },
                         onRequestNotificationPermission = onRequestNotificationPermission,
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                        onOpenAppSettings = onOpenAppSettings,
                         onDismissBrandWarning = onDismissBrandWarning,
                         onAppEnabledChange = onAppEnabledChange,
                         onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
@@ -285,6 +287,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         },
                         onRequestNotificationPermission = onRequestNotificationPermission,
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                        onOpenAppSettings = onOpenAppSettings,
                         onDismissBrandWarning = onDismissBrandWarning,
                         onAppEnabledChange = onAppEnabledChange,
                         onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
@@ -324,6 +327,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         },
                         onRequestNotificationPermission = onRequestNotificationPermission,
                         onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                        onOpenAppSettings = onOpenAppSettings,
                         onOpenPrivacyPolicy = onOpenPrivacyPolicy,
                     )
                 }

@@ -16,6 +16,13 @@
     <string name="home_intro_collapsed">首頁介紹已收合</string>
     <string name="home_intro_expanded">首頁介紹已展開</string>
     <string name="required_settings_description">完成設定後，App 就能把媒體播放、Discord 與 Teams 通話、倒數計時、讀書與健身、乘車、外送與種花狀態變成即時通知。</string>
+    <string name="xiaomi_hyperos_warning_title">小米 HyperOS 背景執行與膠囊設定</string>
+    <string name="xiaomi_hyperos_warning_intro">為避免通知監聽在背景被停止，請依序檢查：</string>
+    <string name="xiaomi_hyperos_warning_autostart">設定 → 應用程式 → 權限 → 背景自啟動，允許本 App。</string>
+    <string name="xiaomi_hyperos_warning_background_lock">在安全中心的背景 App 鎖定功能鎖定本 App，避免清除最近使用的 App 時一併停止。</string>
+    <string name="xiaomi_hyperos_warning_floating_notification">若通知已出現但膠囊沒有出現，允許浮動或焦點通知。</string>
+    <string name="xiaomi_hyperos_warning_footer">不同 HyperOS 版本與地區的選單名稱可能略有差異；下方按鈕會開啟本 App 的系統設定頁。</string>
+    <string name="xiaomi_open_app_settings">開啟 App 設定  →</string>
     <string name="app_card_collapsed">試用選項已收起</string>
     <string name="app_card_expanded">試用選項已展開</string>
     <string name="app_card_expand">試用即時通知功能</string>

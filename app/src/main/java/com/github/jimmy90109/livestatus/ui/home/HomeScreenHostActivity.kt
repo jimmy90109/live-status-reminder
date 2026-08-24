@@ -2,6 +2,7 @@ package com.github.jimmy90109.livestatus.ui.home
 
 import android.Manifest
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -62,6 +63,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
                             onOpenNotificationAccess = ::openNotificationListenerSettings,
                             onRequestNotificationPermission = ::requestNotificationPermission,
                             onOpenSamsungNowBarGuide = ::openSamsungNowBarGuide,
+                            onOpenAppSettings = ::openAppSettings,
                             onOpenPrivacyPolicy = ::openPrivacyPolicy,
                             onDismissBrandWarning = ::dismissBrandWarning,
                             onAppEnabledChange = ::setAppEnabled,
@@ -177,6 +179,18 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openSamsungNowBarGuide() {
         openWebPage(SAMSUNG_NOW_BAR_GUIDE_URL)
+    }
+
+    private fun openAppSettings() {
+        val appDetailsIntent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            "package:$packageName".toUri(),
+        )
+        try {
+            startActivity(appDetailsIntent)
+        } catch (_: ActivityNotFoundException) {
+            startActivity(Intent(Settings.ACTION_SETTINGS))
+        }
     }
 
     private fun openPrivacyPolicy() {

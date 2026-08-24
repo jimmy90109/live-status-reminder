@@ -86,6 +86,7 @@ internal fun HomeContentWide(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onDismissBrandWarning: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
     onOpenTaiwanPayDebug: () -> Unit,
@@ -116,6 +117,7 @@ internal fun HomeContentWide(
                 onOpenNotificationAccess = onOpenNotificationAccess,
                 onRequestNotificationPermission = onRequestNotificationPermission,
                 onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                onOpenAppSettings = onOpenAppSettings,
                 onDismissBrandWarning = onDismissBrandWarning,
             )
         },
@@ -153,6 +155,7 @@ internal fun HomeContentNarrow(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onDismissBrandWarning: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
     onOpenTaiwanPayDebug: () -> Unit,
@@ -283,6 +286,7 @@ internal fun HomeContentNarrow(
                     onOpenNotificationAccess = onOpenNotificationAccess,
                     onRequestNotificationPermission = onRequestNotificationPermission,
                     onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                    onOpenAppSettings = onOpenAppSettings,
                     onDismissBrandWarning = onDismissBrandWarning,
                     heroVisualState = heroVisualState,
                     heroVisibleHeightPx = if (requiredSettingsComplete) {
@@ -360,6 +364,7 @@ private fun HomeIntroColumn(
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenSamsungNowBarGuide: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onDismissBrandWarning: () -> Unit,
     heroVisualState: HeroRevealVisualState? = null,
     heroVisibleHeightPx: (() -> Float)? = null,
@@ -403,6 +408,7 @@ private fun HomeIntroColumn(
                 BrandWarningCard(
                     brandWarning = brandWarning,
                     onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                    onOpenAppSettings = onOpenAppSettings,
                     onDismiss = onDismissBrandWarning,
                 )
             }
