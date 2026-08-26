@@ -257,6 +257,47 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun uberEatsDisplayPayloadOnlyUsesPinWhenArrivingInBothLanguages() {
+        val statusesByLanguage = mapOf(
+            UberEatsLanguage.TRADITIONAL_CHINESE to mapOf(
+                UberEatsEvent.ORDER_RECEIVED to "已接單",
+                UberEatsEvent.PREPARING to "備餐中",
+                UberEatsEvent.PICKING_UP to "取餐中",
+                UberEatsEvent.ON_THE_WAY to "配送中",
+                UberEatsEvent.ARRIVING to "快到了",
+            ),
+            UberEatsLanguage.ENGLISH to mapOf(
+                UberEatsEvent.ORDER_RECEIVED to "Received",
+                UberEatsEvent.PREPARING to "Preparing",
+                UberEatsEvent.PICKING_UP to "Picking up",
+                UberEatsEvent.ON_THE_WAY to "On the way",
+                UberEatsEvent.ARRIVING to "Almost here",
+            ),
+        )
+
+        statusesByLanguage.forEach { (language, statuses) ->
+            statuses.forEach { (event, status) ->
+                listOf(null, "7616").forEach { pin ->
+                    val payload = LiveStatusReminder.uberEatsPayload(event, language)
+                    val displayPayload = LiveStatusReminder.uberEatsPayloadWithPin(
+                        event, language, payload, pin,
+                    )
+
+                    assertEquals(
+                        "$language / $event / hasPin=${pin != null}",
+                        if (event == UberEatsEvent.ARRIVING && pin != null) pin else status,
+                        displayPayload.criticalText,
+                    )
+                    assertEquals(pin != null, displayPayload.contentText.contains("PIN "))
+                    if (pin != null) {
+                        assertTrue(displayPayload.contentText.endsWith("PIN $pin"))
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun uberEatsOnTheWayPrivateTextKeepsOfficialDetailsWithoutDuplicateStatus() {
         val text = LiveStatusReminder.uberEatsDisplayText(
             UberEatsEvent.ON_THE_WAY,

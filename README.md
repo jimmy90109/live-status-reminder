@@ -126,6 +126,7 @@
   `Preparing your order`、`Picking up your order`、`Heading your way` 與
   `Almost here!`。
 - 只從 Android 16 `shortCriticalText` 的剛好四位數，或通知 View 中四個各自成行的數字解析 PIN。
+- 繁中與英文僅在「快到了／Almost here!」階段將 PIN 顯示於 `criticalText`（含小米超級島）；其餘階段顯示狀態文字。通知內文仍可顯示已辨識的 PIN；快到了但沒有 PIN 時，維持狀態文字。
 - 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
 - 英文來源會以英文顯示 Live Update，並保留 ETA、外送員、車牌及車輛資訊。
 - 收到 `Order delivered`、繁中送達／取消狀態，或來源常駐通知被移除後，自動移除提醒。

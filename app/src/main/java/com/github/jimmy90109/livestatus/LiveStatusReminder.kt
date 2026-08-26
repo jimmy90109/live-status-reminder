@@ -348,7 +348,7 @@ object LiveStatusReminder {
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .also { applyUberEatsStyle(it, event) }
-            .setShortCriticalText(pin ?: uberEatsShortText(event, language))
+            .setShortCriticalText(displayPayload.criticalText)
             .also(::requestPromotedOngoing)
             .also { XiaomiHyperIslandRenderer.apply(context, it, displayPayload) }
 
@@ -1159,7 +1159,11 @@ object LiveStatusReminder {
         pin: String?,
     ): LiveStatusPayload =
         payload.copy(
-            criticalText = pin ?: payload.criticalText,
+            criticalText = if (event == LiveStatusNotificationParser.UberEatsEvent.ARRIVING) {
+                pin ?: payload.criticalText
+            } else {
+                payload.criticalText
+            },
             contentText = uberEatsDisplayText(event, language, payload.contentText, pin),
         )
 
