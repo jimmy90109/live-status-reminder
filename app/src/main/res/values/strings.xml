@@ -5,6 +5,11 @@
     <string name="notification_app_name">LiveStatus</string>
     <string name="notification_channel_name">即時狀態提醒</string>
     <string name="notification_channel_description">持續顯示 Discord 與 Teams 通話、倒數計時、讀書與健身時長、乘車、YouBike 騎乘費用、外送訂單與種花狀態</string>
+    <string name="notification_access_disclosure_title">通知存取用途</string>
+    <string name="notification_access_disclosure_body">即時狀態提醒會在背景讀取通知內容，例如媒體、通話、錄音、計時、運動、導航、乘車與外送資訊，以及通知中的地點、車牌或 PIN，用來在裝置上建立即時狀態提醒。\n\n資料只在裝置上處理，不會自動上傳、出售或分享。除目前 YouBike 騎乘資料最多保存 24 小時外，通知內容不會永久儲存。你可隨時在系統設定關閉通知存取。</string>
+    <string name="notification_access_disclosure_debug_addendum">Debug 版會在程序記憶體暫存最近 30 筆支援來源的通知資料，供規則校正；程序結束即清除，不寫入檔案或日誌。</string>
+    <string name="notification_access_disclosure_confirm">同意並前往設定</string>
+    <string name="notification_access_disclosure_dismiss">暫時不要</string>
     <string name="media_notification_channel_name">媒體播放即時通知</string>
     <string name="media_notification_channel_description">在來源媒體通知未成為 Live Update 時，靜音顯示目前播放內容。</string>
     <string name="discord_voice_notification_channel_name">Discord 語音通話即時通知</string>
