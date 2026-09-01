@@ -14,7 +14,7 @@
 即使「資料安全」回答未收集資料，隱私權政策與 App 內仍須清楚說明：
 
 - App 會在使用者授權後讀取通知內容。
-- 用途限於辨識媒體播放、Discord 伺服器語音頻道、Microsoft Teams 進行中通話、Google 時鐘、Google Recorder 錄音、YPT 讀書計時、Hevy 健身、Strava 運動記錄、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
+- 用途限於辨識媒體播放、Discord 伺服器語音頻道、Microsoft Teams 進行中通話、Google 時鐘、Google Recorder 錄音、YPT 讀書計時、Hevy 健身、Strava 運動記錄、Citymapper 導航、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
 - Strava 只在記憶體中暫時處理運動記錄狀態、官方通知標題與可用操作；來源通知移除後即清除，不上傳或永久保存。Debug build 另暫存最近 30 筆 payload，正式版不提供查看入口。
 - 媒體播放只在記憶體中暫時處理系統首選活躍工作階段的來源套件、曲名、作者、專輯、播放狀態與控制能力，不永久保存。
 - Discord 只在記憶體中暫時處理伺服器語音頻道連線狀態、來源顯示文字與可用操作；離開頻道或來源通知移除後即清除，不上傳或永久保存。
@@ -31,6 +31,8 @@
 - YouBike 可由使用者另行允許「鬧鐘與提醒」特殊存取，只在騎乘費用變更邊界更新本機通知；不傳輸或新增收集資料。
 - YouBike 站點原本未知或同名、使用者手動選擇支援地區且正常還車時，App 才顯示可忽略的靜音回報通知。只有使用者點擊並在外部 Email App 確認寄送後，站名、選擇地區、辨識類型、候選地區、車種、App 版本與索引版本才會寄給開發者；不包含車號、車柱、時間、通知全文或付款資料。
 - 本機僅保存站點索引版本及正規化站名的 SHA-256 雜湊集合以避免重複提醒；索引版本變更時重置，不保存回報站名明文。
+
+Citymapper 正式功能只在裝置記憶體中映射進行中導航的原文（可能包含路線、地點與時間），僅整理抵達時間文案並排除已知分享操作，不推算進度、不上傳、不寫入檔案或日誌。操作只在使用者點擊後交回來源 App 執行。來源移除、失去導航資格、關閉功能或監聽斷線後清除提醒。新增 Citymapper 套件查詢僅用於安裝檢查與開啟 App，不新增權限。Debug build 另暫存最近 30 筆原始 payload，正式版不提供收集入口或保留原始 payload。
 
 ## Play Console 其他內容聲明建議
 

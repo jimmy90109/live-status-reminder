@@ -52,6 +52,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_YPT -> openYpt()
             ACTION_OPEN_HEVY -> openHevy()
             ACTION_OPEN_STRAVA -> openStrava()
+            ACTION_OPEN_CITYMAPPER -> openCitymapper()
             ACTION_OPEN_DISCORD -> openDiscord()
             ACTION_OPEN_TEAMS -> openTeams()
             ACTION_OPEN_GOOGLE_RECORDER -> openGoogleRecorder()
@@ -91,6 +92,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val taiwanTaxiInstalled = isPackageInstalled(TAIWAN_TAXI_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val boltInstalled = BuildConfig.DEBUG && isPackageInstalled(BOLT_PACKAGE)
+        val citymapperInstalled = isPackageInstalled(CITYMAPPER_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
         val yptInstalled = isPackageInstalled(YPT_PACKAGE)
@@ -111,6 +113,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             taiwanTaxiInstalled = taiwanTaxiInstalled,
             uberInstalled = uberInstalled,
             boltInstalled = boltInstalled,
+            citymapperInstalled = citymapperInstalled,
+            citymapperEnabled = AppReminderPreferences.App.CITYMAPPER.isEnabled(this, citymapperInstalled),
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
             yptInstalled = yptInstalled,
@@ -244,6 +248,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openHevy() = openPackage(HEVY_PACKAGE, "Hevy")
 
+    private fun openCitymapper() = openPackage(CITYMAPPER_PACKAGE, "Citymapper")
+
     private fun openStrava() = openPackage(STRAVA_PACKAGE, "Strava")
 
     private fun openDiscord() = openPackage(DISCORD_PACKAGE, "Discord")
@@ -284,6 +290,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.YPT -> LiveStatusReminder.clearYptStudy(this)
             AppReminderPreferences.App.HEVY -> LiveStatusReminder.clearHevyWorkout(this)
             AppReminderPreferences.App.STRAVA -> LiveStatusReminder.clearStravaRecording(this)
+            AppReminderPreferences.App.CITYMAPPER -> LiveStatusReminder.clearCitymapperNavigation(this)
             AppReminderPreferences.App.DISCORD_VOICE ->
                 LiveStatusReminder.clearDiscordVoice(this)
             AppReminderPreferences.App.TEAMS_CALL ->
@@ -322,6 +329,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_YPT"
         private const val ACTION_OPEN_HEVY =
             "com.github.jimmy90109.livestatus.action.OPEN_HEVY"
+        private const val ACTION_OPEN_CITYMAPPER =
+            "com.github.jimmy90109.livestatus.action.OPEN_CITYMAPPER"
         private const val ACTION_OPEN_STRAVA =
             "com.github.jimmy90109.livestatus.action.OPEN_STRAVA"
         private const val ACTION_OPEN_DISCORD =
@@ -338,6 +347,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
         private const val UBER_PACKAGE = "com.ubercab"
         private const val BOLT_PACKAGE = "ee.mtakso.client"
+        private const val CITYMAPPER_PACKAGE = "com.citymapper.app.release"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
@@ -396,6 +406,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             openAppIntent(context, ACTION_OPEN_HEVY)
 
         @JvmStatic
+        fun createOpenCitymapperIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_CITYMAPPER)
+
+        @JvmStatic
         fun createOpenStravaIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_STRAVA)
 
@@ -429,6 +443,8 @@ internal data class StatusSnapshot(
     val taiwanTaxiInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
     val boltInstalled: Boolean = false,
+    val citymapperInstalled: Boolean = false,
+    val citymapperEnabled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val pikminBloomInstalled: Boolean = false,
     val yptInstalled: Boolean = false,

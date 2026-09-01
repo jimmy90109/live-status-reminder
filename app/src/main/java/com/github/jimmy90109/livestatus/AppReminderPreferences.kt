@@ -1,6 +1,7 @@
 package com.github.jimmy90109.livestatus
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 
 internal object MediaPlaybackDefaultPolicy {
@@ -14,7 +15,7 @@ internal object MediaPlaybackDefaultPolicy {
 object AppReminderPreferences {
     private const val BRAND_WARNING_DISMISSED = "brand_warning_dismissed"
 
-    enum class App(private val preferenceKey: String) {
+    enum class App(internal val preferenceKey: String) {
         MEDIA_PLAYBACK("media_playback_enabled"),
         CLOCK("clock_enabled"),
         IPASS("ipass_enabled"),
@@ -28,6 +29,7 @@ object AppReminderPreferences {
         YPT("ypt_enabled"),
         HEVY("hevy_enabled"),
         STRAVA("strava_enabled"),
+        CITYMAPPER("citymapper_enabled"),
         DISCORD_VOICE("discord_voice_enabled"),
         TEAMS_CALL("teams_call_enabled"),
         GOOGLE_RECORDER("google_recorder_enabled"),
@@ -57,6 +59,14 @@ object AppReminderPreferences {
             .edit()
             .putBoolean(BRAND_WARNING_DISMISSED, dismissed)
             .apply()
+    }
+
+    internal fun registerListener(context: Context, listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        preferences(context).registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    internal fun unregisterListener(context: Context, listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        preferences(context).unregisterOnSharedPreferenceChangeListener(listener)
     }
 
     private fun preferences(context: Context) =
