@@ -44,13 +44,6 @@ internal fun CitymapperCard(
         labelColor = colors.citymapperSecondaryContainer,
         foregroundColor = colors.citymapperText,
         actionColor = colors.citymapperPrimary,
-        additionalTags = {
-            LanguageTag(
-                stringResource(R.string.citymapper_beta_tag),
-                colors.warningContainer,
-                colors.warningText,
-            )
-        },
     ) {
         AppActionDivider(colors.citymapperText)
         CitymapperSimulationHeader(R.string.citymapper_simulation_group_walking)

@@ -39,7 +39,6 @@
     <string name="citymapper_card_title">導航即時通知</string>
     <string name="citymapper_card_description">同步顯示 Citymapper 導航內文與抵達時間，依台灣通勤階段、候車倒數或發車時刻切換膠囊短文與圖示；保留可用導航操作、不提供分享。點擊提醒回到 Citymapper，來源通知移除後自動清除。</string>
     <string name="citymapper_source_language">繁中</string>
-    <string name="citymapper_beta_tag">Beta</string>
     <string name="citymapper_live_critical_text">導航</string>
     <string name="citymapper_live_walking_minutes">%1$d分步行</string>
     <string name="citymapper_live_walking">步行</string>
