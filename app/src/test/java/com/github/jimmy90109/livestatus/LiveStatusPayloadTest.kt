@@ -15,6 +15,19 @@ import org.junit.Test
 
 class LiveStatusPayloadTest {
     @Test
+    fun mcDonaldsPayloadShowsOrderNumberAsCriticalText() {
+        val payload = LiveStatusReminder.mcDonaldsPayload("97167")
+
+        assertEquals(1018, payload.id)
+        assertEquals("McDonald's", payload.appName)
+        assertEquals(R.drawable.ic_food_delivery_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_food_delivery_notification, payload.leftIconRes)
+        assertEquals("97167", payload.criticalText)
+        assertEquals("訂單準備就緒", payload.title)
+        assertEquals("訂單 97167 已完成，請直接至餐廳取餐。", payload.contentText)
+    }
+
+    @Test
     fun googleRecorderPayloadShowsRunningAndPausedStates() {
         val running = LiveStatusReminder.googleRecorderPayload(
             RecorderUpdate(

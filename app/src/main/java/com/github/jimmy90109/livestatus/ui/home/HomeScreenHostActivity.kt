@@ -45,6 +45,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_TAIWAN_PAY -> openTaiwanPay()
             ACTION_OPEN_YOU_BIKE -> openYouBike()
             ACTION_OPEN_FOODPANDA -> openFoodpanda()
+            ACTION_OPEN_MCDONALDS -> openMcDonalds()
             ACTION_OPEN_TAIWAN_TAXI -> openTaiwanTaxi()
             ACTION_OPEN_UBER -> openUber()
             ACTION_OPEN_UBER_EATS -> openUberEats()
@@ -89,6 +90,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val taiwanPayInstalled = isPackageInstalled(TAIWAN_PAY_PACKAGE)
         val youBikeInstalled = isPackageInstalled(YOU_BIKE_PACKAGE)
         val foodpandaInstalled = isPackageInstalled(FOODPANDA_PACKAGE)
+        val mcDonaldsInstalled = isPackageInstalled(MCDONALDS_PACKAGE)
         val taiwanTaxiInstalled = isPackageInstalled(TAIWAN_TAXI_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val boltInstalled = BuildConfig.DEBUG && isPackageInstalled(BOLT_PACKAGE)
@@ -110,6 +112,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             taiwanPayInstalled = taiwanPayInstalled,
             youBikeInstalled = youBikeInstalled,
             foodpandaInstalled = foodpandaInstalled,
+            mcDonaldsInstalled = mcDonaldsInstalled,
             taiwanTaxiInstalled = taiwanTaxiInstalled,
             uberInstalled = uberInstalled,
             boltInstalled = boltInstalled,
@@ -135,6 +138,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
                 AppReminderPreferences.App.YOUBIKE.isEnabled(this, youBikeInstalled),
             youBikeExactAlarmAllowed = YouBikeRideManager.canScheduleExactAlarms(this),
             foodpandaEnabled = AppReminderPreferences.App.FOODPANDA.isEnabled(this, foodpandaInstalled),
+            mcDonaldsEnabled =
+                AppReminderPreferences.App.MCDONALDS.isEnabled(this, mcDonaldsInstalled),
             taiwanTaxiEnabled =
                 AppReminderPreferences.App.TAIWAN_TAXI.isEnabled(this, taiwanTaxiInstalled),
             uberEnabled = AppReminderPreferences.App.UBER_RIDE.isEnabled(this, uberInstalled),
@@ -236,6 +241,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openFoodpanda() = openPackage(FOODPANDA_PACKAGE, "foodpanda")
 
+    private fun openMcDonalds() = openPackage(MCDONALDS_PACKAGE, "McDonald's")
+
     private fun openTaiwanTaxi() = openPackage(TAIWAN_TAXI_PACKAGE, "55688")
 
     private fun openUber() = openPackage(UBER_PACKAGE, "Uber")
@@ -283,6 +290,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.TAIWAN_PAY -> LiveStatusReminder.clearTaiwanPay(this)
             AppReminderPreferences.App.YOUBIKE -> YouBikeRideManager.clear(this)
             AppReminderPreferences.App.FOODPANDA -> LiveStatusReminder.clearFoodpanda(this)
+            AppReminderPreferences.App.MCDONALDS -> LiveStatusReminder.clearMcDonalds(this)
             AppReminderPreferences.App.TAIWAN_TAXI -> TaiwanTaxiRideManager.clear(this)
             AppReminderPreferences.App.UBER_RIDE -> LiveStatusReminder.clearUberRide(this)
             AppReminderPreferences.App.UBER_EATS -> LiveStatusReminder.clearUberEats(this)
@@ -317,6 +325,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_YOUBIKE"
         private const val ACTION_OPEN_FOODPANDA =
             "com.github.jimmy90109.livestatus.action.OPEN_FOODPANDA"
+        private const val ACTION_OPEN_MCDONALDS =
+            "com.github.jimmy90109.livestatus.action.OPEN_MCDONALDS"
         private const val ACTION_OPEN_TAIWAN_TAXI =
             "com.github.jimmy90109.livestatus.action.OPEN_TAIWAN_TAXI"
         private const val ACTION_OPEN_UBER =
@@ -344,6 +354,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
         private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+        private const val MCDONALDS_PACKAGE = "com.mcdonalds.mobileapp"
         private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
         private const val UBER_PACKAGE = "com.ubercab"
         private const val BOLT_PACKAGE = "ee.mtakso.client"
@@ -380,6 +391,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
         @JvmStatic
         fun createOpenFoodpandaIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_FOODPANDA)
+
+        @JvmStatic
+        fun createOpenMcDonaldsIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_MCDONALDS)
 
         @JvmStatic
         fun createOpenTaiwanTaxiIntent(context: Context): Intent =
@@ -440,6 +455,7 @@ internal data class StatusSnapshot(
     val taiwanPayInstalled: Boolean = false,
     val youBikeInstalled: Boolean = false,
     val foodpandaInstalled: Boolean = false,
+    val mcDonaldsInstalled: Boolean = false,
     val taiwanTaxiInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
     val boltInstalled: Boolean = false,
@@ -462,6 +478,7 @@ internal data class StatusSnapshot(
     val youBikeEnabled: Boolean = false,
     val youBikeExactAlarmAllowed: Boolean = false,
     val foodpandaEnabled: Boolean = false,
+    val mcDonaldsEnabled: Boolean = false,
     val taiwanTaxiEnabled: Boolean = false,
     val uberEnabled: Boolean = false,
     val uberEatsEnabled: Boolean = false,

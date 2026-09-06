@@ -115,7 +115,7 @@ internal fun RequiredSettingsSection(
                 SettingCard(
                     number = "01",
                     title = "讀取狀態通知",
-                    description = "允許 App 辨識媒體播放、Clock、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats、Citymapper 導航與 Pikmin Bloom 狀態。",
+                    description = "允許 App 辨識媒體播放、Clock、Google Recorder、YPT、Hevy、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats、Citymapper 導航與 Pikmin Bloom 狀態。",
                     enabled = status.notificationAccess,
                     enabledText = "已開啟",
                     disabledText = "尚未開啟",

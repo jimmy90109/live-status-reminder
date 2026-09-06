@@ -130,6 +130,73 @@ internal fun FoodpandaCard(
     }
 }
 
+@Composable
+internal fun McDonaldsCard(
+    installed: Boolean,
+    enabled: Boolean,
+    interactionEnabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val context = LocalContext.current
+    AppCard(
+        appName = "McDonald's",
+        appPackageName = MCDONALDS_PACKAGE,
+        fallbackIconRes = R.drawable.ic_food_delivery_notification,
+        title = "到店取餐狀態",
+        description = "餐點準備完成時，顯示訂單號碼與取餐提醒。",
+        supportedLanguages = listOf("繁中"),
+        installed = installed,
+        enabled = enabled,
+        interactionEnabled = interactionEnabled,
+        onEnabledChange = onEnabledChange,
+        cardColor = colors.mcDonaldsContainer,
+        labelColor = colors.mcDonaldsSecondaryContainer,
+        foregroundColor = colors.mcDonaldsText,
+        actionColor = colors.mcDonaldsPrimary,
+        notices = {
+            AppWarningNotice(
+                title = stringResource(R.string.platform_special_status_warning_title),
+                description = stringResource(R.string.mcdonalds_supported_notification_notice),
+            )
+        },
+    ) {
+        AppActionDivider(colors.mcDonaldsText)
+        AppCardActionButton(
+            "模擬訂單準備就緒",
+            colors.mcDonaldsPrimary,
+            colors.mcDonaldsText,
+            supportingText = stringResource(R.string.monitoring_mcdonalds_ready),
+            enabled = enabled,
+        ) {
+            LiveStatusReminder.showMcDonalds(
+                context,
+                LiveStatusNotificationParser.McDonaldsUpdate(
+                    event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
+                    orderNumber = "97167",
+                ),
+            )
+        }
+        AppCardActionButton(
+            "清除 McDonald's 狀態",
+            colors.mcDonaldsPrimary,
+            colors.mcDonaldsText,
+        ) {
+            LiveStatusReminder.clearMcDonalds(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                "查看通知 payload",
+                colors.mcDonaldsPrimary,
+                colors.mcDonaldsText,
+            ) {
+                onOpenDebug()
+            }
+        }
+    }
+}
+
 
 @Composable
 internal fun UberEatsCard(
@@ -250,4 +317,5 @@ private fun UberEatsTestButton(
 
 
 private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+private const val MCDONALDS_PACKAGE = "com.mcdonalds.mobileapp"
 private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
