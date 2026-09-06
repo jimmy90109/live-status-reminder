@@ -8,12 +8,26 @@
 | --- | --- |
 | Alpha 最新上傳 | `2608060 (1.0.6)`，2026-08-06 已發布 |
 | Alpha 最新通過 | `2608060 (1.0.6)`，2026-08-06 23:46 通過審查並可供測試人員使用 |
-| 公開測試最新發布 | `2608240 (1.0.9)`，2026-08-24 19:29 已發布，可供不限數量的測試人員使用 |
+| 公開測試最新發布 | `2609050 (1.0.10)`，2026-09-05 16:33 已發布，可供不限數量的測試人員使用，供應 2 個國家／地區 |
 | 公開測試待審 | 無 |
-| Production | `2608240 (1.0.9)`，2026-08-24 20:12 已通過審查並在 Google Play 上架，供應 2 個國家／地區 |
+| Production | `2609050 (1.0.10)`，2026-09-05 16:33 已通過審查並在 Google Play 上架，供應台灣與香港 |
 | Production 待審 | 無 |
 
 Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>
+
+## 1.0.10 發版產物
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2609050 (1.0.10)`；2026-09-05 已發布至 Beta 公開測試與 Production，兩個軌道均 100% 全面推出，未上傳 Alpha |
+| 來源 revision | `9c13086`；建置時工作目錄另含未提交的發版變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `81c2008cc5a016785ff1d21e3788f6a293d3ff2f5afb4e0b719bfd54718fbe1a` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play.zip` |
+| Symbols SHA-256 | `de7b6bcd18786d836dc1227d1ff1610717de8275c9374d5fabedf3f0307e1438` |
+| YouBike 索引 | `generatedAt=2026-09-05T08:10:02+00:00`，TDX 來源 9,521 筆；較 `2609010` 新增 7 筆、移除 1 筆，淨增 6 筆，服務區域未減少 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease` 成功；AAB 簽章及 release manifest 內的 package、版本名稱、版本代碼、minSdk 與 targetSdk 已核對 |
+| Play 裝置支援 | 1,662 台；手機 1,096 台、平板 566 台，停止支援 0 台、新支援 0 台；Beta 公開測試與 Production 均供應 2 個國家／地區 |
 
 ## 1.0.9 發版產物
 
@@ -74,6 +88,9 @@ Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy901
 
 | 日期 | 軌道 | 版本 | 狀態 |
 | --- | --- | --- | --- |
+| 2026-09-05 | Production | `2609050 (1.0.10)` | 16:33 已通過審查並在 Google Play 上架；Play Console 顯示為最新正式版，於台灣與香港完成 100% 全面推出，支援 1,662 台裝置 |
+| 2026-09-05 | 公開測試 | `2609050 (1.0.10)` | Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；16:33 已發布，可供不限數量的測試人員使用，供應 2 個國家／地區 |
+| 2026-09-04 | 公開測試 | `2609010 (1.0.10)` | 9 月 1 日 22:07 Signed AAB 與 native debug symbols 已上傳並以軌道內 100% 全面推出送審；9 月 4 日 22:31 已發布 |
 | 2026-08-24 | Production | `2608240 (1.0.9)` | 20:12 已通過審查並在 Google Play 上架；Play Console 顯示為最新正式版，供應 2 個國家／地區，支援 1,617 台裝置 |
 | 2026-08-24 | 公開測試 | `2608240 (1.0.9)` | 18:59 Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；19:29 已發布，可供不限數量的測試人員使用 |
 | 2026-08-15 | Production | `2608140 (1.0.8)` | 02:56 已通過審查並在 Google Play 上架；Play Console 顯示為最新正式版，供應 2 個國家／地區 |

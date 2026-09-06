@@ -78,6 +78,7 @@ internal fun AppsSection(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenBoltDebug: () -> Unit,
+    onOpenCitymapperDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
@@ -272,6 +273,15 @@ internal fun AppsSection(
                             onOpenDebug = onOpenTaiwanTaxiDebug,
                         )
                     }
+                    CATEGORY_NAVIGATION -> CitymapperCard(
+                        installed = status.citymapperInstalled,
+                        enabled = status.citymapperEnabled,
+                        interactionEnabled = status.requiredSettingsComplete,
+                        onEnabledChange = {
+                            onAppEnabledChange(AppReminderPreferences.App.CITYMAPPER, it)
+                        },
+                        onOpenDebug = onOpenCitymapperDebug,
+                    )
                     CATEGORY_RENTAL -> YouBikeCard(
                         installed = status.youBikeInstalled,
                         enabled = status.youBikeEnabled,
@@ -521,6 +531,19 @@ private fun AppTabs(
                 onSelect,
             )
             AppTab(
+                stringResource(R.string.app_category_navigation),
+                CATEGORY_NAVIGATION,
+                currentPage,
+                currentPageOffsetFraction,
+                transitionFromPage,
+                transitionToPage,
+                transitionProgress,
+                transitionActive,
+                colors.commonPrimary,
+                colors.commonOnPrimary,
+                onSelect,
+            )
+            AppTab(
                 stringResource(R.string.app_category_rental),
                 CATEGORY_RENTAL,
                 currentPage,
@@ -662,11 +685,12 @@ private fun AppTab(
 private const val CATEGORY_TRANSIT_CODE = 0
 private const val CATEGORY_DELIVERY = 1
 private const val CATEGORY_RIDE = 2
-private const val CATEGORY_RENTAL = 3
-private const val CATEGORY_SPORT = 4
-private const val CATEGORY_TOOL = 5
-private const val CATEGORY_MEDIA = 6
-private const val APP_CATEGORY_PAGE_COUNT = 7
+private const val CATEGORY_NAVIGATION = 3
+private const val CATEGORY_RENTAL = 4
+private const val CATEGORY_SPORT = 5
+private const val CATEGORY_TOOL = 6
+private const val CATEGORY_MEDIA = 7
+private const val APP_CATEGORY_PAGE_COUNT = 8
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
 private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

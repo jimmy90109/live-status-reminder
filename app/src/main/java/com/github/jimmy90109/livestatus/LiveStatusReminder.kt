@@ -47,6 +47,8 @@ object LiveStatusReminder {
     private const val GOOGLE_RECORDER_NOTIFICATION_ID = 1014
     private const val TEAMS_CALL_NOTIFICATION_ID = 1015
     private const val STRAVA_RECORDING_NOTIFICATION_ID = 1016
+    private const val CITYMAPPER_NOTIFICATION_ID = 1017
+    private const val CITYMAPPER_CHANNEL_ID = "citymapper_navigation"
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -348,7 +350,7 @@ object LiveStatusReminder {
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .also { applyUberEatsStyle(it, event) }
-            .setShortCriticalText(pin ?: uberEatsShortText(event, language))
+            .setShortCriticalText(displayPayload.criticalText)
             .also(::requestPromotedOngoing)
             .also { XiaomiHyperIslandRenderer.apply(context, it, displayPayload) }
 
@@ -668,6 +670,138 @@ object LiveStatusReminder {
 
     internal fun clearHevyWorkout(context: Context) {
         notificationManager(context).cancel(HEVY_WORKOUT_NOTIFICATION_ID)
+    }
+
+    internal fun showCitymapperNavigation(context: Context, update: CitymapperNavigationUpdate) {
+        val channel = NotificationChannel(
+            CITYMAPPER_CHANNEL_ID,
+            context.getString(R.string.citymapper_notification_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).createNotificationChannel(channel)
+        notificationManager(context).notify(CITYMAPPER_NOTIFICATION_ID, buildCitymapperNotification(context, update))
+    }
+
+    internal fun buildCitymapperNotification(context: Context, update: CitymapperNavigationUpdate): Notification {
+        val openCitymapper = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            17,
+            HomeScreenHostActivity.createOpenCitymapperIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = citymapperNavigationPayload(
+            update, citymapperCriticalText(context, update.presentation), openCitymapper,
+        )
+        return Notification.Builder(context, CITYMAPPER_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(update.visibility)
+            .setWhen(0)
+            .setShowWhen(false)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also { builder -> update.sourceActions.filter(::isCitymapperNavigationAction).forEach(builder::addAction) }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+            .build()
+    }
+
+    internal fun citymapperNavigationPayload(
+        update: CitymapperNavigationUpdate,
+        criticalText: String,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload {
+        val iconRes = citymapperIcon(update.presentation)
+        return LiveStatusPayload(
+            id = CITYMAPPER_NOTIFICATION_ID,
+            appName = "Citymapper",
+            smallIconRes = iconRes,
+            leftIconRes = iconRes,
+            criticalText = criticalText,
+            title = update.text.title,
+            contentText = update.text.contentText,
+            contentIntent = contentIntent,
+        )
+    }
+
+    internal fun citymapperCriticalText(
+        context: Context,
+        presentation: CitymapperNavigationPresentation,
+    ): String = when (presentation.stage) {
+        CitymapperNavigationStage.WALKING -> presentation.walkingMinutes?.let {
+            context.getString(R.string.citymapper_live_walking_minutes, it)
+        } ?: context.getString(R.string.citymapper_live_walking)
+        CitymapperNavigationStage.WAITING -> citymapperWaitingCriticalText(context, presentation)
+        CitymapperNavigationStage.RIDING -> presentation.stops?.let {
+            context.getString(R.string.citymapper_live_stops, it)
+        } ?: context.getString(R.string.citymapper_live_critical_text)
+        CitymapperNavigationStage.TRAIN_DEPARTURE ->
+            (presentation.transitTiming as? CitymapperTransitTiming.ScheduledTime)?.let {
+                citymapperScheduledCriticalText(context, it.time)
+            } ?: context.getString(R.string.citymapper_live_critical_text)
+        CitymapperNavigationStage.UNKNOWN -> context.getString(R.string.citymapper_live_critical_text)
+    }
+
+    private fun citymapperWaitingCriticalText(
+        context: Context,
+        presentation: CitymapperNavigationPresentation,
+    ): String = when (val timing = presentation.transitTiming) {
+        is CitymapperTransitTiming.ScheduledTime -> citymapperScheduledCriticalText(context, timing.time)
+        is CitymapperTransitTiming.CountdownMinutes -> when (presentation.transitMode) {
+            CitymapperTransitMode.BUS -> context.getString(R.string.citymapper_live_bus_minutes, timing.minutes)
+            CitymapperTransitMode.TRAIN -> context.getString(R.string.citymapper_live_train_minutes, timing.minutes)
+            CitymapperTransitMode.METRO -> context.getString(R.string.citymapper_live_metro_minutes, timing.minutes)
+            CitymapperTransitMode.UNKNOWN -> context.getString(R.string.citymapper_live_unknown_minutes, timing.minutes)
+        }
+        null -> when (presentation.transitMode) {
+            CitymapperTransitMode.BUS -> context.getString(R.string.citymapper_live_waiting_bus)
+            CitymapperTransitMode.TRAIN -> context.getString(R.string.citymapper_live_waiting_train)
+            CitymapperTransitMode.METRO -> context.getString(R.string.citymapper_live_waiting_metro)
+            CitymapperTransitMode.UNKNOWN -> context.getString(R.string.citymapper_live_critical_text)
+        }
+    }
+
+    internal fun citymapperScheduledCriticalText(context: Context, sourceTime: String): String {
+        val compactTime = sourceTime
+            .replace(Regex("""^(?:上午|下午)\s*"""), "")
+            .replace(Regex("""\s*(?:AM|PM)$""", RegexOption.IGNORE_CASE), "")
+        return context.getString(R.string.citymapper_live_train_departure, compactTime)
+    }
+
+    internal fun citymapperIcon(presentation: CitymapperNavigationPresentation): Int =
+        when (presentation.stage) {
+            CitymapperNavigationStage.WALKING -> R.drawable.ic_walking_notification
+            CitymapperNavigationStage.RIDING -> when (presentation.transitMode) {
+                CitymapperTransitMode.BUS -> R.drawable.ic_bus_notification
+                CitymapperTransitMode.TRAIN -> R.drawable.ic_train_notification
+                CitymapperTransitMode.METRO -> R.drawable.ic_metro_notification
+                CitymapperTransitMode.UNKNOWN -> R.drawable.ic_transit_notification
+            }
+            CitymapperNavigationStage.WAITING,
+            CitymapperNavigationStage.TRAIN_DEPARTURE,
+            -> when (presentation.transitMode) {
+                CitymapperTransitMode.BUS -> R.drawable.ic_bus_notification
+                CitymapperTransitMode.TRAIN -> R.drawable.ic_train_notification
+                CitymapperTransitMode.METRO -> R.drawable.ic_metro_notification
+                CitymapperTransitMode.UNKNOWN -> if (presentation.transitTiming != null) {
+                    R.drawable.ic_transit_notification
+                } else {
+                    R.drawable.ic_navigation_notification
+                }
+            }
+            CitymapperNavigationStage.UNKNOWN -> R.drawable.ic_navigation_notification
+        }
+
+    internal fun clearCitymapperNavigation(context: Context) {
+        notificationManager(context).cancel(CITYMAPPER_NOTIFICATION_ID)
     }
 
     internal fun showStravaRecording(context: Context, update: StravaRecordingUpdate) {
@@ -1159,7 +1293,11 @@ object LiveStatusReminder {
         pin: String?,
     ): LiveStatusPayload =
         payload.copy(
-            criticalText = pin ?: payload.criticalText,
+            criticalText = if (event == LiveStatusNotificationParser.UberEatsEvent.ARRIVING) {
+                pin ?: payload.criticalText
+            } else {
+                payload.criticalText
+            },
             contentText = uberEatsDisplayText(event, language, payload.contentText, pin),
         )
 

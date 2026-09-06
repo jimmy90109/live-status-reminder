@@ -3,6 +3,7 @@ package com.github.jimmy90109.livestatus
 import android.app.Notification
 import android.content.ComponentName
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
@@ -19,6 +20,16 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val yptStudyTracker = YptStudyTracker()
     private val hevyWorkoutTracker = HevyWorkoutTracker()
     private val stravaRecordingTracker = StravaRecordingTracker()
+    private val citymapperTracker = CitymapperNavigationTracker()
+    private val citymapperPreferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == AppReminderPreferences.App.CITYMAPPER.preferenceKey) {
+            if (AppReminderPreferences.App.CITYMAPPER.isEnabled(this)) {
+                restoreCitymapperNavigation(runCatching { activeNotifications }.getOrNull().orEmpty())
+            } else {
+                handleCitymapperDecision(citymapperTracker.reset())
+            }
+        }
+    }
     private val discordVoiceTracker = DiscordVoiceTracker()
     private val teamsCallTracker = TeamsCallTracker()
     private val recorderTracker = RecorderTracker()
@@ -43,6 +54,11 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
     private val uberEatsTracker = UberEatsTracker()
 
+    override fun onCreate() {
+        super.onCreate()
+        AppReminderPreferences.registerListener(this, citymapperPreferenceListener)
+    }
+
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
         if (statusBarNotification.packageName == packageName) return
         mediaPlaybackMonitor.onNotificationPosted(statusBarNotification)
@@ -53,6 +69,26 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             notification,
         )
         when (statusBarNotification.packageName) {
+            CITYMAPPER_PACKAGE -> {
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordCitymapper(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                        "POSTED",
+                    )
+                }
+                if (AppReminderPreferences.App.CITYMAPPER.isEnabled(this)) {
+                    handleCitymapperDecision(citymapperTracker.onPosted(
+                        statusBarNotification.key,
+                        CitymapperNotificationExtractor.extract(this, statusBarNotification),
+                    ))
+                } else {
+                    handleCitymapperDecision(citymapperTracker.reset())
+                }
+            }
             BOLT_PACKAGE -> if (BuildConfig.DEBUG) {
                 NotificationDebugPayloadStore.recordBolt(
                     this,
@@ -473,6 +509,21 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (statusBarNotification.packageName == CITYMAPPER_PACKAGE) {
+            if (BuildConfig.DEBUG) {
+                val notification = statusBarNotification.notification
+                NotificationDebugPayloadStore.recordCitymapper(
+                    this,
+                    statusBarNotification,
+                    readNotificationText(this, statusBarNotification.packageName, notification),
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                    "REMOVED",
+                )
+            }
+            handleCitymapperDecision(citymapperTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (BuildConfig.DEBUG && statusBarNotification.packageName == BOLT_PACKAGE) {
             val notification = statusBarNotification.notification
             NotificationDebugPayloadStore.recordBolt(
@@ -569,6 +620,8 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onDestroy() {
+        AppReminderPreferences.unregisterListener(this, citymapperPreferenceListener)
+        handleCitymapperDecision(citymapperTracker.reset())
         stopClockTimerRefresh()
         mediaPlaybackMonitor.stop()
         super.onDestroy()
@@ -619,10 +672,12 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         restoreYptStudy(activeNotifications)
         restoreHevyWorkout(activeNotifications)
         restoreStravaRecording(activeNotifications)
+        restoreCitymapperNavigation(activeNotifications)
         YouBikeRideManager.restore(this)
     }
 
     override fun onListenerDisconnected() {
+        handleCitymapperDecision(citymapperTracker.reset())
         mediaPlaybackMonitor.stop()
         super.onListenerDisconnected()
     }
@@ -630,6 +685,24 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         mediaPlaybackMonitor.refresh()
+    }
+
+    private fun handleCitymapperDecision(decision: CitymapperNavigationDecision) {
+        when (decision) {
+            is CitymapperNavigationDecision.Show -> LiveStatusReminder.showCitymapperNavigation(this, decision.update)
+            CitymapperNavigationDecision.Clear -> LiveStatusReminder.clearCitymapperNavigation(this)
+            CitymapperNavigationDecision.None -> Unit
+        }
+    }
+
+    private fun restoreCitymapperNavigation(notifications: Array<out StatusBarNotification>) {
+        if (!AppReminderPreferences.App.CITYMAPPER.isEnabled(this)) {
+            handleCitymapperDecision(citymapperTracker.reset())
+            return
+        }
+        val updates = notifications.filter { it.packageName == CITYMAPPER_PACKAGE }
+            .mapNotNull { CitymapperNotificationExtractor.extract(this, it) }
+        handleCitymapperDecision(citymapperTracker.restore(updates))
     }
 
     private fun handleClockTimerDecision(decision: ClockTimerDecision) {
@@ -977,6 +1050,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
         private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
+        private const val CITYMAPPER_PACKAGE = CitymapperNavigationMapper.PACKAGE_NAME
         private const val BOLT_PACKAGE = "ee.mtakso.client"
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
@@ -1040,10 +1114,18 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             }
         }
 
+        internal fun readCitymapperNotificationText(
+            context: Context,
+            packageName: String,
+            notification: Notification,
+        ): String = readNotificationText(notification) +
+            readRemoteViewsText(context, packageName, notification, preserveLineBreaks = true)
+
         private fun readRemoteViewsText(
             context: Context,
             packageName: String?,
             notification: Notification,
+            preserveLineBreaks: Boolean = false,
         ): String {
             val packageContext = packageName?.let {
                 runCatching { context.createPackageContext(it, 0) }.getOrNull()
@@ -1052,7 +1134,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             return contexts
                 .flatMap { remoteViewContext ->
                     notification.remoteViews().flatMap { remoteViews ->
-                        remoteViews.readTextViews(remoteViewContext)
+                        remoteViews.readTextViews(remoteViewContext, preserveLineBreaks)
                     }
                 }
                 .distinct()
@@ -1069,17 +1151,20 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 publicVersion?.headsUpContentView,
             )
 
-        private fun RemoteViews.readTextViews(context: Context): List<String> =
+        private fun RemoteViews.readTextViews(context: Context, preserveLineBreaks: Boolean): List<String> =
             runCatching {
                 val view = apply(context, null)
-                view.collectTextViews()
+                view.collectTextViews(preserveLineBreaks)
             }.getOrDefault(emptyList())
 
-        private fun View.collectTextViews(): List<String> = when (this) {
-            is TextView -> listOfNotNull(text.toCleanString())
+        private fun View.collectTextViews(preserveLineBreaks: Boolean): List<String> = when (this) {
+            is TextView -> listOfNotNull(
+                if (preserveLineBreaks) text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                else text.toCleanString(),
+            )
             is ViewGroup -> buildList {
                 repeat(childCount) { index ->
-                    addAll(getChildAt(index).collectTextViews())
+                    addAll(getChildAt(index).collectTextViews(preserveLineBreaks))
                 }
             }
             else -> emptyList()

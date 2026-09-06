@@ -78,6 +78,7 @@ internal fun AppCard(
     labelColor: Color,
     foregroundColor: Color,
     actionColor: Color = labelColor,
+    additionalTags: (@Composable () -> Unit)? = null,
     notices: (@Composable ColumnScope.() -> Unit)? = null,
     actions: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
@@ -122,6 +123,7 @@ internal fun AppCard(
                 supportedLanguages.forEach { language ->
                     LanguageTag(language, labelColor, foregroundColor)
                 }
+                additionalTags?.invoke()
             }
             if (installed && showEnabledSwitch) {
                 Switch(

@@ -45,11 +45,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.NotificationDebugPayloadStore
+import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -61,6 +63,7 @@ private enum class DebugTarget(val appName: String) {
     TAIWAN_TAXI("55688"),
     UBER("Uber"),
     BOLT("Bolt"),
+    CITYMAPPER("Citymapper"),
     FOODPANDA("foodpanda"),
     UBER_EATS("Uber Eats"),
     YPT("YPT - Yeolpumta"),
@@ -161,6 +164,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.taiwanTaxiPayloads
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
                     DebugTarget.BOLT -> NotificationDebugPayloadStore.boltPayloads
+                    DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.citymapperPayloads
                     DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                     DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
@@ -178,6 +182,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiContainer
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.BOLT -> colors.boltContainer
+                    DebugTarget.CITYMAPPER -> colors.citymapperContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
                     DebugTarget.YPT -> colors.yptContainer
@@ -194,6 +199,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiText
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.BOLT -> colors.boltText
+                    DebugTarget.CITYMAPPER -> colors.citymapperText
                     DebugTarget.FOODPANDA -> colors.foodpandaText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
                     DebugTarget.YPT -> colors.yptText
@@ -216,6 +222,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.clearTaiwanTaxi()
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
                         DebugTarget.BOLT -> NotificationDebugPayloadStore.clearBolt()
+                        DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.clearCitymapper()
                         DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
                         DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
@@ -262,6 +269,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
+                        onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                         onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                         onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
@@ -297,6 +305,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
+                        onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                         onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                         onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
@@ -397,34 +406,27 @@ private fun NotificationAccessDisclosureDialog(
     onDismiss: () -> Unit,
     onContinue: () -> Unit,
 ) {
-    val debugPayloadDisclosure = if (BuildConfig.DEBUG) {
-        "Debug build 也會在目前程序記憶體暫存最近 30 筆 Microsoft Teams 與 Strava 通知 payload，供通知規則校正使用；重啟 App 後即清除。\n\n"
-    } else {
-        ""
+    val disclosureBody = buildString {
+        append(stringResource(R.string.notification_access_disclosure_body))
+        if (BuildConfig.DEBUG) {
+            append("\n\n")
+            append(stringResource(R.string.notification_access_disclosure_debug_addendum))
+        }
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("允許讀取通知前，請先了解") },
-        text = {
-            Text(
-                "即時狀態提醒會讀取媒體播放、Discord、Microsoft Teams、Clock、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知內容，" +
-                    "用來辨識曲名與作者、Discord 語音狀態、Teams 通話時間與對方名稱、倒數與錄音時間、讀書與健身進度、乘車、YouBike 騎乘費用、外送進度、55688 車牌、Uber / Uber Eats PIN 與 Pikmin Bloom 種花狀態，並在本機產生提醒。\n\n" +
-                    "通知內容只在您的裝置上即時處理；App 不會上傳、出售或分享這些資料，" +
-                    "也不會永久儲存通知內容、車牌或 PIN。Google Recorder 的錄音狀態與時間只在目前程序記憶體處理；Debug build 另暫存最近 30 筆 Recorder payload，重啟 App 後即清除。\n\n" +
-                    debugPayloadDisclosure +
-                    "YouBike 功能只暫存目前騎乘所需的時間、站名、車柱、車號與服務區域，最長 24 小時。您隨時可以在系統設定中關閉通知存取權限。",
-            )
-        },
+        title = { Text(stringResource(R.string.notification_access_disclosure_title)) },
+        text = { Text(disclosureBody) },
         confirmButton = {
             TextButton(
                 onClick = rememberHapticAction(HapticEffect.CONFIRM, onContinue),
             ) {
-                Text("了解並前往設定")
+                Text(stringResource(R.string.notification_access_disclosure_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = rememberHapticAction(action = onDismiss)) {
-                Text("暫時不要")
+                Text(stringResource(R.string.notification_access_disclosure_dismiss))
             }
         },
     )
