@@ -254,6 +254,8 @@
     <string name="monitoring_foodpanda_on_the_way">包含「外送夥伴在路上」。</string>
     <string name="monitoring_foodpanda_arriving">包含「外送夥伴即將抵達」。</string>
     <string name="monitoring_foodpanda_ended">包含「已送達」、「訂單完成」、「已取消」或「訂單取消」。</string>
+    <string name="mcdonalds_supported_notification_notice">目前僅支援繁中「訂單準備就緒」且請直接至餐廳取餐的通知；其他取餐方式與特殊狀態請以麥當勞 App 為準。</string>
+    <string name="monitoring_mcdonalds_ready">標題為「訂單準備就緒」，內文符合「您的訂單 [號碼] 已完成，請直接至餐廳取餐」。</string>
 
     <string name="monitoring_uber_pickup_en_route">標題為「[分鐘] 分鐘內上車」，且通知文字包含「在 [上車點] 碰面」。</string>
     <string name="monitoring_uber_pickup_nearby">標題為「[司機] 即將抵達」；或在 2 分鐘內上車且已取得車牌、車款或 PIN。</string>

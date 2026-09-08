@@ -48,6 +48,7 @@ object LiveStatusReminder {
     private const val TEAMS_CALL_NOTIFICATION_ID = 1015
     private const val STRAVA_RECORDING_NOTIFICATION_ID = 1016
     private const val CITYMAPPER_NOTIFICATION_ID = 1017
+    private const val MCDONALDS_NOTIFICATION_ID = 1018
     private const val CITYMAPPER_CHANNEL_ID = "citymapper_navigation"
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
@@ -257,6 +258,49 @@ object LiveStatusReminder {
     @JvmStatic
     fun clearFoodpanda(context: Context) {
         notificationManager(context).cancel(FOODPANDA_NOTIFICATION_ID)
+    }
+
+    @JvmStatic
+    fun showMcDonalds(
+        context: Context,
+        update: LiveStatusNotificationParser.McDonaldsUpdate,
+    ) {
+        val orderNumber = update.orderNumber?.takeIf(String::isNotBlank) ?: return
+        createChannel(context)
+        val openMcDonalds = PendingIntent.getActivity(
+            context,
+            18,
+            HomeScreenHostActivity.createOpenMcDonaldsIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = mcDonaldsPayload(orderNumber, openMcDonalds)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    "開啟 McDonald's",
+                    openMcDonalds,
+                ).build(),
+            )
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+
+        notificationManager(context).notify(MCDONALDS_NOTIFICATION_ID, builder.build())
+    }
+
+    @JvmStatic
+    fun clearMcDonalds(context: Context) {
+        notificationManager(context).cancel(MCDONALDS_NOTIFICATION_ID)
     }
 
     @JvmStatic
@@ -1431,6 +1475,20 @@ object LiveStatusReminder {
             contentIntent = contentIntent,
         )
     }
+
+    internal fun mcDonaldsPayload(
+        orderNumber: String,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload = LiveStatusPayload(
+        id = MCDONALDS_NOTIFICATION_ID,
+        appName = "McDonald's",
+        smallIconRes = R.drawable.ic_food_delivery_notification,
+        leftIconRes = R.drawable.ic_food_delivery_notification,
+        criticalText = orderNumber,
+        title = "訂單準備就緒",
+        contentText = "訂單 $orderNumber 已完成，請直接至餐廳取餐。",
+        contentIntent = contentIntent,
+    )
 
     internal fun uberEatsPayload(
         event: LiveStatusNotificationParser.UberEatsEvent,

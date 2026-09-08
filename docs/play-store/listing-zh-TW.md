@@ -12,7 +12,7 @@ LiveStatus 即時狀態提醒
 
 LiveStatus 即時狀態提醒是一款為 Android 16 設計的通知輔助工具，會監聽媒體播放與指定應用程式的通知，將重要狀態轉換成持續顯示的 Live Update，讓你不用反覆打開 App，也能快速掌握正在播放內容、Discord 語音頻道、Microsoft Teams 通話、倒數計時、讀書與健身、外送、乘車與種花狀態。
 
-支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Microsoft Teams 進行中會議、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom。
+支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Microsoft Teams 進行中會議、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 與 Pikmin Bloom。
 
 【媒體播放】
 當系統首選的活躍媒體工作階段正在播放、但來源通知尚未成為 Live Update 時，LiveStatus 會另外顯示曲名、作者、專輯與可用的切歌、播放、暫停或 podcast 倒退／快轉 15 秒控制。暫停後保留 1 分鐘方便恢復播放；停止、播放錯誤、工作階段或來源通知消失後會立即清除。Android 不允許修改其他 App 的通知，因此原始媒體通知仍會保留；備援通知是否被系統提升則依裝置支援情況而定。
@@ -52,6 +52,9 @@ Strava 記錄活動時，LiveStatus 會沿用官方通知標題顯示運動類�
 
 【foodpanda】
 當外送夥伴出發時，LiveStatus 會顯示外送中狀態；當外送夥伴接近時，會更新為即將抵達。訂單送達或取消後，提醒會自動移除。
+
+【McDonald's】
+當繁中通知顯示「訂單準備就緒」與「請直接至餐廳取餐」時，LiveStatus 會將訂單號碼顯示在 Live Update；對應來源通知移除時結束提醒。目前僅支援這個已驗證的直接至餐廳取餐文案，其他取餐方式請以官方 App 為準。
 
 【55688】
 司機接單後顯示車牌與抵達提醒，車輛抵達上車點時更新狀態，行程完成後自動移除。車牌只在裝置上即時處理，不會上傳或永久儲存。
@@ -99,7 +102,7 @@ LiveStatus 需要通知存取權，才能讀取媒體工作階段與指定 App �
 系統需求：Android 16 或更新版本。Live Update 顯示方式依裝置支援情況而定。
 
 【注意事項】
-LiveStatus 是第三方通知輔助工具，並非 Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
+LiveStatus 是第三方通知輔助工具，並非 Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
 
 LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或格式不明確，App 可能不會顯示部分資訊，以避免誤判。
 
@@ -115,12 +118,10 @@ LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或
 
 ## 發布版本名稱
 
-1.0.10
+1.0.11
 
 ## 發布說明
 
-1.0.10 更新：
+1.0.11 更新：
 
-- 新增 Citymapper 導航 Live Update，支援步行、公車、台鐵與捷運等繁中導航通知。
-- Uber Eats 僅在外送快抵達時於膠囊顯示 PIN，其他階段改為顯示訂單狀態。
-- 更新 Citymapper 卡片介面，移除 Beta 標籤。
+- 新增 McDonald's 到店取餐 Live Update；餐點準備完成時顯示訂單號碼，來源通知移除後自動結束提醒。

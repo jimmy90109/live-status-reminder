@@ -5,7 +5,7 @@
 ## 資料收集與分享
 
 - App 是否收集或分享任何必要揭露的使用者資料：**否**
-- 理由：媒體曲名、Discord 語音頻道顯示文字、Google Recorder 錄音狀態與時間、YPT 讀書計時、Hevy 健身進度、完整通知內容、55688 車牌及 Uber / Uber Eats PIN 僅在裝置上即時處理，未傳送出裝置。YouBike 站點回報只會在使用者點擊回報通知後，將去識別化欄位交給使用者選擇的外部 Email App；必須由使用者檢查並手動寄出。依 Google Play「資料安全」定義，純裝置端處理不屬於收集，而使用者可合理預期的特定主動分享動作可適用 sharing 的 user-initiated action 例外；送審時仍應依當下 Play Console 問卷與政策文字再次確認。
+- 理由：媒體曲名、Discord 語音頻道顯示文字、Google Recorder 錄音狀態與時間、YPT 讀書計時、Hevy 健身進度、完整通知內容、McDonald's 訂單號碼、55688 車牌及 Uber / Uber Eats PIN 僅在裝置上即時處理，未傳送出裝置。YouBike 站點回報只會在使用者點擊回報通知後，將去識別化欄位交給使用者選擇的外部 Email App；必須由使用者檢查並手動寄出。依 Google Play「資料安全」定義，純裝置端處理不屬於收集，而使用者可合理預期的特定主動分享動作可適用 sharing 的 user-initiated action 例外；送審時仍應依當下 Play Console 問卷與政策文字再次確認。
 - App 是否使用加密傳輸：**不適用，App 不傳輸使用者資料**
 - 使用者是否能要求刪除資料：**不適用，開發者未收集或持有使用者資料**
 
@@ -14,7 +14,7 @@
 即使「資料安全」回答未收集資料，隱私權政策與 App 內仍須清楚說明：
 
 - App 會在使用者授權後讀取通知內容。
-- 用途限於辨識媒體播放、Discord 伺服器語音頻道、Microsoft Teams 進行中通話、Google 時鐘、Google Recorder 錄音、YPT 讀書計時、Hevy 健身、Strava 運動記錄、Citymapper 導航、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
+- 用途限於辨識媒體播放、Discord 伺服器語音頻道、Microsoft Teams 進行中通話、Google 時鐘、Google Recorder 錄音、YPT 讀書計時、Hevy 健身、Strava 運動記錄、Citymapper 導航、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 與 Pikmin Bloom 狀態並建立本機提醒。
 - Strava 只在記憶體中暫時處理運動記錄狀態、官方通知標題與可用操作；來源通知移除後即清除，不上傳或永久保存。Debug build 另暫存最近 30 筆 payload，正式版不提供查看入口。
 - 媒體播放只在記憶體中暫時處理系統首選活躍工作階段的來源套件、曲名、作者、專輯、播放狀態與控制能力，不永久保存。
 - Discord 只在記憶體中暫時處理伺服器語音頻道連線狀態、來源顯示文字與可用操作；離開頻道或來源通知移除後即清除，不上傳或永久保存。
@@ -23,6 +23,7 @@
 - YPT 只在記憶體中暫時處理讀書計時開始時間與來源顯示文字；來源通知移除後即清除，不上傳或永久保存。
 - Hevy 只在記憶體中暫時處理訓練開始時間、動作、組數、重量、次數與休息倒數；來源通知移除後即清除，不上傳或永久保存。
 - Uber 與 Uber Eats 通知可能包含 PIN。
+- McDonald's 通知可能包含訂單號碼，只在程序記憶體與目前本機提醒處理。
 - 55688 通知可能包含車牌，只在程序記憶體與目前本機提醒處理。
 - 通知內容、車牌與 PIN 不上傳、不分享、不永久儲存。
 - YouBike 只暫存目前騎乘所需的結構化資料，最長 24 小時；不保存完整通知或付款識別碼。

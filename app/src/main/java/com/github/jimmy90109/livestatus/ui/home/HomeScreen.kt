@@ -65,6 +65,7 @@ private enum class DebugTarget(val appName: String) {
     BOLT("Bolt"),
     CITYMAPPER("Citymapper"),
     FOODPANDA("foodpanda"),
+    MCDONALDS("McDonald's"),
     UBER_EATS("Uber Eats"),
     YPT("YPT - Yeolpumta"),
     HEVY("Hevy"),
@@ -166,6 +167,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.BOLT -> NotificationDebugPayloadStore.boltPayloads
                     DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.citymapperPayloads
                     DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
+                    DebugTarget.MCDONALDS -> NotificationDebugPayloadStore.mcDonaldsPayloads
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                     DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
                     DebugTarget.HEVY -> NotificationDebugPayloadStore.hevyPayloads
@@ -184,6 +186,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.BOLT -> colors.boltContainer
                     DebugTarget.CITYMAPPER -> colors.citymapperContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
+                    DebugTarget.MCDONALDS -> colors.mcDonaldsContainer
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
                     DebugTarget.YPT -> colors.yptContainer
                     DebugTarget.HEVY -> colors.commonContainer
@@ -201,6 +204,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.BOLT -> colors.boltText
                     DebugTarget.CITYMAPPER -> colors.citymapperText
                     DebugTarget.FOODPANDA -> colors.foodpandaText
+                    DebugTarget.MCDONALDS -> colors.mcDonaldsText
                     DebugTarget.UBER_EATS -> colors.uberEatsText
                     DebugTarget.YPT -> colors.yptText
                     DebugTarget.HEVY -> colors.onSurface
@@ -224,6 +228,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.BOLT -> NotificationDebugPayloadStore.clearBolt()
                         DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.clearCitymapper()
                         DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
+                        DebugTarget.MCDONALDS -> NotificationDebugPayloadStore.clearMcDonalds()
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
                         DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
                         DebugTarget.HEVY -> NotificationDebugPayloadStore.clearHevy()
@@ -266,6 +271,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
+                        onOpenMcDonaldsDebug = { debugTarget = DebugTarget.MCDONALDS },
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
@@ -302,6 +308,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
                         onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
                         onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
+                        onOpenMcDonaldsDebug = { debugTarget = DebugTarget.MCDONALDS },
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },

@@ -53,6 +53,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private var lastUberRideUpdate =
         LiveStatusNotificationParser.UberRideUpdate(LiveStatusNotificationParser.UberRideEvent.NONE)
     private val uberEatsTracker = UberEatsTracker()
+    private val mcDonaldsTracker = McDonaldsTracker()
 
     override fun onCreate() {
         super.onCreate()
@@ -259,6 +260,40 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 }
                 if (AppReminderPreferences.App.FOODPANDA.isEnabled(this)) {
                     handleFoodpandaNotification(event)
+                }
+            }
+            MCDONALDS_PACKAGE -> {
+                val notificationTitle = readNotificationTitle(notification)
+                val notificationContentText = readNotificationContentText(notification)
+                val update = if (notification.flags and Notification.FLAG_GROUP_SUMMARY == 0) {
+                    LiveStatusNotificationParser.parseMcDonalds(
+                        notificationTitle,
+                        notificationContentText,
+                        notificationText,
+                    )
+                } else {
+                    LiveStatusNotificationParser.McDonaldsUpdate(
+                        LiveStatusNotificationParser.McDonaldsEvent.NONE,
+                    )
+                }
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordMcDonalds(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        notificationTitle,
+                        notificationContentText,
+                        "POSTED",
+                        update,
+                    )
+                }
+                if (AppReminderPreferences.App.MCDONALDS.isEnabled(this)) {
+                    handleMcDonaldsDecision(
+                        mcDonaldsTracker.onPosted(statusBarNotification.key, update),
+                    )
+                } else {
+                    mcDonaldsTracker.reset()
+                    LiveStatusReminder.clearMcDonalds(this)
                 }
             }
             TAIWAN_TAXI_PACKAGE -> {
@@ -608,6 +643,24 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             handleUberEatsDecision(uberEatsTracker.onRemoved(statusBarNotification.key))
             return
         }
+        if (statusBarNotification.packageName == MCDONALDS_PACKAGE) {
+            if (BuildConfig.DEBUG) {
+                val notification = statusBarNotification.notification
+                NotificationDebugPayloadStore.recordMcDonalds(
+                    this,
+                    statusBarNotification,
+                    readNotificationText(this, statusBarNotification.packageName, notification),
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                    "REMOVED",
+                    LiveStatusNotificationParser.McDonaldsUpdate(
+                        LiveStatusNotificationParser.McDonaldsEvent.NONE,
+                    ),
+                )
+            }
+            handleMcDonaldsDecision(mcDonaldsTracker.onRemoved(statusBarNotification.key))
+            return
+        }
         if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
 
         val notificationText = readNotificationText(statusBarNotification.notification)
@@ -673,6 +726,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         restoreHevyWorkout(activeNotifications)
         restoreStravaRecording(activeNotifications)
         restoreCitymapperNavigation(activeNotifications)
+        restoreMcDonaldsReadyOrder(activeNotifications)
         YouBikeRideManager.restore(this)
     }
 
@@ -963,6 +1017,48 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    private fun handleMcDonaldsDecision(decision: McDonaldsDecision) {
+        when (decision) {
+            is McDonaldsDecision.Show -> LiveStatusReminder.showMcDonalds(this, decision.update)
+            McDonaldsDecision.Clear -> LiveStatusReminder.clearMcDonalds(this)
+            McDonaldsDecision.None -> Unit
+        }
+    }
+
+    private fun restoreMcDonaldsReadyOrder(
+        notifications: Array<out StatusBarNotification>,
+    ) {
+        if (!AppReminderPreferences.App.MCDONALDS.isEnabled(this)) {
+            mcDonaldsTracker.reset()
+            LiveStatusReminder.clearMcDonalds(this)
+            return
+        }
+
+        val latest = notifications
+            .asSequence()
+            .filter { it.packageName == MCDONALDS_PACKAGE }
+            .filter { it.notification.flags and Notification.FLAG_GROUP_SUMMARY == 0 }
+            .mapNotNull { source ->
+                val notification = source.notification
+                val update = LiveStatusNotificationParser.parseMcDonalds(
+                    readNotificationTitle(notification),
+                    readNotificationContentText(notification),
+                    readNotificationText(this, source.packageName, notification),
+                )
+                source.takeIf {
+                    update.event == LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP
+                }?.let { Triple(source.postTime, source.key, update) }
+            }
+            .maxByOrNull { it.first }
+
+        if (latest == null) {
+            mcDonaldsTracker.reset()
+            LiveStatusReminder.clearMcDonalds(this)
+        } else {
+            handleMcDonaldsDecision(mcDonaldsTracker.onPosted(latest.second, latest.third))
+        }
+    }
+
     private fun handleUberRideNotification(update: LiveStatusNotificationParser.UberRideUpdate) {
         if (update.event == LiveStatusNotificationParser.UberRideEvent.TRIP_ENDED) {
             resetUberRideState()
@@ -1049,6 +1145,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val TAIWAN_PAY_PACKAGE = "tw.com.twmp.twhcewallet"
         private const val YOU_BIKE_PACKAGE = "tw.com.youbike.plus"
         private const val FOODPANDA_PACKAGE = "com.global.foodpanda.android"
+        private const val MCDONALDS_PACKAGE = "com.mcdonalds.mobileapp"
         private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
         private const val CITYMAPPER_PACKAGE = CitymapperNavigationMapper.PACKAGE_NAME
         private const val BOLT_PACKAGE = "ee.mtakso.client"

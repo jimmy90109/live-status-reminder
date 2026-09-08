@@ -12,6 +12,9 @@ object LiveStatusNotificationParser {
         """已替您找到車輛\s*([A-Z0-9]{2,4}-[A-Z0-9]{2,4})(?=[^\p{L}\p{N}]|$)""",
         RegexOption.IGNORE_CASE,
     )
+    private val mcDonaldsReadyOrder = Regex(
+        """您的訂單\s+([0-9]+)\s+已完成\s*[，,]\s*請直接至餐廳取餐(?=$|[.。!！\s])""",
+    )
 
     enum class RideEvent {
         NONE,
@@ -24,6 +27,11 @@ object LiveStatusNotificationParser {
         COURIER_ON_THE_WAY,
         COURIER_ARRIVING,
         ORDER_ENDED,
+    }
+
+    enum class McDonaldsEvent {
+        NONE,
+        READY_FOR_PICKUP,
     }
 
     enum class UberEatsEvent {
@@ -97,6 +105,11 @@ object LiveStatusNotificationParser {
     data class TaiwanTaxiUpdate(
         val event: TaiwanTaxiEvent,
         val plate: String? = null,
+    )
+
+    data class McDonaldsUpdate(
+        val event: McDonaldsEvent,
+        val orderNumber: String? = null,
     )
 
     data class UberRideUpdate(
@@ -185,6 +198,31 @@ object LiveStatusNotificationParser {
                 normalized.contains("訂單取消") -> FoodpandaEvent.ORDER_ENDED
             else -> FoodpandaEvent.NONE
         }
+    }
+
+    @JvmStatic
+    fun parseMcDonalds(
+        notificationTitle: String?,
+        notificationContentText: String?,
+        notificationText: String? = null,
+    ): McDonaldsUpdate {
+        val titleMatches = sequenceOf(notificationTitle, notificationText)
+            .filterNotNull()
+            .flatMap { it.lineSequence() }
+            .map(String::trim)
+            .any { it == MCDONALDS_READY_TITLE }
+        if (!titleMatches) return McDonaldsUpdate(McDonaldsEvent.NONE)
+
+        val orderNumber = sequenceOf(notificationContentText, notificationText)
+            .filterNotNull()
+            .map { text -> text.trim().replace(Regex("""\s+"""), " ") }
+            .mapNotNull { text -> mcDonaldsReadyOrder.find(text)?.groupValues?.getOrNull(1) }
+            .firstOrNull()
+            ?: return McDonaldsUpdate(McDonaldsEvent.NONE)
+        return McDonaldsUpdate(
+            event = McDonaldsEvent.READY_FOR_PICKUP,
+            orderNumber = orderNumber,
+        )
     }
 
     @JvmStatic
@@ -468,6 +506,7 @@ object LiveStatusNotificationParser {
     private const val TAIWAN_TAXI_DRIVER_FOUND_TITLE = "已找到司機"
     private const val TAIWAN_TAXI_VEHICLE_ARRIVED_TITLE = "車輛已抵達"
     private const val TAIWAN_TAXI_TRIP_ENDED_TITLE = "行程已完成"
+    private const val MCDONALDS_READY_TITLE = "訂單準備就緒"
     private val UBER_RIDE_ZH_PICKUP_ETA = Regex("""(\d+)\s*分鐘內上車""")
     private val UBER_RIDE_ZH_PICKUP_POINT = Regex("""^在\s*(.+?)\s*碰面$""")
     private val UBER_RIDE_ZH_PICKUP_NEARBY = Regex("""\S+\s*即將抵達$""")

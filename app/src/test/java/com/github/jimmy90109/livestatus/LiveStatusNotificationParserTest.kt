@@ -135,6 +135,69 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun mcDonaldsReadyNotificationReadsOrderNumber() {
+        assertEquals(
+            LiveStatusNotificationParser.McDonaldsUpdate(
+                event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
+                orderNumber = "97167",
+            ),
+            LiveStatusNotificationParser.parseMcDonalds(
+                notificationTitle = "訂單準備就緒",
+                notificationContentText = "您的訂單 97167 已完成，請直接至餐廳取餐",
+            ),
+        )
+    }
+
+    @Test
+    fun mcDonaldsReadyNotificationAllowsWhitespaceAndEnglishComma() {
+        assertEquals(
+            LiveStatusNotificationParser.McDonaldsUpdate(
+                event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
+                orderNumber = "12345",
+            ),
+            LiveStatusNotificationParser.parseMcDonalds(
+                notificationTitle = "  訂單準備就緒  ",
+                notificationContentText = "  您的訂單\n12345 已完成,\n請直接至餐廳取餐。  ",
+            ),
+        )
+    }
+
+    @Test
+    fun mcDonaldsReadyNotificationFallsBackToCombinedText() {
+        assertEquals(
+            LiveStatusNotificationParser.McDonaldsUpdate(
+                event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
+                orderNumber = "97167",
+            ),
+            LiveStatusNotificationParser.parseMcDonalds(
+                notificationTitle = null,
+                notificationContentText = null,
+                notificationText = "McDonald's\n訂單準備就緒\n您的訂單 97167 已完成，請直接至餐廳取餐",
+            ),
+        )
+    }
+
+    @Test
+    fun unrelatedMcDonaldsNotificationsAreIgnored() {
+        listOf(
+            Triple<String?, String?, String?>(null, null, null),
+            Triple("", "", ""),
+            Triple("訂單準備就緒", "您的訂單已完成，請直接至餐廳取餐", null),
+            Triple("訂單準備就緒", "您的訂單 ABCDE 已完成，請直接至餐廳取餐", null),
+            Triple("訂單準備就緒", "您的訂單 97167 已完成", null),
+            Triple("訂單已完成", "您的訂單 97167 已完成，請直接至餐廳取餐", null),
+            Triple("優惠快訊", "訂單完成即送麥當勞點數", null),
+        ).forEach { (title, content, text) ->
+            assertEquals(
+                LiveStatusNotificationParser.McDonaldsUpdate(
+                    LiveStatusNotificationParser.McDonaldsEvent.NONE,
+                ),
+                LiveStatusNotificationParser.parseMcDonalds(title, content, text),
+            )
+        }
+    }
+
+    @Test
     fun uberEatsParsesAllFiveProgressStages() {
         mapOf(
             UberEatsEvent.ORDER_RECEIVED to listOf("訂單已收到", "已收到您的訂單"),

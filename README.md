@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 ## 功能
 
@@ -101,6 +101,13 @@
 - 外送夥伴接近時更新為「即將抵達」。
 - 訂單送達或取消後自動移除提醒。
 
+### McDonald's
+
+- 繁中通知標題為「訂單準備就緒」，且內文符合「您的訂單 [號碼] 已完成，請直接至餐廳取餐」時，建立到店取餐 Live Update。
+- 膠囊關鍵文字顯示解析出的訂單號碼；點擊提醒可開啟 McDonald's。
+- 對應來源通知移除時同步清除提醒；監聽器重連時會從最新一筆符合的通知恢復。
+- 第一版僅支援這個已觀察的直接至餐廳取餐文案，不推測內用、得來速、送餐到桌、歡樂送、取消或已取餐狀態。
+
 ### 55688
 
 - 收到「已找到司機」時顯示叫車提醒，並從官方通知的「已替您找到車輛」文字後讀取車牌。
@@ -192,8 +199,9 @@ HyperOS 的「設定 → 應用程式 → 權限 → 背景自啟動」允許本
 
 - PIN 只保留在記憶體中，不會寫入檔案、偏好設定或正式日誌。
 - 55688 車牌只保留在目前 App 程序記憶體與本機提醒，不會上傳或永久儲存。
+- McDonald's 訂單號碼只用於目前本機取餐提醒，不會寫入檔案、偏好設定或正式日誌。
 - 可可靠辨識時，PIN 會顯示在即時通知／Live Update 中，方便核對行程或外送。
-- 第一版分別只追蹤一筆 55688 行程、一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
+- 第一版分別只追蹤一筆 McDonald's 訂單、一筆 55688 行程、一筆 Uber 行程與一筆 Uber Eats 訂單；新狀態會取代上一筆狀態。
 - Google 時鐘只在原生 Live Update 未生效時鏡像來源通知指定的主要倒數計時器，不處理碼表。
 - 媒體播放只讀取目前活躍工作階段的曲名、作者、專輯、播放狀態與控制能力；不會保存完整來源通知或媒體 metadata。
 - Discord 語音頻道只在記憶體中保留目前 notification key、來源標題、頻道名稱與 actions；離開頻道、功能關閉或程序結束後不再保留。

@@ -75,6 +75,7 @@ internal fun AppsSection(
     onOpenClockDebug: () -> Unit,
     onOpenYouBikeDebug: () -> Unit,
     onOpenFoodpandaDebug: () -> Unit,
+    onOpenMcDonaldsDebug: () -> Unit,
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenBoltDebug: () -> Unit,
@@ -244,6 +245,15 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.FOODPANDA, it)
                             },
                             onOpenDebug = onOpenFoodpandaDebug,
+                        )
+                        McDonaldsCard(
+                            installed = status.mcDonaldsInstalled,
+                            enabled = status.mcDonaldsEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.MCDONALDS, it)
+                            },
+                            onOpenDebug = onOpenMcDonaldsDebug,
                         )
                     }
                     CATEGORY_RIDE -> {

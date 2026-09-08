@@ -20,6 +20,7 @@ object NotificationDebugPayloadStore {
     private val _citymapperPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _taiwanTaxiPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _foodpandaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _mcDonaldsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _uberEatsPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _clockPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _taiwanPayPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
@@ -37,6 +38,7 @@ object NotificationDebugPayloadStore {
     val citymapperPayloads: StateFlow<List<NotificationDebugPayload>> = _citymapperPayloads
     val taiwanTaxiPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanTaxiPayloads
     val foodpandaPayloads: StateFlow<List<NotificationDebugPayload>> = _foodpandaPayloads
+    val mcDonaldsPayloads: StateFlow<List<NotificationDebugPayload>> = _mcDonaldsPayloads
     val uberEatsPayloads: StateFlow<List<NotificationDebugPayload>> = _uberEatsPayloads
     val clockPayloads: StateFlow<List<NotificationDebugPayload>> = _clockPayloads
     val taiwanPayPayloads: StateFlow<List<NotificationDebugPayload>> = _taiwanPayPayloads
@@ -422,6 +424,32 @@ object NotificationDebugPayloadStore {
         _foodpandaPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
     }
 
+    fun recordMcDonalds(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+        update: LiveStatusNotificationParser.McDonaldsUpdate,
+    ) {
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = if (lifecycle == "REMOVED") lifecycle else update.event.name,
+            parsedPin = null,
+            parsedDetails = linkedMapOf(
+                "lifecycle" to lifecycle,
+                "parsedOrderNumber" to update.orderNumber.orEmpty(),
+            ),
+        )
+        _mcDonaldsPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
     fun recordUberEats(
         context: Context,
         statusBarNotification: StatusBarNotification,
@@ -463,6 +491,10 @@ object NotificationDebugPayloadStore {
 
     fun clearFoodpanda() {
         _foodpandaPayloads.value = emptyList()
+    }
+
+    fun clearMcDonalds() {
+        _mcDonaldsPayloads.value = emptyList()
     }
 
     fun clearUberEats() {
