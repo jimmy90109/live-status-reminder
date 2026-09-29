@@ -209,13 +209,13 @@ object LiveStatusNotificationParser {
         val titleMatches = sequenceOf(notificationTitle, notificationText)
             .filterNotNull()
             .flatMap { it.lineSequence() }
-            .map(String::trim)
+            .map { it.normalizeMcDonaldsText() }
             .any { it == MCDONALDS_READY_TITLE }
         if (!titleMatches) return McDonaldsUpdate(McDonaldsEvent.NONE)
 
         val orderNumber = sequenceOf(notificationContentText, notificationText)
             .filterNotNull()
-            .map { text -> text.trim().replace(Regex("""\s+"""), " ") }
+            .map { it.normalizeMcDonaldsText() }
             .mapNotNull { text -> mcDonaldsReadyOrder.find(text)?.groupValues?.getOrNull(1) }
             .firstOrNull()
             ?: return McDonaldsUpdate(McDonaldsEvent.NONE)
@@ -223,6 +223,23 @@ object LiveStatusNotificationParser {
             event = McDonaldsEvent.READY_FOR_PICKUP,
             orderNumber = orderNumber,
         )
+    }
+
+    private fun String.normalizeMcDonaldsText(): String = buildString {
+        var pendingSpace = false
+        this@normalizeMcDonaldsText.codePoints().forEach { codePoint ->
+            when {
+                Character.getType(codePoint) == Character.FORMAT.toInt() -> Unit
+                Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint) -> {
+                    if (isNotEmpty()) pendingSpace = true
+                }
+                else -> {
+                    if (pendingSpace) append(' ')
+                    appendCodePoint(codePoint)
+                    pendingSpace = false
+                }
+            }
+        }
     }
 
     @JvmStatic

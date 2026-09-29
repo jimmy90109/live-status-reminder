@@ -139,11 +139,11 @@ class LiveStatusNotificationParserTest {
         assertEquals(
             LiveStatusNotificationParser.McDonaldsUpdate(
                 event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
-                orderNumber = "97167",
+                orderNumber = "97877",
             ),
             LiveStatusNotificationParser.parseMcDonalds(
                 notificationTitle = "訂單準備就緒",
-                notificationContentText = "您的訂單 97167 已完成，請直接至餐廳取餐",
+                notificationContentText = "您的訂單 97877 已完成，請直接至餐廳取餐",
             ),
         )
     }
@@ -178,6 +178,28 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun mcDonaldsReadyNotificationNormalizesUnicodeWhitespaceAndFormatCharacters() {
+        listOf(
+            "您的訂單\u00a097877 已完成，請直接至餐廳取餐",
+            "您的訂單\u202f97877\u3000已完成，請直接至餐廳取餐",
+            "您的訂單 97877 已完成，請直接至餐廳取餐\u200b",
+            "您的訂單\n97877 已完成，請直接至餐廳取餐\ufeff",
+        ).forEach { contentText ->
+            assertEquals(
+                contentText,
+                LiveStatusNotificationParser.McDonaldsUpdate(
+                    event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
+                    orderNumber = "97877",
+                ),
+                LiveStatusNotificationParser.parseMcDonalds(
+                    notificationTitle = "訂單\u200b準備就緒",
+                    notificationContentText = contentText,
+                ),
+            )
+        }
+    }
+
+    @Test
     fun unrelatedMcDonaldsNotificationsAreIgnored() {
         listOf(
             Triple<String?, String?, String?>(null, null, null),
@@ -185,6 +207,7 @@ class LiveStatusNotificationParserTest {
             Triple("訂單準備就緒", "您的訂單已完成，請直接至餐廳取餐", null),
             Triple("訂單準備就緒", "您的訂單 ABCDE 已完成，請直接至餐廳取餐", null),
             Triple("訂單準備就緒", "您的訂單 97167 已完成", null),
+            Triple("訂單準備就緒", "您的訂單 97167 已完成，請直接至餐廳取餐優惠", null),
             Triple("訂單已完成", "您的訂單 97167 已完成，請直接至餐廳取餐", null),
             Triple("優惠快訊", "訂單完成即送麥當勞點數", null),
         ).forEach { (title, content, text) ->
