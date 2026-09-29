@@ -366,6 +366,36 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun uberEatsParsesObservedChineseCourierPickupText() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "誠遠 正在領取您的訂單\n" +
+                "誠遠 · ERH-8615 • 抵達時間：2:07-2:16 PM\n" +
+                "誠遠 · ERH-8615\n" +
+                "Dimgray Gogoro S1",
+            "",
+        )
+
+        assertEquals(UberEatsEvent.PICKING_UP, update.event)
+        assertEquals(UberEatsLanguage.TRADITIONAL_CHINESE, update.language)
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberEatsParsesObservedChineseCourierOnTheWayText() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "正在途中\n" +
+                "誠遠 · ERH-8615 • 抵達時間為 2:10 PM\n" +
+                "誠遠 · ERH-8615\n" +
+                "Dimgray Gogoro S1",
+            "",
+        )
+
+        assertEquals(UberEatsEvent.ON_THE_WAY, update.event)
+        assertEquals(UberEatsLanguage.TRADITIONAL_CHINESE, update.language)
+        assertNull(update.pin)
+    }
+
+    @Test
     fun uberEatsDoesNotTreatTimesYearsOrOrderNumbersAsPin() {
         val update = LiveStatusNotificationParser.parseUberEats(
             "抵達時間 1:58 PM\n2026-07-09\n訂單 #7616\nPAR-2688",

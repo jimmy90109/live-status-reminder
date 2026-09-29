@@ -268,7 +268,10 @@ object LiveStatusNotificationParser {
                 UberEatsEvent.ON_THE_WAY to UberEatsLanguage.TRADITIONAL_CHINESE
             lines.any { it == "heading your way" } ->
                 UberEatsEvent.ON_THE_WAY to UberEatsLanguage.ENGLISH
-            normalized.contains("正在取餐") ->
+            lines.any { it == "正在途中" } ->
+                UberEatsEvent.ON_THE_WAY to UberEatsLanguage.TRADITIONAL_CHINESE
+            normalized.contains("正在取餐") ||
+                lines.any { it.endsWith("正在領取您的訂單") } ->
                 UberEatsEvent.PICKING_UP to UberEatsLanguage.TRADITIONAL_CHINESE
             lines.any { it == "picking up your order" } ->
                 UberEatsEvent.PICKING_UP to UberEatsLanguage.ENGLISH
