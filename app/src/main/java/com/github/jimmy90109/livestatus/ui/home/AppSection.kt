@@ -294,13 +294,15 @@ internal fun AppsSection(
                             },
                             onOpenDebug = onOpenCitymapperDebug,
                         )
-                        if (BuildConfig.DEBUG) {
-                            TaipeiMetroGoDebugCard(
-                                installed = status.taipeiMetroGoInstalled,
-                                interactionEnabled = status.requiredSettingsComplete,
-                                onOpenDebug = onOpenTaipeiMetroGoDebug,
-                            )
-                        }
+                        TaipeiMetroGoCard(
+                            installed = status.taipeiMetroGoInstalled,
+                            enabled = status.taipeiMetroGoEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TAIPEI_METRO_GO, it)
+                            },
+                            onOpenDebug = onOpenTaipeiMetroGoDebug,
+                        )
                     }
                     CATEGORY_RENTAL -> YouBikeCard(
                         installed = status.youBikeInstalled,

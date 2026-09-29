@@ -1,6 +1,6 @@
 # 即時狀態提醒
 
-這是一個 Android 16 App，會監聽所有 App 的確定進度通知，以及媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
+這是一個 Android 16 App，會監聽所有 App 的確定進度通知，以及媒體播放、Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、台北捷運 GO、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 與 Pikmin Bloom 的通知，將重要狀態轉成持續顯示的 Live Update。
 
 Live Update 的狀態列膠囊、鎖定畫面與通知排序由系統及 OEM 實作決定。目前已知部分 ASUS Android 16 韌體不會將第三方通知提升為完整 Live Update；App 仍會建立一般持續通知，並在 ASUS／ROG 裝置內顯示相容性提醒。
 
@@ -134,11 +134,14 @@ Live Update 的狀態列膠囊、鎖定畫面與通知排序由系統及 OEM 實
 - 已以真實台灣樣本驗證步行、數字路線公車的分鐘／時刻候車資訊、台鐵班次、台北捷運、搭乘總站數與剩餘站數格式；捷運辨識接受 `BR`、`R`、`G`、`O`、`BL`、`Y` 六種線碼。其他路線或工具若有明確候車句型與合法時間，會顯示通用運輸 timing，但不推斷實際工具；單車、YouBike、開車、渡輪等模式分類仍須先收集 payload。若改用其他頻道或結束後仍保留 ongoing 通知，也須以真實樣本調整。實際 Live Update／膠囊顯示由系統、OEM 與權限設定決定。
 - Debug 卡片另提供「查看通知 payload」，可查看、複製或清除最近 30 筆原始通知與移除事件；只留在程序記憶體，程序結束即清除。正式版不提供此入口或保存原始 payload，僅在記憶體處理目前導航。路線與地點可能涉及隱私，分享 Debug 樣本前請移除敏感資訊。
 
-### 台北捷運 GO（Debug）
+### 台北捷運 GO
 
-- Debug build 的「導航」分類會在 Citymapper 下方顯示藍綠色台北捷運 GO 卡片；正式版不查詢套件或顯示卡片。
-- 目前只收集下車提醒通知的新增、更新、移除及通知監聽器連線時的既有 payload，不解析剩餘站數，也不建立 Live Update。
-- 最近 30 筆 payload 只保留在目前 App 程序記憶體，重新啟動後即清除。路線、站名與行程可能涉及隱私，分享 Debug 樣本前請先移除敏感資訊。
+- Debug 與正式版皆在「導航」分類提供較暗的藍綠色卡片；安裝後預設開啟，可個別關閉並立即清除提醒。展開卡片可用「市政府 → 大直／目前行經：中山國中」樣本試用即時通知，或清除目前狀態。
+- 僅處理 `tw.com.trtc.is.android05` 的 `MetroBeaconChannel` 繁中下車提醒。來源必須是 ongoing、foreground、非群組摘要，標題為「台北捷運 Go - 運行中」，且同時包含「🔔 行經：站名」與「起點 - 終點」。
+- Live Update 標題顯示「起點 → 終點」，內文顯示「目前行經：站名」，短膠囊顯示目前站名。膠囊文字以 Unicode grapheme 安全裁切，最多 7 個 grapheme、總寬度 8，中日韓文字與 emoji 算雙寬且不加省略號。
+- 點擊提醒會執行來源 `contentIntent`；只同步來源中可執行且標題剛好為「結束」的操作。鎖定畫面沿用來源隱私等級，提醒使用獨立靜音導航頻道且不建立進度條。
+- 同一通知更新時同步目前站；來源移除、格式失效、功能關閉或監聽中斷時清除，重連時從現有通知恢復最新有效行程。初版不解析「經 N 站」、分鐘或路線名稱，也不推算剩餘站數與轉乘時機。
+- Debug build 另在程序記憶體保留最近 30 筆原始 payload 與生命週期事件，供查看、複製及清除；正式版不保存原始 payload。路線、站名與行程可能涉及隱私，分享 Debug 樣本前請先移除敏感資訊。
 
 ### Bolt（Debug）
 

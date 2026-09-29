@@ -54,6 +54,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_HEVY -> openHevy()
             ACTION_OPEN_STRAVA -> openStrava()
             ACTION_OPEN_CITYMAPPER -> openCitymapper()
+            ACTION_OPEN_TAIPEI_METRO_GO -> openTaipeiMetroGo()
             ACTION_OPEN_DISCORD -> openDiscord()
             ACTION_OPEN_TEAMS -> openTeams()
             ACTION_OPEN_GOOGLE_RECORDER -> openGoogleRecorder()
@@ -95,8 +96,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
         val boltInstalled = BuildConfig.DEBUG && isPackageInstalled(BOLT_PACKAGE)
         val citymapperInstalled = isPackageInstalled(CITYMAPPER_PACKAGE)
-        val taipeiMetroGoInstalled =
-            BuildConfig.DEBUG && isPackageInstalled(TAIPEI_METRO_GO_PACKAGE)
+        val taipeiMetroGoInstalled = isPackageInstalled(TAIPEI_METRO_GO_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
         val yptInstalled = isPackageInstalled(YPT_PACKAGE)
@@ -121,6 +121,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             citymapperInstalled = citymapperInstalled,
             citymapperEnabled = AppReminderPreferences.App.CITYMAPPER.isEnabled(this, citymapperInstalled),
             taipeiMetroGoInstalled = taipeiMetroGoInstalled,
+            taipeiMetroGoEnabled = AppReminderPreferences.App.TAIPEI_METRO_GO.isEnabled(
+                this,
+                taipeiMetroGoInstalled,
+            ),
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
             yptInstalled = yptInstalled,
@@ -247,6 +251,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openCitymapper() = openPackage(CITYMAPPER_PACKAGE, "Citymapper")
 
+    private fun openTaipeiMetroGo() = openPackage(TAIPEI_METRO_GO_PACKAGE, "台北捷運 GO")
+
     private fun openStrava() = openPackage(STRAVA_PACKAGE, "Strava")
 
     private fun openDiscord() = openPackage(DISCORD_PACKAGE, "Discord")
@@ -291,6 +297,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.HEVY -> LiveStatusReminder.clearHevyWorkout(this)
             AppReminderPreferences.App.STRAVA -> LiveStatusReminder.clearStravaRecording(this)
             AppReminderPreferences.App.CITYMAPPER -> LiveStatusReminder.clearCitymapperNavigation(this)
+            AppReminderPreferences.App.TAIPEI_METRO_GO ->
+                LiveStatusReminder.clearTaipeiMetroGo(this)
             AppReminderPreferences.App.DISCORD_VOICE ->
                 LiveStatusReminder.clearDiscordVoice(this)
             AppReminderPreferences.App.TEAMS_CALL ->
@@ -333,6 +341,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_HEVY"
         private const val ACTION_OPEN_CITYMAPPER =
             "com.github.jimmy90109.livestatus.action.OPEN_CITYMAPPER"
+        private const val ACTION_OPEN_TAIPEI_METRO_GO =
+            "com.github.jimmy90109.livestatus.action.OPEN_TAIPEI_METRO_GO"
         private const val ACTION_OPEN_STRAVA =
             "com.github.jimmy90109.livestatus.action.OPEN_STRAVA"
         private const val ACTION_OPEN_DISCORD =
@@ -418,6 +428,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             openAppIntent(context, ACTION_OPEN_CITYMAPPER)
 
         @JvmStatic
+        fun createOpenTaipeiMetroGoIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_TAIPEI_METRO_GO)
+
+        @JvmStatic
         fun createOpenStravaIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_STRAVA)
 
@@ -455,6 +469,7 @@ internal data class StatusSnapshot(
     val citymapperInstalled: Boolean = false,
     val citymapperEnabled: Boolean = false,
     val taipeiMetroGoInstalled: Boolean = false,
+    val taipeiMetroGoEnabled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val pikminBloomInstalled: Boolean = false,
     val yptInstalled: Boolean = false,

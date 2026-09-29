@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.SystemClock
 import com.github.jimmy90109.livestatus.ui.home.HomeScreenHostActivity
 import com.github.jimmy90109.livestatus.ui.home.YouBikeRegionPickerActivity
-import java.text.BreakIterator
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -51,7 +50,9 @@ object LiveStatusReminder {
     private const val CITYMAPPER_NOTIFICATION_ID = 1017
     private const val MCDONALDS_NOTIFICATION_ID = 1018
     private const val GENERIC_PROGRESS_NOTIFICATION_ID = 1019
+    private const val TAIPEI_METRO_GO_NOTIFICATION_ID = 1020
     private const val CITYMAPPER_CHANNEL_ID = "citymapper_navigation"
+    private const val TAIPEI_METRO_GO_CHANNEL_ID = "taipei_metro_go_navigation_v1"
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -862,6 +863,86 @@ object LiveStatusReminder {
 
     internal fun clearCitymapperNavigation(context: Context) {
         notificationManager(context).cancel(CITYMAPPER_NOTIFICATION_ID)
+    }
+
+    internal fun showTaipeiMetroGo(context: Context, update: TaipeiMetroGoUpdate) {
+        val channel = NotificationChannel(
+            TAIPEI_METRO_GO_CHANNEL_ID,
+            context.getString(R.string.taipei_metro_go_notification_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).createNotificationChannel(channel)
+        notificationManager(context).notify(
+            TAIPEI_METRO_GO_NOTIFICATION_ID,
+            buildTaipeiMetroGoNotification(context, update),
+        )
+    }
+
+    internal fun buildTaipeiMetroGoNotification(
+        context: Context,
+        update: TaipeiMetroGoUpdate,
+    ): Notification {
+        val openTaipeiMetroGo = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            20,
+            HomeScreenHostActivity.createOpenTaipeiMetroGoIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = taipeiMetroGoPayload(
+            update = update,
+            appName = context.getString(R.string.taipei_metro_go_app_name),
+            title = context.getString(
+                R.string.taipei_metro_go_live_route,
+                update.origin,
+                update.destination,
+            ),
+            contentText = context.getString(
+                R.string.taipei_metro_go_live_current_station,
+                update.currentStation,
+            ),
+            contentIntent = openTaipeiMetroGo,
+        )
+        return Notification.Builder(context, TAIPEI_METRO_GO_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(update.visibility.normalizedNotificationVisibility())
+            .setWhen(0)
+            .setShowWhen(false)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(payload.criticalText)
+            .also { builder -> update.sourceActions.forEach(builder::addAction) }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+            .build()
+    }
+
+    internal fun taipeiMetroGoPayload(
+        update: TaipeiMetroGoUpdate,
+        appName: String,
+        title: String,
+        contentText: String,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload = LiveStatusPayload(
+        id = TAIPEI_METRO_GO_NOTIFICATION_ID,
+        appName = appName,
+        smallIconRes = R.drawable.ic_metro_notification,
+        leftIconRes = R.drawable.ic_metro_notification,
+        criticalText = ShortCriticalTextFormatter.format(update.currentStation),
+        title = title,
+        contentText = contentText,
+        contentIntent = contentIntent,
+    )
+
+    internal fun clearTaipeiMetroGo(context: Context) {
+        notificationManager(context).cancel(TAIPEI_METRO_GO_NOTIFICATION_ID)
     }
 
     internal fun showStravaRecording(context: Context, update: StravaRecordingUpdate) {
@@ -1970,59 +2051,8 @@ object LiveStatusReminder {
         builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
     }
 
-    internal fun mediaShortCriticalText(title: String): String {
-        val graphemeIterator = BreakIterator.getCharacterInstance(Locale.ROOT).apply {
-            setText(title)
-        }
-        var graphemeCount = 0
-        var usedWidth = 0
-        var acceptedEnd = graphemeIterator.first()
-        var graphemeEnd = graphemeIterator.next()
-        while (
-            graphemeEnd != BreakIterator.DONE &&
-            graphemeCount < MEDIA_SHORT_CRITICAL_TEXT_MAX_GRAPHEMES
-        ) {
-            val graphemeWidth = mediaCriticalTextGraphemeWidth(
-                title = title,
-                startIndex = acceptedEnd,
-                endIndex = graphemeEnd,
-            )
-            if (usedWidth + graphemeWidth > MEDIA_SHORT_CRITICAL_TEXT_MAX_WIDTH) break
-            usedWidth += graphemeWidth
-            graphemeCount += 1
-            acceptedEnd = graphemeEnd
-            graphemeEnd = graphemeIterator.next()
-        }
-        return title.substring(0, acceptedEnd)
-    }
-
-    private fun mediaCriticalTextGraphemeWidth(
-        title: String,
-        startIndex: Int,
-        endIndex: Int,
-    ): Int {
-        var index = startIndex
-        while (index < endIndex) {
-            val codePoint = title.codePointAt(index)
-            if (codePoint.isWideMediaCharacter()) return MEDIA_SHORT_CRITICAL_TEXT_WIDE_WIDTH
-            index += Character.charCount(codePoint)
-        }
-        return MEDIA_SHORT_CRITICAL_TEXT_NARROW_WIDTH
-    }
-
-    private fun Int.isWideMediaCharacter(): Boolean {
-        val script = Character.UnicodeScript.of(this)
-        return Character.isIdeographic(this) ||
-            script == Character.UnicodeScript.HAN ||
-            script == Character.UnicodeScript.HANGUL ||
-            script == Character.UnicodeScript.HIRAGANA ||
-            script == Character.UnicodeScript.KATAKANA ||
-            this in 0x2E80..0xA4CF ||
-            this in 0xFE10..0xFE6F ||
-            this in 0xFF01..0xFF60 ||
-            this in 0xFFE0..0xFFE6 ||
-            Character.getType(this) == Character.OTHER_SYMBOL.toInt()
-    }
+    internal fun mediaShortCriticalText(title: String): String =
+        ShortCriticalTextFormatter.format(title)
 
     private fun mediaAction(
         context: Context,
@@ -2061,10 +2091,6 @@ object LiveStatusReminder {
     private fun notificationManager(context: Context): NotificationManager =
         context.getSystemService(NotificationManager::class.java)
 
-    private const val MEDIA_SHORT_CRITICAL_TEXT_MAX_GRAPHEMES = 7
-    private const val MEDIA_SHORT_CRITICAL_TEXT_MAX_WIDTH = 8
-    private const val MEDIA_SHORT_CRITICAL_TEXT_NARROW_WIDTH = 1
-    private const val MEDIA_SHORT_CRITICAL_TEXT_WIDE_WIDTH = 2
 }
 
 internal object YouBikeNotificationStyle {
