@@ -34,6 +34,13 @@ internal fun TaipeiMetroGoCard(
         labelColor = colors.taipeiMetroGoSecondaryContainer,
         foregroundColor = colors.taipeiMetroGoText,
         actionColor = colors.taipeiMetroGoPrimary,
+        additionalTags = {
+            LanguageTag(
+                stringResource(R.string.app_beta_tag),
+                colors.warningContainer,
+                colors.warningText,
+            )
+        },
     ) {
         AppActionDivider(colors.taipeiMetroGoText)
         AppCardActionButton(

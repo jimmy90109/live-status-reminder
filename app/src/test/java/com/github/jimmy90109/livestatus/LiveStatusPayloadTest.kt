@@ -15,6 +15,28 @@ import org.junit.Test
 
 class LiveStatusPayloadTest {
     @Test
+    fun texpressPayloadUsesFixedArrivalCriticalTextAndTrainIcon() {
+        val payload = LiveStatusReminder.texpressArrivalPayload(
+            update = TexpressArrivalUpdate(
+                sourceKey = "texpress",
+                postTime = 1L,
+                arrival = TexpressArrival("242", 5, "板橋站"),
+            ),
+            appName = "T-EX 行動購票",
+            title = "高鐵 242 車次即將抵達",
+            contentText = "5 分鐘後抵達板橋站",
+            criticalText = "即將到站",
+        )
+
+        assertEquals("T-EX 行動購票", payload.appName)
+        assertEquals("即將到站", payload.criticalText)
+        assertEquals("高鐵 242 車次即將抵達", payload.title)
+        assertEquals("5 分鐘後抵達板橋站", payload.contentText)
+        assertEquals(R.drawable.ic_train_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_train_notification, payload.leftIconRes)
+    }
+
+    @Test
     fun mcDonaldsPayloadShowsOrderNumberAsCriticalText() {
         val payload = LiveStatusReminder.mcDonaldsPayload("97167")
 

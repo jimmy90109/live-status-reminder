@@ -55,6 +55,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_STRAVA -> openStrava()
             ACTION_OPEN_CITYMAPPER -> openCitymapper()
             ACTION_OPEN_TAIPEI_METRO_GO -> openTaipeiMetroGo()
+            ACTION_OPEN_TEXPRESS -> openTexpress()
             ACTION_OPEN_DISCORD -> openDiscord()
             ACTION_OPEN_TEAMS -> openTeams()
             ACTION_OPEN_GOOGLE_RECORDER -> openGoogleRecorder()
@@ -97,6 +98,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val boltInstalled = BuildConfig.DEBUG && isPackageInstalled(BOLT_PACKAGE)
         val citymapperInstalled = isPackageInstalled(CITYMAPPER_PACKAGE)
         val taipeiMetroGoInstalled = isPackageInstalled(TAIPEI_METRO_GO_PACKAGE)
+        val texpressInstalled = isPackageInstalled(TEXPRESS_PACKAGE)
         val uberEatsInstalled = isPackageInstalled(UBER_EATS_PACKAGE)
         val pikminBloomInstalled = isPackageInstalled(PIKMIN_BLOOM_PACKAGE)
         val yptInstalled = isPackageInstalled(YPT_PACKAGE)
@@ -124,6 +126,11 @@ open class HomeScreenHostActivity : ComponentActivity() {
             taipeiMetroGoEnabled = AppReminderPreferences.App.TAIPEI_METRO_GO.isEnabled(
                 this,
                 taipeiMetroGoInstalled,
+            ),
+            texpressInstalled = texpressInstalled,
+            texpressEnabled = AppReminderPreferences.App.TEXPRESS.isEnabled(
+                this,
+                texpressInstalled,
             ),
             uberEatsInstalled = uberEatsInstalled,
             pikminBloomInstalled = pikminBloomInstalled,
@@ -253,6 +260,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
 
     private fun openTaipeiMetroGo() = openPackage(TAIPEI_METRO_GO_PACKAGE, "台北捷運 GO")
 
+    private fun openTexpress() = openPackage(TEXPRESS_PACKAGE, "T-EX 行動購票")
+
     private fun openStrava() = openPackage(STRAVA_PACKAGE, "Strava")
 
     private fun openDiscord() = openPackage(DISCORD_PACKAGE, "Discord")
@@ -299,6 +308,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.CITYMAPPER -> LiveStatusReminder.clearCitymapperNavigation(this)
             AppReminderPreferences.App.TAIPEI_METRO_GO ->
                 LiveStatusReminder.clearTaipeiMetroGo(this)
+            AppReminderPreferences.App.TEXPRESS -> LiveStatusReminder.clearTexpressArrival(this)
             AppReminderPreferences.App.DISCORD_VOICE ->
                 LiveStatusReminder.clearDiscordVoice(this)
             AppReminderPreferences.App.TEAMS_CALL ->
@@ -343,6 +353,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
             "com.github.jimmy90109.livestatus.action.OPEN_CITYMAPPER"
         private const val ACTION_OPEN_TAIPEI_METRO_GO =
             "com.github.jimmy90109.livestatus.action.OPEN_TAIPEI_METRO_GO"
+        private const val ACTION_OPEN_TEXPRESS =
+            "com.github.jimmy90109.livestatus.action.OPEN_TEXPRESS"
         private const val ACTION_OPEN_STRAVA =
             "com.github.jimmy90109.livestatus.action.OPEN_STRAVA"
         private const val ACTION_OPEN_DISCORD =
@@ -362,6 +374,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
         private const val BOLT_PACKAGE = "ee.mtakso.client"
         private const val CITYMAPPER_PACKAGE = "com.citymapper.app.release"
         private const val TAIPEI_METRO_GO_PACKAGE = "tw.com.trtc.is.android05"
+        private const val TEXPRESS_PACKAGE = "tw.com.thsrc.texpress"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"
         private const val PIKMIN_BLOOM_PACKAGE = "com.nianticlabs.pikmin"
         private const val YPT_PACKAGE = YptStudyNotificationParser.PACKAGE_NAME
@@ -432,6 +445,10 @@ open class HomeScreenHostActivity : ComponentActivity() {
             openAppIntent(context, ACTION_OPEN_TAIPEI_METRO_GO)
 
         @JvmStatic
+        fun createOpenTexpressIntent(context: Context): Intent =
+            openAppIntent(context, ACTION_OPEN_TEXPRESS)
+
+        @JvmStatic
         fun createOpenStravaIntent(context: Context): Intent =
             openAppIntent(context, ACTION_OPEN_STRAVA)
 
@@ -470,6 +487,8 @@ internal data class StatusSnapshot(
     val citymapperEnabled: Boolean = false,
     val taipeiMetroGoInstalled: Boolean = false,
     val taipeiMetroGoEnabled: Boolean = false,
+    val texpressInstalled: Boolean = false,
+    val texpressEnabled: Boolean = false,
     val uberEatsInstalled: Boolean = false,
     val pikminBloomInstalled: Boolean = false,
     val yptInstalled: Boolean = false,

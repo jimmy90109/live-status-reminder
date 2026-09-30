@@ -33,6 +33,7 @@ object AppReminderPreferences {
         STRAVA("strava_enabled"),
         CITYMAPPER("citymapper_enabled"),
         TAIPEI_METRO_GO("taipei_metro_go_enabled"),
+        TEXPRESS("texpress_enabled"),
         DISCORD_VOICE("discord_voice_enabled"),
         TEAMS_CALL("teams_call_enabled"),
         GOOGLE_RECORDER("google_recorder_enabled"),

@@ -6,6 +6,7 @@
 
     <queries>
         <package android:name="com.citymapper.app.release" />
+        <package android:name="tw.com.thsrc.texpress" />
         <package android:name="tw.com.trtc.is.android05" />
         <package android:name="com.google.android.deskclock" />
         <package android:name="com.ipass.ipassmoney" />

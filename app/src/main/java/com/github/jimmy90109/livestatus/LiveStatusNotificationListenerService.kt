@@ -22,6 +22,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     private val stravaRecordingTracker = StravaRecordingTracker()
     private val citymapperTracker = CitymapperNavigationTracker()
     private val taipeiMetroGoTracker = TaipeiMetroGoTracker()
+    private val texpressArrivalTracker = TexpressArrivalTracker()
     private val genericProgressTracker = GenericProgressTracker()
     private val citymapperPreferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == AppReminderPreferences.App.CITYMAPPER.preferenceKey) {
@@ -55,6 +56,16 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 }
             }
         }
+    private val texpressPreferenceListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == AppReminderPreferences.App.TEXPRESS.preferenceKey) {
+                if (AppReminderPreferences.App.TEXPRESS.isEnabled(this)) {
+                    restoreTexpressArrival(runCatching { activeNotifications }.getOrNull().orEmpty())
+                } else {
+                    handleTexpressArrivalDecision(texpressArrivalTracker.reset())
+                }
+            }
+        }
     private val discordVoiceTracker = DiscordVoiceTracker()
     private val teamsCallTracker = TeamsCallTracker()
     private val recorderTracker = RecorderTracker()
@@ -85,6 +96,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         AppReminderPreferences.registerListener(this, citymapperPreferenceListener)
         AppReminderPreferences.registerListener(this, genericProgressPreferenceListener)
         AppReminderPreferences.registerListener(this, taipeiMetroGoPreferenceListener)
+        AppReminderPreferences.registerListener(this, texpressPreferenceListener)
     }
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
@@ -141,6 +153,22 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     )
                 } else {
                     handleTaipeiMetroGoDecision(taipeiMetroGoTracker.reset())
+                }
+            }
+            TEXPRESS_PACKAGE -> {
+                if (AppReminderPreferences.App.TEXPRESS.isEnabled(this)) {
+                    handleTexpressArrivalDecision(
+                        texpressArrivalTracker.onPosted(
+                            statusBarNotification.key,
+                            TexpressArrivalNotificationExtractor.extract(
+                                this,
+                                statusBarNotification,
+                                notificationText,
+                            ),
+                        ),
+                    )
+                } else {
+                    handleTexpressArrivalDecision(texpressArrivalTracker.reset())
                 }
             }
             BOLT_PACKAGE -> if (BuildConfig.DEBUG) {
@@ -641,6 +669,12 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             )
             return
         }
+        if (statusBarNotification.packageName == TEXPRESS_PACKAGE) {
+            handleTexpressArrivalDecision(
+                texpressArrivalTracker.onRemoved(statusBarNotification.key),
+            )
+            return
+        }
         if (BuildConfig.DEBUG && statusBarNotification.packageName == BOLT_PACKAGE) {
             val notification = statusBarNotification.notification
             NotificationDebugPayloadStore.recordBolt(
@@ -758,8 +792,10 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         AppReminderPreferences.unregisterListener(this, citymapperPreferenceListener)
         AppReminderPreferences.unregisterListener(this, genericProgressPreferenceListener)
         AppReminderPreferences.unregisterListener(this, taipeiMetroGoPreferenceListener)
+        AppReminderPreferences.unregisterListener(this, texpressPreferenceListener)
         handleCitymapperDecision(citymapperTracker.reset())
         handleTaipeiMetroGoDecision(taipeiMetroGoTracker.reset())
+        handleTexpressArrivalDecision(texpressArrivalTracker.reset())
         genericProgressTracker.reset()
         LiveStatusReminder.clearAllGenericProgress(this)
         stopClockTimerRefresh()
@@ -817,6 +853,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         restoreStravaRecording(activeNotifications)
         restoreCitymapperNavigation(activeNotifications)
         restoreTaipeiMetroGo(activeNotifications)
+        restoreTexpressArrival(activeNotifications)
         restoreMcDonaldsReadyOrder(activeNotifications)
         restoreGenericProgress(activeNotifications)
         YouBikeRideManager.restore(this)
@@ -825,6 +862,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     override fun onListenerDisconnected() {
         handleCitymapperDecision(citymapperTracker.reset())
         handleTaipeiMetroGoDecision(taipeiMetroGoTracker.reset())
+        handleTexpressArrivalDecision(texpressArrivalTracker.reset())
         genericProgressTracker.reset()
         LiveStatusReminder.clearAllGenericProgress(this)
         mediaPlaybackMonitor.stop()
@@ -850,6 +888,15 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                 LiveStatusReminder.showTaipeiMetroGo(this, decision.update)
             TaipeiMetroGoDecision.Clear -> LiveStatusReminder.clearTaipeiMetroGo(this)
             TaipeiMetroGoDecision.None -> Unit
+        }
+    }
+
+    private fun handleTexpressArrivalDecision(decision: TexpressArrivalDecision) {
+        when (decision) {
+            is TexpressArrivalDecision.Show ->
+                LiveStatusReminder.showTexpressArrival(this, decision.update)
+            TexpressArrivalDecision.Clear -> LiveStatusReminder.clearTexpressArrival(this)
+            TexpressArrivalDecision.None -> Unit
         }
     }
 
@@ -902,6 +949,22 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         val updates = notifications.filter { it.packageName == TAIPEI_METRO_GO_PACKAGE }
             .mapNotNull { TaipeiMetroGoNotificationExtractor.extract(this, it) }
         handleTaipeiMetroGoDecision(taipeiMetroGoTracker.restore(updates))
+    }
+
+    private fun restoreTexpressArrival(notifications: Array<out StatusBarNotification>) {
+        if (!AppReminderPreferences.App.TEXPRESS.isEnabled(this)) {
+            handleTexpressArrivalDecision(texpressArrivalTracker.reset())
+            return
+        }
+        val updates = notifications.filter { it.packageName == TEXPRESS_PACKAGE }
+            .mapNotNull {
+                TexpressArrivalNotificationExtractor.extract(
+                    this,
+                    it,
+                    readNotificationText(this, it.packageName, it.notification),
+                )
+            }
+        handleTexpressArrivalDecision(texpressArrivalTracker.restore(updates))
     }
 
     private fun handleClockTimerDecision(decision: ClockTimerDecision) {
@@ -1294,6 +1357,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val TAIWAN_TAXI_PACKAGE = "dbx.taiwantaxi"
         private const val CITYMAPPER_PACKAGE = CitymapperNavigationMapper.PACKAGE_NAME
         private const val TAIPEI_METRO_GO_PACKAGE = TaipeiMetroGoNotificationParser.PACKAGE_NAME
+        private const val TEXPRESS_PACKAGE = TexpressArrivalNotificationParser.PACKAGE_NAME
         private const val BOLT_PACKAGE = "ee.mtakso.client"
         private const val UBER_RIDE_PACKAGE = "com.ubercab"
         private const val UBER_EATS_PACKAGE = "com.ubercab.eats"

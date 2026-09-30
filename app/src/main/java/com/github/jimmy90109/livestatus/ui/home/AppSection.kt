@@ -294,6 +294,14 @@ internal fun AppsSection(
                             },
                             onOpenDebug = onOpenCitymapperDebug,
                         )
+                        TexpressCard(
+                            installed = status.texpressInstalled,
+                            enabled = status.texpressEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TEXPRESS, it)
+                            },
+                        )
                         TaipeiMetroGoCard(
                             installed = status.taipeiMetroGoInstalled,
                             enabled = status.taipeiMetroGoEnabled,

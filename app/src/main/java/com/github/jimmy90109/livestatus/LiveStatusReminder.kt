@@ -51,8 +51,10 @@ object LiveStatusReminder {
     private const val MCDONALDS_NOTIFICATION_ID = 1018
     private const val GENERIC_PROGRESS_NOTIFICATION_ID = 1019
     private const val TAIPEI_METRO_GO_NOTIFICATION_ID = 1020
+    private const val TEXPRESS_ARRIVAL_NOTIFICATION_ID = 1021
     private const val CITYMAPPER_CHANNEL_ID = "citymapper_navigation"
     private const val TAIPEI_METRO_GO_CHANNEL_ID = "taipei_metro_go_navigation_v1"
+    private const val TEXPRESS_ARRIVAL_CHANNEL_ID = "texpress_arrival_v1"
     private const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     private val uberEatsArrivalEstimate = Regex(
         """抵達時間(?:為|：|:)?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-–]\s*[0-9]{1,2}:[0-9]{2})?\s*(?:AM|PM)?)""",
@@ -943,6 +945,108 @@ object LiveStatusReminder {
 
     internal fun clearTaipeiMetroGo(context: Context) {
         notificationManager(context).cancel(TAIPEI_METRO_GO_NOTIFICATION_ID)
+    }
+
+    internal fun showTexpressArrival(context: Context, update: TexpressArrivalUpdate) {
+        val channel = NotificationChannel(
+            TEXPRESS_ARRIVAL_CHANNEL_ID,
+            context.getString(R.string.texpress_notification_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            description = context.getString(R.string.texpress_notification_channel_description)
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            setSound(null, null)
+            enableVibration(false)
+        }
+        notificationManager(context).createNotificationChannel(channel)
+        notificationManager(context).notify(
+            TEXPRESS_ARRIVAL_NOTIFICATION_ID,
+            buildTexpressArrivalNotification(context, update),
+        )
+    }
+
+    internal fun buildTexpressArrivalNotification(
+        context: Context,
+        update: TexpressArrivalUpdate,
+    ): Notification {
+        val openTexpress = update.contentIntent ?: PendingIntent.getActivity(
+            context,
+            21,
+            HomeScreenHostActivity.createOpenTexpressIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val payload = texpressArrivalPayload(
+            update = update,
+            appName = context.getString(R.string.texpress_app_name),
+            title = context.getString(
+                R.string.texpress_live_title,
+                update.arrival.trainNumber,
+            ),
+            contentText = context.getString(
+                R.string.texpress_live_content,
+                update.arrival.minutes,
+                update.arrival.station,
+            ),
+            criticalText = context.getString(R.string.texpress_live_critical_text),
+            contentIntent = openTexpress,
+        )
+        val publicVersion = Notification.Builder(context, TEXPRESS_ARRIVAL_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .build()
+        return Notification.Builder(context, TEXPRESS_ARRIVAL_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setPublicVersion(publicVersion)
+            .setWhen(0)
+            .setShowWhen(false)
+            .setStyle(
+                update.picture?.let {
+                    Notification.BigPictureStyle()
+                        .bigPicture(it)
+                        .setBigContentTitle(payload.title)
+                        .setSummaryText(payload.contentText)
+                        .setContentDescription(
+                            context.getString(R.string.texpress_qr_content_description),
+                        )
+                } ?: Notification.BigTextStyle().bigText(payload.contentText),
+            )
+            .setShortCriticalText(payload.criticalText)
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+            .build()
+    }
+
+    internal fun texpressArrivalPayload(
+        update: TexpressArrivalUpdate,
+        appName: String,
+        title: String,
+        contentText: String,
+        criticalText: String,
+        contentIntent: PendingIntent? = null,
+    ): LiveStatusPayload = LiveStatusPayload(
+        id = TEXPRESS_ARRIVAL_NOTIFICATION_ID,
+        appName = appName,
+        smallIconRes = R.drawable.ic_train_notification,
+        leftIconRes = R.drawable.ic_train_notification,
+        criticalText = criticalText,
+        title = title,
+        contentText = contentText,
+        contentIntent = contentIntent,
+    )
+
+    internal fun clearTexpressArrival(context: Context) {
+        notificationManager(context).cancel(TEXPRESS_ARRIVAL_NOTIFICATION_ID)
     }
 
     internal fun showStravaRecording(context: Context, update: StravaRecordingUpdate) {
