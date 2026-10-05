@@ -388,6 +388,25 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun uberEatsObservedEnglishCourierArrivingWithoutPinDisplaysStatus() {
+        val text = "紀毓 will drop off your order soon\nOn-time • Arriving now\n" +
+            "紀毓 · EPU-8996\nBlack Gogoro S1\n"
+        val update = LiveStatusNotificationParser.parseUberEats(text, "")
+        val payload = LiveStatusReminder.uberEatsPayload(
+            event = update.event,
+            language = update.language,
+            officialText = text,
+        )
+        val displayPayload = LiveStatusReminder.uberEatsPayloadWithPin(
+            update.event, update.language, payload, update.pin,
+        )
+
+        assertEquals("Almost here", displayPayload.criticalText)
+        assertTrue(displayPayload.contentText.contains("On-time • Arriving now"))
+        assertEquals(false, displayPayload.contentText.contains("PIN "))
+    }
+
+    @Test
     fun uberEatsEnglishPayloadWithoutPinFallsBackToLocalizedStatus() {
         val payload = LiveStatusReminder.uberEatsPayload(
             event = UberEatsEvent.ARRIVING,

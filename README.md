@@ -168,7 +168,9 @@ Live Update 的狀態列膠囊、鎖定畫面與通知排序由系統及 OEM 實
   5. 快到了
 - 支援繁體中文與英文自訂樣式常駐通知；英文階段依序為 `Order received`、
   `Preparing your order`、`Picking up your order`、`Heading your way` 與
-  `Almost here!`。
+  `Almost here!`；取餐階段也支援帶外送員姓名的 `<姓名> is picking up your order`。
+- 英文配送階段也支援 `On the way`。
+- 英文即將抵達階段也支援 `<姓名> will drop off your order soon`。
 - 只從 Android 16 `shortCriticalText` 的剛好四位數，或通知 View 中四個各自成行的數字解析 PIN。
 - 繁中與英文僅在「快到了／Almost here!」階段將 PIN 顯示於 `criticalText`（含小米超級島）；其餘階段顯示狀態文字。通知內文仍可顯示已辨識的 PIN；快到了但沒有 PIN 時，維持狀態文字。
 - 無法可靠辨識 PIN 時不顯示，避免誤用 ETA 或訂單編號。
