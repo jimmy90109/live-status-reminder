@@ -474,6 +474,10 @@ object NotificationDebugPayloadStore {
             parsedDetails = linkedMapOf(
                 "lifecycle" to lifecycle,
                 "parsedOrderNumber" to update.orderNumber.orEmpty(),
+                "titleInvisibleCharacters" to notificationTitle.invisibleCharacterDiagnostics(),
+                "contentTextInvisibleCharacters" to
+                    notificationContentText.invisibleCharacterDiagnostics(),
+                "joinedTextInvisibleCharacters" to notificationText.invisibleCharacterDiagnostics(),
             ),
         )
         _mcDonaldsPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
@@ -713,6 +717,32 @@ object NotificationDebugPayloadStore {
             "${it.key}=${it.value}"
         }
         else -> this.toString()
+    }
+
+    private fun String?.invisibleCharacterDiagnostics(): String {
+        if (this == null) return ""
+        return buildList {
+            var index = 0
+            while (index < this@invisibleCharacterDiagnostics.length) {
+                val codePoint = this@invisibleCharacterDiagnostics.codePointAt(index)
+                val isUnusualWhitespace =
+                    (Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint)) &&
+                        codePoint != ' '.code &&
+                        codePoint != '\t'.code &&
+                        codePoint != '\n'.code &&
+                        codePoint != '\r'.code
+                if (
+                    Character.getType(codePoint) == Character.FORMAT.toInt() ||
+                    isUnusualWhitespace
+                ) {
+                    val displayCodePoint = codePoint.toString(16)
+                        .uppercase(Locale.ROOT)
+                        .padStart(4, '0')
+                    add("U+$displayCodePoint@$index")
+                }
+                index += Character.charCount(codePoint)
+            }
+        }.joinToString()
     }
 }
 

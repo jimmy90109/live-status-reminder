@@ -12,7 +12,7 @@ LiveStatus 即時狀態提醒
 
 LiveStatus 即時狀態提醒是一款為 Android 16 設計的通知輔助工具，會監聽所有 App 的確定進度通知、媒體播放與指定應用程式的通知，將重要狀態轉換成持續顯示的 Live Update，讓你不用反覆打開 App，也能快速掌握下載等工作進度、正在播放內容、Discord 語音頻道、Microsoft Teams 通話、倒數計時、讀書與健身、外送、乘車與種花狀態。
 
-支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Microsoft Teams 進行中會議、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 與 Pikmin Bloom。
+支援情境包含所有提供 Android MediaSession 與媒體通知的 App，以及 Discord 伺服器語音頻道、Microsoft Teams 進行中會議、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、台北捷運 GO、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 與 Pikmin Bloom。
 
 【進度通知】
 所有 App 提供有效且可計算百分比的確定進度條時，LiveStatus 會同步來源 App、標題、內文、點擊行為與最多三個操作，並允許多項工作同時顯示。來源已由系統原生提升、由本 App 的媒體或專用功能接管、屬於群組摘要或只提供不確定進度時不會重複建立。來源更新、完成並移除或不再符合時會同步更新或清除。功能預設開啟，可在工具分頁關閉。
@@ -38,8 +38,14 @@ YPT 開始記錄讀書時間後，LiveStatus 會持續顯示目前累積時長�
 【Hevy】
 Hevy 健身期間同步顯示目前或下一個動作、組數、重量、次數與來源提供的操作；組間休息以 Live Update 計時指標顯示休息倒數。結束訓練並移除來源通知後自動清除，功能可在運動分頁單獨關閉。
 
+【T-EX 行動購票】
+高鐵列車即將到站時，LiveStatus 會顯示車次、來源提供的剩餘分鐘與到站站名，短膠囊固定顯示「即將到站」而不自行倒數。若來源使用標準圖片通知提供手機票證 QR，展開提醒時會一併顯示；圖片僅在本機記憶體處理，不保存、不上傳，也不擷取自訂通知版面。來源通知移除或功能關閉後即清除，可在通勤分頁單獨關閉。
+
 【Citymapper】
-導航期間同步顯示 Citymapper 的指示原文與地點，目前正式支援繁中通知分析；已知繁中抵達時間尾行整理為「預計抵達時間：xxx到達」，不顯示剩餘分鐘或分享文案。保留來源可用的導航操作按鈕，排除已知分享操作；膠囊顯示「導航」。不自行推算交通方式、進度或抵達時間。來源導航通知移除或不再符合進行中條件後清除，可在導航分頁單獨關閉。不同交通方式、版本的通知格式可能不同，目前僅支援可擷取文字的 trip-progress 導航通知；不保證所有模式皆適用。
+導航期間同步顯示 Citymapper 的指示原文與地點，目前正式支援繁中通知分析；已知繁中抵達時間尾行整理為「預計抵達時間：xxx到達」，不顯示剩餘分鐘或分享文案。保留來源可用的導航操作按鈕，排除已知分享操作；膠囊顯示「導航」。不自行推算交通方式、進度或抵達時間。來源導航通知移除或不再符合進行中條件後清除，可在通勤分頁單獨關閉。不同交通方式、版本的通知格式可能不同，目前僅支援可擷取文字的 trip-progress 導航通知；不保證所有模式皆適用。
+
+【台北捷運 GO】
+使用台北捷運 GO 的下車提醒時，LiveStatus 會顯示起點、終點與目前行經站，短膠囊顯示經安全裁切的目前站名。只支援目前已驗證的繁中 `MetroBeaconChannel` 運行中格式；來源移除、格式失效或功能關閉後即清除，重連時可由現有通知恢復。初版不使用分鐘、路線名稱或「經 N 站」推算剩餘站數及轉乘時機，可在通勤分頁單獨關閉。
 
 【Strava】
 Strava 記錄活動時，LiveStatus 會沿用官方通知標題顯示運動類型、經過時間與距離，不自行猜測距離格式。繁中與英文來源的運動中、等待 GPS 與暫停文案會使用相同語言；來源通知移除後自動清除，功能可在運動分頁單獨關閉。
@@ -85,7 +91,7 @@ LiveStatus 可依照通知內容顯示 Uber Eats 訂單進度，包含：
 【主要特色】
 ・將重要通知轉換成 Android 16 Live Update
 ・同步所有 App 提供的確定進度條，支援多項進度同時顯示
-・支援媒體播放、Discord 語音頻道、Microsoft Teams 通話、倒數與 Google Recorder 錄音計時、YPT 讀書、Hevy／Strava 運動、Citymapper 導航、外送、乘車碼、YouBike 費用、55688／Uber 乘車與 Pikmin Bloom 種花狀態提醒
+・支援媒體播放、Discord 語音頻道、Microsoft Teams 通話、倒數與 Google Recorder 錄音計時、YPT 讀書、Hevy／Strava 運動、Citymapper／台北捷運 GO 導航、外送、乘車碼、YouBike 費用、55688／Uber 乘車與 Pikmin Bloom 種花狀態提醒
 ・狀態結束後自動移除提醒
 ・點擊提醒可快速開啟對應 App
 ・保守解析 PIN、驗證碼、取餐碼與交付碼，避免錯誤顯示
@@ -106,7 +112,7 @@ LiveStatus 需要通知存取權，才能讀取確定進度、媒體工作階段
 系統需求：Android 16 或更新版本。Live Update 顯示方式依裝置支援情況而定；目前已知部分 ASUS Android 16 韌體可能只顯示一般持續通知，不會顯示狀態列膠囊或鎖定畫面即時動態。
 
 【注意事項】
-LiveStatus 是第三方通知輔助工具，並非 Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、Citymapper、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
+LiveStatus 是第三方通知輔助工具，並非 Discord、Microsoft Teams、Google 時鐘、Google Recorder、YPT、Hevy、Strava、T-EX 行動購票、Citymapper、台北捷運 GO、iPASS MONEY、台灣 Pay、YouBike、foodpanda、McDonald's、55688、Uber、Uber Eats 或 Pikmin Bloom 官方 App。第三方 App 的通知格式可能因版本、地區、語言或系統設定而有所不同，因此部分狀態可能無法顯示或即時更新。
 
 LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或格式不明確，App 可能不會顯示部分資訊，以避免誤判。
 
@@ -122,12 +128,12 @@ LiveStatus 會盡量只顯示可可靠辨識的資訊。若通知內容不足或
 
 ## 發布版本名稱
 
-1.1.0
+1.2.0
 
 ## 發布說明
 
-1.1.0 更新：
+1.2.0 更新：
 
-- 新增通用進度 Live Update，支援同步所有 App 的確定進度、標題、內文與操作。
-- 改善 Citymapper 台鐵候車與剩餘站數辨識，讓大眾運輸狀態更準確。
-- 新增 ASUS／ROG 裝置相容性提示，協助辨識系統僅顯示一般持續通知的情況。
+- 新增 T-EX 行動購票列車即將到站 Live Update，並支援顯示來源通知提供的手機票證 QR。
+- 新增台北捷運 GO 下車提醒，顯示起點、終點與目前行經站。
+- 改善 Uber Eats 繁中與英文外送狀態，以及 McDonald's 取餐通知辨識。

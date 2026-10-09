@@ -209,13 +209,13 @@ object LiveStatusNotificationParser {
         val titleMatches = sequenceOf(notificationTitle, notificationText)
             .filterNotNull()
             .flatMap { it.lineSequence() }
-            .map(String::trim)
+            .map { it.normalizeMcDonaldsText() }
             .any { it == MCDONALDS_READY_TITLE }
         if (!titleMatches) return McDonaldsUpdate(McDonaldsEvent.NONE)
 
         val orderNumber = sequenceOf(notificationContentText, notificationText)
             .filterNotNull()
-            .map { text -> text.trim().replace(Regex("""\s+"""), " ") }
+            .map { it.normalizeMcDonaldsText() }
             .mapNotNull { text -> mcDonaldsReadyOrder.find(text)?.groupValues?.getOrNull(1) }
             .firstOrNull()
             ?: return McDonaldsUpdate(McDonaldsEvent.NONE)
@@ -223,6 +223,23 @@ object LiveStatusNotificationParser {
             event = McDonaldsEvent.READY_FOR_PICKUP,
             orderNumber = orderNumber,
         )
+    }
+
+    private fun String.normalizeMcDonaldsText(): String = buildString {
+        var pendingSpace = false
+        this@normalizeMcDonaldsText.codePoints().forEach { codePoint ->
+            when {
+                Character.getType(codePoint) == Character.FORMAT.toInt() -> Unit
+                Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint) -> {
+                    if (isNotEmpty()) pendingSpace = true
+                }
+                else -> {
+                    if (pendingSpace) append(' ')
+                    appendCodePoint(codePoint)
+                    pendingSpace = false
+                }
+            }
+        }
     }
 
     @JvmStatic
@@ -243,17 +260,24 @@ object LiveStatusNotificationParser {
                 UberEatsEvent.ORDER_ENDED to UberEatsLanguage.ENGLISH
             normalized.contains("快到了") ->
                 UberEatsEvent.ARRIVING to UberEatsLanguage.TRADITIONAL_CHINESE
-            lines.any { it == "almost here!" } ->
+            lines.any {
+                it == "almost here!" || it.endsWith(" will drop off your order soon")
+            } ->
                 UberEatsEvent.ARRIVING to UberEatsLanguage.ENGLISH
             normalized.contains("正前往您所在位置") ||
                 normalized.contains("正在前往您所在位置") ||
                 normalized.contains("即將抵達") ->
                 UberEatsEvent.ON_THE_WAY to UberEatsLanguage.TRADITIONAL_CHINESE
-            lines.any { it == "heading your way" } ->
+            lines.any { it == "heading your way" || it == "on the way" } ->
                 UberEatsEvent.ON_THE_WAY to UberEatsLanguage.ENGLISH
-            normalized.contains("正在取餐") ->
+            lines.any { it == "正在途中" } ->
+                UberEatsEvent.ON_THE_WAY to UberEatsLanguage.TRADITIONAL_CHINESE
+            normalized.contains("正在取餐") ||
+                lines.any { it.endsWith("正在領取您的訂單") } ->
                 UberEatsEvent.PICKING_UP to UberEatsLanguage.TRADITIONAL_CHINESE
-            lines.any { it == "picking up your order" } ->
+            lines.any {
+                it == "picking up your order" || it.endsWith(" is picking up your order")
+            } ->
                 UberEatsEvent.PICKING_UP to UberEatsLanguage.ENGLISH
             normalized.contains("正在準備訂單") ||
                 normalized.contains("準備訂單") ->

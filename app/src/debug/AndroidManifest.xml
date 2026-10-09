@@ -2,6 +2,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <queries>
         <package android:name="ee.mtakso.client" />
-        <package android:name="tw.com.trtc.is.android05" />
     </queries>
 </manifest>

@@ -139,11 +139,11 @@ class LiveStatusNotificationParserTest {
         assertEquals(
             LiveStatusNotificationParser.McDonaldsUpdate(
                 event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
-                orderNumber = "97167",
+                orderNumber = "97877",
             ),
             LiveStatusNotificationParser.parseMcDonalds(
                 notificationTitle = "訂單準備就緒",
-                notificationContentText = "您的訂單 97167 已完成，請直接至餐廳取餐",
+                notificationContentText = "您的訂單 97877 已完成，請直接至餐廳取餐",
             ),
         )
     }
@@ -178,6 +178,28 @@ class LiveStatusNotificationParserTest {
     }
 
     @Test
+    fun mcDonaldsReadyNotificationNormalizesUnicodeWhitespaceAndFormatCharacters() {
+        listOf(
+            "您的訂單\u00a097877 已完成，請直接至餐廳取餐",
+            "您的訂單\u202f97877\u3000已完成，請直接至餐廳取餐",
+            "您的訂單 97877 已完成，請直接至餐廳取餐\u200b",
+            "您的訂單\n97877 已完成，請直接至餐廳取餐\ufeff",
+        ).forEach { contentText ->
+            assertEquals(
+                contentText,
+                LiveStatusNotificationParser.McDonaldsUpdate(
+                    event = LiveStatusNotificationParser.McDonaldsEvent.READY_FOR_PICKUP,
+                    orderNumber = "97877",
+                ),
+                LiveStatusNotificationParser.parseMcDonalds(
+                    notificationTitle = "訂單\u200b準備就緒",
+                    notificationContentText = contentText,
+                ),
+            )
+        }
+    }
+
+    @Test
     fun unrelatedMcDonaldsNotificationsAreIgnored() {
         listOf(
             Triple<String?, String?, String?>(null, null, null),
@@ -185,6 +207,7 @@ class LiveStatusNotificationParserTest {
             Triple("訂單準備就緒", "您的訂單已完成，請直接至餐廳取餐", null),
             Triple("訂單準備就緒", "您的訂單 ABCDE 已完成，請直接至餐廳取餐", null),
             Triple("訂單準備就緒", "您的訂單 97167 已完成", null),
+            Triple("訂單準備就緒", "您的訂單 97167 已完成，請直接至餐廳取餐優惠", null),
             Triple("訂單已完成", "您的訂單 97167 已完成，請直接至餐廳取餐", null),
             Triple("優惠快訊", "訂單完成即送麥當勞點數", null),
         ).forEach { (title, content, text) ->
@@ -239,6 +262,127 @@ class LiveStatusNotificationParserTest {
             assertEquals(event, update.event)
             assertEquals(UberEatsLanguage.ENGLISH, update.language)
             assertEquals("0152", update.pin)
+        }
+    }
+
+    @Test
+    fun uberEatsParsesEnglishCourierPickupWithoutTreatingPlateAsPin() {
+        listOf(
+            "紀毓 is picking up your order\n" +
+                "紀毓 · EPU-8996 • Arrives 6:26-6:50 PM\n" +
+                "紀毓 · EPU-8996\nBlack Gogoro S1\n",
+            "  Courier Name IS PICKING UP YOUR ORDER  \n\nArrives 6:26-6:50 PM",
+        ).forEach { text ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, "")
+
+            assertEquals(UberEatsEvent.PICKING_UP, update.event)
+            assertEquals(UberEatsLanguage.ENGLISH, update.language)
+            assertNull(update.pin)
+        }
+    }
+
+    @Test
+    fun uberEatsCourierPickupDoesNotOverrideEndedOrder() {
+        listOf("Order delivered", "Order delivered at 6:50 PM", "訂單已取消").forEach { ended ->
+            val update = LiveStatusNotificationParser.parseUberEats(
+                "Courier is picking up your order\n$ended",
+                null,
+            )
+
+            assertEquals(UberEatsEvent.ORDER_ENDED, update.event)
+        }
+    }
+
+    @Test
+    fun uberEatsRejectsIncompleteOrUnrelatedEnglishCourierPickupText() {
+        listOf(
+            null,
+            "   \n",
+            "is picking up your order",
+            "Courier is not picking up your order",
+            "Courier is picking up your order tomorrow for a promotion",
+            "Learn about picking up your order",
+        ).forEach { text ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, null)
+
+            assertEquals(UberEatsEvent.NONE, update.event)
+            assertNull(update.pin)
+        }
+    }
+
+    @Test
+    fun uberEatsParsesObservedEnglishOnTheWayWithoutTreatingPlateAsPin() {
+        listOf(
+            "On the way\n紀毓 · EPU-8996 • Arrives 6:22-6:30 PM\n" +
+                "紀毓 · EPU-8996\nBlack Gogoro S1\n",
+            "  ON THE WAY  \n\nArrives 6:22-6:30 PM",
+        ).forEach { text ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, "")
+
+            assertEquals(UberEatsEvent.ON_THE_WAY, update.event)
+            assertEquals(UberEatsLanguage.ENGLISH, update.language)
+            assertNull(update.pin)
+        }
+    }
+
+    @Test
+    fun uberEatsOnTheWayDoesNotOverrideEndedOrder() {
+        listOf("Order delivered", "Order delivered at 6:30 PM", "訂單已取消").forEach { ended ->
+            val update = LiveStatusNotificationParser.parseUberEats("On the way\n$ended", null)
+
+            assertEquals(UberEatsEvent.ORDER_ENDED, update.event)
+        }
+    }
+
+    @Test
+    fun uberEatsDoesNotMatchOnTheWayInsideUnrelatedSentence() {
+        listOf("Savings on the way", "On the way to more rewards", "Not on the way").forEach { text ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, null)
+
+            assertEquals(UberEatsEvent.NONE, update.event)
+            assertNull(update.pin)
+        }
+    }
+
+    @Test
+    fun uberEatsParsesObservedEnglishCourierArrivingWithoutTreatingPlateAsPin() {
+        listOf(
+            "紀毓 will drop off your order soon\nOn-time • Arriving now\n" +
+                "紀毓 · EPU-8996\nBlack Gogoro S1\n",
+            "  Courier Name WILL DROP OFF YOUR ORDER SOON  \n\nOn-time • Arriving now",
+        ).forEach { text ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, "")
+
+            assertEquals(UberEatsEvent.ARRIVING, update.event)
+            assertEquals(UberEatsLanguage.ENGLISH, update.language)
+            assertNull(update.pin)
+        }
+    }
+
+    @Test
+    fun uberEatsCourierArrivingDoesNotOverrideEndedOrder() {
+        listOf("Order delivered", "Order delivered at 6:30 PM", "訂單已取消").forEach { ended ->
+            val update = LiveStatusNotificationParser.parseUberEats(
+                "Courier will drop off your order soon\n$ended",
+                null,
+            )
+
+            assertEquals(UberEatsEvent.ORDER_ENDED, update.event)
+        }
+    }
+
+    @Test
+    fun uberEatsRejectsIncompleteOrUnrelatedEnglishCourierArrivingText() {
+        listOf(
+            "will drop off your order soon",
+            "Courier will not drop off your order soon",
+            "Courier will drop off your order soon after you place it",
+            "Learn when your courier will drop off your order",
+        ).forEach { text ->
+            val update = LiveStatusNotificationParser.parseUberEats(text, null)
+
+            assertEquals(UberEatsEvent.NONE, update.event)
+            assertNull(update.pin)
         }
     }
 
@@ -340,6 +484,36 @@ class LiveStatusNotificationParserTest {
         )
         assertEquals(UberEatsEvent.ARRIVING, update.event)
         assertEquals("7616", update.pin)
+    }
+
+    @Test
+    fun uberEatsParsesObservedChineseCourierPickupText() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "誠遠 正在領取您的訂單\n" +
+                "誠遠 · ERH-8615 • 抵達時間：2:07-2:16 PM\n" +
+                "誠遠 · ERH-8615\n" +
+                "Dimgray Gogoro S1",
+            "",
+        )
+
+        assertEquals(UberEatsEvent.PICKING_UP, update.event)
+        assertEquals(UberEatsLanguage.TRADITIONAL_CHINESE, update.language)
+        assertNull(update.pin)
+    }
+
+    @Test
+    fun uberEatsParsesObservedChineseCourierOnTheWayText() {
+        val update = LiveStatusNotificationParser.parseUberEats(
+            "正在途中\n" +
+                "誠遠 · ERH-8615 • 抵達時間為 2:10 PM\n" +
+                "誠遠 · ERH-8615\n" +
+                "Dimgray Gogoro S1",
+            "",
+        )
+
+        assertEquals(UberEatsEvent.ON_THE_WAY, update.event)
+        assertEquals(UberEatsLanguage.TRADITIONAL_CHINESE, update.language)
+        assertNull(update.pin)
     }
 
     @Test

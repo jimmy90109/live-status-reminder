@@ -36,6 +36,8 @@ internal object GenericProgressPolicy {
 internal object GenericProgressSourcePolicy {
     private val dedicatedPackages = setOf(
         "com.citymapper.app.release",
+        "tw.com.trtc.is.android05",
+        "tw.com.thsrc.texpress",
         "com.google.android.deskclock",
         "com.ipass.ipassmoney",
         "tw.com.twmp.twhcewallet",

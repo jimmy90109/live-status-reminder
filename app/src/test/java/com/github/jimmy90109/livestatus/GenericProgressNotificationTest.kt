@@ -50,6 +50,9 @@ class GenericProgressNotificationTest {
     fun dedicatedSourcePolicyReservesExistingIntegrationsOnly() {
         assertTrue(GenericProgressSourcePolicy.hasDedicatedIntegration("com.ubercab"))
         assertTrue(
+            GenericProgressSourcePolicy.hasDedicatedIntegration("tw.com.trtc.is.android05"),
+        )
+        assertTrue(
             GenericProgressSourcePolicy.hasDedicatedIntegration(
                 "com.google.android.apps.recorder",
             ),

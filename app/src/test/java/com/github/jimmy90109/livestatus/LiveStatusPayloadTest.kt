@@ -15,6 +15,28 @@ import org.junit.Test
 
 class LiveStatusPayloadTest {
     @Test
+    fun texpressPayloadUsesFixedArrivalCriticalTextAndTrainIcon() {
+        val payload = LiveStatusReminder.texpressArrivalPayload(
+            update = TexpressArrivalUpdate(
+                sourceKey = "texpress",
+                postTime = 1L,
+                arrival = TexpressArrival("242", 5, "板橋站"),
+            ),
+            appName = "T-EX 行動購票",
+            title = "高鐵 242 車次即將抵達",
+            contentText = "5 分鐘後抵達板橋站",
+            criticalText = "即將到站",
+        )
+
+        assertEquals("T-EX 行動購票", payload.appName)
+        assertEquals("即將到站", payload.criticalText)
+        assertEquals("高鐵 242 車次即將抵達", payload.title)
+        assertEquals("5 分鐘後抵達板橋站", payload.contentText)
+        assertEquals(R.drawable.ic_train_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_train_notification, payload.leftIconRes)
+    }
+
+    @Test
     fun mcDonaldsPayloadShowsOrderNumberAsCriticalText() {
         val payload = LiveStatusReminder.mcDonaldsPayload("97167")
 
@@ -363,6 +385,25 @@ class LiveStatusPayloadTest {
                 "Crimson Uber Motorbike · PIN 0152",
             text,
         )
+    }
+
+    @Test
+    fun uberEatsObservedEnglishCourierArrivingWithoutPinDisplaysStatus() {
+        val text = "紀毓 will drop off your order soon\nOn-time • Arriving now\n" +
+            "紀毓 · EPU-8996\nBlack Gogoro S1\n"
+        val update = LiveStatusNotificationParser.parseUberEats(text, "")
+        val payload = LiveStatusReminder.uberEatsPayload(
+            event = update.event,
+            language = update.language,
+            officialText = text,
+        )
+        val displayPayload = LiveStatusReminder.uberEatsPayloadWithPin(
+            update.event, update.language, payload, update.pin,
+        )
+
+        assertEquals("Almost here", displayPayload.criticalText)
+        assertTrue(displayPayload.contentText.contains("On-time • Arriving now"))
+        assertEquals(false, displayPayload.contentText.contains("PIN "))
     }
 
     @Test
