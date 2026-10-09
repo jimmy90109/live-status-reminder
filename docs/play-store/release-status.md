@@ -8,12 +8,27 @@
 | --- | --- |
 | Alpha 最新上傳 | `2608060 (1.0.6)`，2026-08-06 已發布 |
 | Alpha 最新通過 | `2608060 (1.0.6)`，2026-08-06 23:46 通過審查並可供測試人員使用 |
-| 公開測試最新發布 | `2609130 (1.1.0)`，2026-09-13 15:45 已發布，可供不限數量的測試人員使用，供應 2 個國家／地區，82 位活躍測試人員 |
+| 公開測試最新發布 | `2610050 (1.2.0)`；2026-10-09 經 Play API 確認為已發布 |
 | 公開測試待審 | 無 |
-| Production | `2609130 (1.1.0)`，2026-09-13 16:28 已通過審查並在 Google Play 上架，完成 100% 全面推出，供應 2 個國家／地區 |
+| Production | `2610050 (1.2.0)`；2026-10-09 經 Play API 確認已通過審查並發布 |
 | Production 待審 | 無 |
 
 Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>
+
+## 1.2.0 發版產物
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2610050 (1.2.0)`；Beta 公開測試與 Production 均已發布，未上傳 Alpha |
+| 來源 revision | `524f659`；建置時工作目錄另含未提交的版本、YouBike 索引與商店文件變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `607ba8cd8cd34f9d034f7297f22cf7084f139d484e6ed187b77fa63b3abb0e67` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play-1.2.0-2610050.zip` |
+| Symbols SHA-256 | `57ec0e5bef025a08f32027f4d84953b02578408c2037a876c9e9148527b001ba` |
+| YouBike 索引 | `generatedAt=2026-10-05T10:19:02+00:00`，TDX 來源 9,647 筆；較 `2609300` 新增 10 筆、無移除，服務區域未減少 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease` 成功；AAB 簽章及 release manifest 內的 package、版本名稱、版本代碼、minSdk 與 targetSdk 已核對；`gplay validate` 為 0 blocking、4 warnings、2 manual follow-up，判定 ready |
+| Play 狀態 | `2610050` 的 Beta 公開測試與 Production 均於 2026-10-09 經 Play API 確認為已發布；API 未回傳實際上線時間或 rollout 百分比 |
+| Play 人工確認 | Play Console 的裝置支援變化、國家／地區、測試者設定與實際 rollout 百分比尚待確認 |
 
 ## 1.1.0 發版產物
 
@@ -118,6 +133,9 @@ Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy901
 
 | 日期 | 軌道 | 版本 | 狀態 |
 | --- | --- | --- | --- |
+| 2026-10-09 | Production | `2610050 (1.2.0)` | 已通過審查並發布；Play API 未回傳實際上線時間或 rollout 百分比 |
+| 2026-10-05 | 公開測試 | `2610050 (1.2.0)` | 加入 Uber Eats 英文取餐與配送狀態修正；Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並重新送審；2026-10-09 經 Play API 確認為已發布 |
+| 2026-09-30 | 公開測試 | `2609300 (1.2.0)` | Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；2026-10-05 經 Play API 確認為已發布 |
 | 2026-09-13 | Production | `2609130 (1.1.0)` | 16:28 已通過審查並在 Google Play 上架；完成 100% 全面推出，供應 2 個國家／地區，Play Console 目前顯示可用裝置 1,815 台 |
 | 2026-09-13 | 公開測試 | `2609130 (1.1.0)` | Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出；15:45 已發布，可供不限數量的測試人員使用，供應 2 個國家／地區，目前有 82 位活躍測試人員 |
 | 2026-09-07 | Production | `2609060 (1.0.11)` | 14:21 已通過審查並在 Google Play 上架；完成 100% 全面推出，供應 2 個國家／地區，支援 1,662 台裝置 |
