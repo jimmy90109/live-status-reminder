@@ -5,7 +5,7 @@
 ## 資料收集與分享
 
 - App 是否收集或分享任何必要揭露的使用者資料：**否**
-- 理由：通用進度通知、媒體曲名、Discord 語音頻道顯示文字、Google Recorder 錄音狀態與時間、YPT 讀書計時、Hevy 健身進度、台北捷運 GO 路線與站名、T-EX 到站資訊、完整通知內容、McDonald's 訂單號碼、55688 車牌及 Uber / Uber Eats PIN 僅在裝置上即時處理，未傳送出裝置。YouBike 站點回報只會在使用者點擊回報通知後，將去識別化欄位交給使用者選擇的外部 Email App；必須由使用者檢查並手動寄出。依 Google Play「資料安全」定義，純裝置端處理不屬於收集，而使用者可合理預期的特定主動分享動作可適用 sharing 的 user-initiated action 例外；送審時仍應依當下 Play Console 問卷與政策文字再次確認。
+- 理由：通用進度通知、媒體曲名、Discord 語音頻道顯示文字、小米限定 LINE 通話標題／內容、來源計時起點與操作、Google Recorder 錄音狀態與時間、YPT 讀書計時、Hevy 健身進度、台北捷運 GO 路線與站名、T-EX 到站資訊、完整通知內容、McDonald's 訂單號碼、55688 車牌及 Uber / Uber Eats PIN 僅在裝置上即時處理，未傳送出裝置。YouBike 站點回報只會在使用者點擊回報通知後，將去識別化欄位交給使用者選擇的外部 Email App；必須由使用者檢查並手動寄出。依 Google Play「資料安全」定義，純裝置端處理不屬於收集，而使用者可合理預期的特定主動分享動作可適用 sharing 的 user-initiated action 例外；送審時仍應依當下 Play Console 問卷與政策文字再次確認。
 - App 是否使用加密傳輸：**不適用，App 不傳輸使用者資料**
 - 使用者是否能要求刪除資料：**不適用，開發者未收集或持有使用者資料**
 

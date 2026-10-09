@@ -321,4 +321,13 @@
     <string name="monitoring_uber_eats_ended">自訂樣式常駐通知包含「訂單已送達」、「已送達」、「訂單已取消」、「已取消」、「訂單取消」或「Order delivered」；來源通知被移除時也會清除提醒。</string>
     <string name="monitoring_pikmin_started">包含繁體「正在背景執行時種花」、簡體「正在背景执行时种花」或英文「Planting flowers in the background」。</string>
     <string name="monitoring_pikmin_stopped">來源種花通知被移除，或後續 Pikmin Bloom 通知不再符合種花文案。</string>
+    <string name="line_app_name">LINE</string>
+    <string name="line_debug_language">不依賴語言</string>
+    <string name="line_debug_open_payload">查看通知 payload</string>
+    <string name="line_call_card_title">LINE 通話</string>
+    <string name="line_call_card_description">僅限 Xiaomi／Redmi／POCO，預設開啟。保留原始通知並提供返回通話與來源掛斷操作。</string>
+    <string name="line_call_channel_name">LINE 通話即時提醒</string>
+    <string name="line_call_fallback_content">通話中</string>
+    <string name="line_call_fallback_title">LINE 通話</string>
+    <string name="line_call_hang_up">掛斷</string>
 </resources>

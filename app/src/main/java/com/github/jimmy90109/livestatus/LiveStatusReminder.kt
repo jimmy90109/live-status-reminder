@@ -52,6 +52,8 @@ object LiveStatusReminder {
     private const val GENERIC_PROGRESS_NOTIFICATION_ID = 1019
     private const val TAIPEI_METRO_GO_NOTIFICATION_ID = 1020
     private const val TEXPRESS_ARRIVAL_NOTIFICATION_ID = 1021
+    internal const val LINE_CALL_NOTIFICATION_ID = 1023
+    private const val LINE_CALL_CHANNEL_ID = "line_call_live_status_v1"
     private const val CITYMAPPER_CHANNEL_ID = "citymapper_navigation"
     private const val TAIPEI_METRO_GO_CHANNEL_ID = "taipei_metro_go_navigation_v1"
     private const val TEXPRESS_ARRIVAL_CHANNEL_ID = "texpress_arrival_v1"
@@ -1157,6 +1159,72 @@ object LiveStatusReminder {
 
     internal fun discordVoiceContentText(update: DiscordVoiceUpdate, fallback: String): String =
         update.sourceContentText ?: fallback
+
+    internal fun showLineCall(context: Context, update: LineCallUpdate) {
+        if (!LineCallPolicy.shouldMirror(
+                Build.MANUFACTURER,
+                Build.BRAND,
+                AppReminderPreferences.App.LINE_CALL.isEnabled(context),
+                BuildConfig.DEBUG,
+            )
+        ) {
+            clearLineCall(context)
+            return
+        }
+        notificationManager(context).notify(LINE_CALL_NOTIFICATION_ID, buildLineCallNotification(context, update))
+    }
+
+    internal fun buildLineCallNotification(
+        context: Context,
+        update: LineCallUpdate,
+    ): Notification {
+        notificationManager(context).createNotificationChannel(
+            NotificationChannel(
+                LINE_CALL_CHANNEL_ID,
+                context.getString(R.string.line_call_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                setSound(null, null)
+                enableVibration(false)
+            },
+        )
+        val startedAt = update.sourceWhenEpochMillis.takeIf { it > 0 && it <= System.currentTimeMillis() }
+        val payload = LiveStatusPayload(
+            id = LINE_CALL_NOTIFICATION_ID,
+            appName = context.getString(R.string.line_app_name),
+            smallIconRes = R.drawable.ic_call_notification,
+            leftIconRes = R.drawable.ic_call_notification,
+            criticalText = context.getString(R.string.line_call_fallback_title),
+            title = update.sourceTitle ?: context.getString(R.string.line_call_fallback_title),
+            contentText = update.sourceContentText ?: context.getString(R.string.line_call_fallback_content),
+            contentIntent = update.contentIntent,
+            countUpStartedAtEpochMillis = startedAt,
+        )
+        return Notification.Builder(context, LINE_CALL_CHANNEL_ID)
+            .setSmallIcon(payload.smallIconRes)
+            .setContentTitle(payload.title)
+            .setContentText(payload.contentText)
+            .setContentIntent(payload.contentIntent)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setVisibility(update.visibility)
+            .setWhen(startedAt ?: 0)
+            .setShowWhen(startedAt != null)
+            .setUsesChronometer(startedAt != null)
+            .setChronometerCountDown(false)
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
+            .setShortCriticalText(null)
+            .also { builder -> update.hangUpAction?.let(builder::addAction) }
+            .also(::requestPromotedOngoing)
+            .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
+            .build()
+    }
+
+    internal fun clearLineCall(context: Context) {
+        notificationManager(context).cancel(LINE_CALL_NOTIFICATION_ID)
+    }
 
     internal fun showTeamsCall(context: Context, update: TeamsCallUpdate) {
         createTeamsCallChannel(context)

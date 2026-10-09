@@ -79,6 +79,7 @@ internal fun AppsSection(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenBoltDebug: () -> Unit,
+    onOpenLineDebug: () -> Unit,
     onOpenCitymapperDebug: () -> Unit,
     onOpenTaipeiMetroGoDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
@@ -382,6 +383,18 @@ internal fun AppsSection(
                         )
                     }
                     CATEGORY_MEDIA -> {
+                        if (status.lineCallSupported) {
+                            LineCard(
+                                installed = status.lineInstalled,
+                                supported = status.lineCallSupported,
+                                enabled = status.lineCallEnabled,
+                                onEnabledChange = {
+                                    onAppEnabledChange(AppReminderPreferences.App.LINE_CALL, it)
+                                },
+                                interactionEnabled = status.requiredSettingsComplete,
+                                onOpenDebug = onOpenLineDebug,
+                            )
+                        }
                         DiscordVoiceCard(
                             installed = status.discordInstalled,
                             enabled = status.discordVoiceEnabled,

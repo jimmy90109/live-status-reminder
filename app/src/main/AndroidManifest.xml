@@ -23,6 +23,7 @@
         <package android:name="com.strava" />
         <package android:name="com.discord" />
         <package android:name="com.microsoft.teams" />
+        <package android:name="jp.naver.line.android" />
         <package android:name="com.google.android.apps.recorder" />
     </queries>
 

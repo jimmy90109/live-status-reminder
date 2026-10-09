@@ -14,6 +14,7 @@ data class LiveStatusPayload(
     val progress: Int? = null,
     val timer: LiveStatusTimer? = null,
     val contentIntent: PendingIntent? = null,
+    val countUpStartedAtEpochMillis: Long? = null,
 )
 
 data class LiveStatusTimer(

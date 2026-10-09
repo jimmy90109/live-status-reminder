@@ -68,6 +68,12 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
     private val discordVoiceTracker = DiscordVoiceTracker()
     private val teamsCallTracker = TeamsCallTracker()
+    private val lineCallTracker = LineCallTracker()
+    private val lineCallPreferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == AppReminderPreferences.App.LINE_CALL.preferenceKey) {
+            restoreLineCall(runCatching { activeNotifications }.getOrNull().orEmpty())
+        }
+    }
     private val recorderTracker = RecorderTracker()
     private val clockTimerHandler = Handler(Looper.getMainLooper())
     private var activeClockTimerUpdate: ClockTimerUpdate? = null
@@ -93,6 +99,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
+        AppReminderPreferences.registerListener(this, lineCallPreferenceListener)
         AppReminderPreferences.registerListener(this, citymapperPreferenceListener)
         AppReminderPreferences.registerListener(this, genericProgressPreferenceListener)
         AppReminderPreferences.registerListener(this, taipeiMetroGoPreferenceListener)
@@ -169,6 +176,19 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     )
                 } else {
                     handleTexpressArrivalDecision(texpressArrivalTracker.reset())
+                }
+            }
+            LINE_PACKAGE -> {
+                if (BuildConfig.DEBUG) recordLine(statusBarNotification, "POSTED")
+                if (AppReminderPreferences.App.LINE_CALL.isEnabled(this)) {
+                    handleLineCallDecision(
+                        lineCallTracker.onPosted(
+                            statusBarNotification.key,
+                            LineCallNotificationExtractor.extract(this, statusBarNotification),
+                        ),
+                    )
+                } else {
+                    handleLineCallDecision(lineCallTracker.reset())
                 }
             }
             BOLT_PACKAGE -> if (BuildConfig.DEBUG) {
@@ -640,12 +660,52 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         )
     }
 
+    private fun recordLine(
+        statusBarNotification: StatusBarNotification,
+        lifecycle: String,
+        removalReason: Int? = null,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val notification = statusBarNotification.notification
+        NotificationDebugPayloadStore.recordLine(
+            this,
+            statusBarNotification,
+            readNotificationText(this, statusBarNotification.packageName, notification),
+            readNotificationTitle(notification),
+            readNotificationContentText(notification),
+            lifecycle,
+            removalReason,
+        )
+    }
+
+    override fun onNotificationRemoved(
+        statusBarNotification: StatusBarNotification,
+        rankingMap: RankingMap,
+        reason: Int,
+    ) {
+        handleNotificationRemoved(statusBarNotification, reason)
+    }
+
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
+        handleNotificationRemoved(statusBarNotification)
+    }
+
+    private fun handleNotificationRemoved(
+        statusBarNotification: StatusBarNotification,
+        removalReason: Int? = null,
+    ) {
         mediaPlaybackMonitor.onNotificationRemoved(statusBarNotification)
+        if (BuildConfig.DEBUG && statusBarNotification.packageName == LINE_PACKAGE) {
+            recordLine(statusBarNotification, "REMOVED", removalReason)
+        }
         if (statusBarNotification.packageName != packageName) {
             handleGenericProgressDecision(
                 genericProgressTracker.onRemoved(statusBarNotification.key),
             )
+        }
+        if (statusBarNotification.packageName == LINE_PACKAGE) {
+            handleLineCallDecision(lineCallTracker.onRemoved(statusBarNotification.key))
+            return
         }
         if (statusBarNotification.packageName == CITYMAPPER_PACKAGE) {
             if (BuildConfig.DEBUG) {
@@ -789,6 +849,8 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onDestroy() {
+        AppReminderPreferences.unregisterListener(this, lineCallPreferenceListener)
+        handleLineCallDecision(lineCallTracker.reset())
         AppReminderPreferences.unregisterListener(this, citymapperPreferenceListener)
         AppReminderPreferences.unregisterListener(this, genericProgressPreferenceListener)
         AppReminderPreferences.unregisterListener(this, taipeiMetroGoPreferenceListener)
@@ -808,6 +870,9 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         val activeNotifications = getActiveNotifications()
         mediaPlaybackMonitor.start(activeNotifications)
         if (BuildConfig.DEBUG) {
+            activeNotifications
+                .filter { it.packageName == LINE_PACKAGE }
+                .forEach { recordLine(it, "ACTIVE_SNAPSHOT") }
             activeNotifications
                 .filter { it.packageName == TEAMS_PACKAGE }
                 .forEach {
@@ -847,6 +912,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         }
         restoreDiscordVoice(activeNotifications)
         restoreTeamsCall(activeNotifications)
+        restoreLineCall(activeNotifications)
         restoreGoogleRecorder(activeNotifications)
         restoreYptStudy(activeNotifications)
         restoreHevyWorkout(activeNotifications)
@@ -860,6 +926,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onListenerDisconnected() {
+        handleLineCallDecision(lineCallTracker.reset())
         handleCitymapperDecision(citymapperTracker.reset())
         handleTaipeiMetroGoDecision(taipeiMetroGoTracker.reset())
         handleTexpressArrivalDecision(texpressArrivalTracker.reset())
@@ -1009,6 +1076,25 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
             DiscordVoiceDecision.Clear -> LiveStatusReminder.clearDiscordVoice(this)
             DiscordVoiceDecision.None -> Unit
         }
+    }
+
+    private fun handleLineCallDecision(decision: LineCallDecision) {
+        when (decision) {
+            is LineCallDecision.Show -> LiveStatusReminder.showLineCall(this, decision.update)
+            LineCallDecision.Clear -> LiveStatusReminder.clearLineCall(this)
+            LineCallDecision.None -> Unit
+        }
+    }
+
+    private fun restoreLineCall(activeNotifications: Array<out StatusBarNotification>) {
+        if (!AppReminderPreferences.App.LINE_CALL.isEnabled(this)) {
+            handleLineCallDecision(lineCallTracker.reset())
+            return
+        }
+        val updates = activeNotifications
+            .filter { it.packageName == LINE_PACKAGE }
+            .mapNotNull { LineCallNotificationExtractor.extract(this, it) }
+        handleLineCallDecision(lineCallTracker.restore(updates))
     }
 
     private fun handleTeamsCallDecision(decision: TeamsCallDecision) {
@@ -1366,6 +1452,7 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         private const val HEVY_PACKAGE = HevyWorkoutNotificationParser.PACKAGE_NAME
         private const val STRAVA_PACKAGE = "com.strava"
         private const val DISCORD_PACKAGE = DiscordVoiceNotificationParser.PACKAGE_NAME
+        private const val LINE_PACKAGE = "jp.naver.line.android"
         private const val TEAMS_PACKAGE = "com.microsoft.teams"
         private const val GOOGLE_RECORDER_PACKAGE = GoogleRecorderNotificationParser.PACKAGE_NAME
 
