@@ -1003,6 +1003,13 @@ object LiveStatusReminder {
             .setContentTitle(payload.title)
             .setContentText(payload.contentText)
             .setContentIntent(payload.contentIntent)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, payload.leftIconRes),
+                    context.getString(R.string.texpress_open_ticket_action),
+                    openTexpress,
+                ).build(),
+            )
             .setCategory(Notification.CATEGORY_NAVIGATION)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -1010,17 +1017,7 @@ object LiveStatusReminder {
             .setPublicVersion(publicVersion)
             .setWhen(0)
             .setShowWhen(false)
-            .setStyle(
-                update.picture?.let {
-                    Notification.BigPictureStyle()
-                        .bigPicture(it)
-                        .setBigContentTitle(payload.title)
-                        .setSummaryText(payload.contentText)
-                        .setContentDescription(
-                            context.getString(R.string.texpress_qr_content_description),
-                        )
-                } ?: Notification.BigTextStyle().bigText(payload.contentText),
-            )
+            .setStyle(Notification.BigTextStyle().bigText(payload.contentText))
             .setShortCriticalText(payload.criticalText)
             .also(::requestPromotedOngoing)
             .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
