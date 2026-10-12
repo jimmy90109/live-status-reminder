@@ -20,6 +20,8 @@ object YouBikeRideSessionStore {
     private const val KEY_CANDIDATES = "candidate_regions"
     private const val KEY_MANUAL_REGION = "manual_region"
     private const val KEY_RESOLUTION_ISSUE = "resolution_issue"
+    private const val KEY_REGION_REUSED = "region_reused"
+    private const val KEY_SIMULATION = "simulation"
     private const val KEY_LIVE_UPDATE_HIDDEN = "live_update_hidden"
 
     fun load(context: Context): YouBikeRideSession? {
@@ -40,6 +42,8 @@ object YouBikeRideSessionStore {
                 .mapNotNull { it.toRegion() }.toSet(),
             manuallySelectedRegion = preferences.getString(KEY_MANUAL_REGION, null).toRegion(),
             originalResolutionIssue = preferences.getString(KEY_RESOLUTION_ISSUE, null).toResolutionIssue(),
+            isRegionReused = preferences.getBoolean(KEY_REGION_REUSED, false),
+            isSimulation = preferences.getBoolean(KEY_SIMULATION, false),
         )
     }
 
@@ -54,6 +58,8 @@ object YouBikeRideSessionStore {
             .putStringSet(KEY_CANDIDATES, session.candidateRegions.mapTo(mutableSetOf()) { it.name })
             .putString(KEY_MANUAL_REGION, session.manuallySelectedRegion?.name)
             .putString(KEY_RESOLUTION_ISSUE, session.originalResolutionIssue?.name)
+            .putBoolean(KEY_REGION_REUSED, session.isRegionReused)
+            .putBoolean(KEY_SIMULATION, session.isSimulation)
             .apply()
     }
 
@@ -81,9 +87,14 @@ object YouBikeRideSessionStore {
 object YouBikeRideManager {
     private val taipeiZone = ZoneId.of("Asia/Taipei")
 
-    fun handle(context: Context, update: YouBikeRideUpdate, nowMillis: Long = System.currentTimeMillis()) {
+    fun handle(
+        context: Context,
+        update: YouBikeRideUpdate,
+        nowMillis: Long = System.currentTimeMillis(),
+        isSimulation: Boolean = false,
+    ) {
         when (update.event) {
-            YouBikeEvent.BORROWED -> start(context, update, nowMillis)
+            YouBikeEvent.BORROWED -> start(context, update, nowMillis, isSimulation)
             YouBikeEvent.RETURNED -> finish(context, update)
             YouBikeEvent.NONE -> Unit
         }
@@ -105,7 +116,8 @@ object YouBikeRideManager {
     fun selectRegion(context: Context, sessionId: String, region: YouBikeRegion): Boolean {
         val session = YouBikeRideSessionStore.load(context) ?: return false
         if (session.id != sessionId || session.isExpired(System.currentTimeMillis())) return false
-        val updated = session.copy(region = region, manuallySelectedRegion = region)
+        val updated = YouBikeRegionReusePolicy.withManualRegion(session, region) ?: return false
+        if (!session.isSimulation) YouBikeRegionPreferenceStore.save(context, region)
         YouBikeRideSessionStore.save(context, updated)
         refresh(context, sessionId)
         return true
@@ -161,7 +173,7 @@ object YouBikeRideManager {
         YouBikeTrackingNotifier.clearHidden(context)
     }
 
-    private fun start(context: Context, update: YouBikeRideUpdate, nowMillis: Long) {
+    private fun start(context: Context, update: YouBikeRideUpdate, nowMillis: Long, isSimulation: Boolean) {
         val occurredAt = update.occurredAt ?: return
         val station = update.stationName ?: return
         val bike = update.bikeNumber ?: return
@@ -182,11 +194,7 @@ object YouBikeRideManager {
         if (!YouBikeSessionPolicy.shouldReplace(current, borrowedAt, bike)) return
         current?.let { cancelAlarm(context, it.id) }
         val resolution = resolveStation(context, station)
-        val region = when (resolution) {
-            is YouBikeStationResolution.Supported -> resolution.region
-            YouBikeStationResolution.Unsupported -> YouBikeRegion.UNSUPPORTED
-            else -> YouBikeRegion.UNRESOLVED
-        }
+        val selection = YouBikeRegionReusePolicy.select(resolution, YouBikeRegionPreferenceStore.load(context))
         val candidates = when (resolution) {
             is YouBikeStationResolution.Supported -> resolution.candidates
             is YouBikeStationResolution.Ambiguous -> resolution.candidates
@@ -198,7 +206,9 @@ object YouBikeRideManager {
             stationName = station,
             dockNumber = update.dockNumber,
             bikeNumber = bike,
-            region = region,
+            region = selection.region,
+            isRegionReused = selection.isReused,
+            isSimulation = isSimulation,
             candidateRegions = candidates,
             originalResolutionIssue = when (resolution) {
                 is YouBikeStationResolution.Ambiguous -> YouBikeStationResolutionIssue.AMBIGUOUS

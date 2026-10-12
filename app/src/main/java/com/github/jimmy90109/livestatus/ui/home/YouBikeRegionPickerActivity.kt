@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.YouBikeRegion
@@ -51,6 +51,7 @@ class YouBikeRegionPickerActivity : ComponentActivity() {
             SystemDynamicColorTheme {
                 RegionPickerDialog(
                     choices = choices,
+                    selectedRegion = session.region,
                     onSelect = { region ->
                         YouBikeRideManager.selectRegion(this, sessionId, region)
                         closeDialogTask()
@@ -94,6 +95,7 @@ private fun SystemDynamicColorTheme(content: @Composable () -> Unit) {
 @Composable
 private fun RegionPickerDialog(
     choices: List<YouBikeRegion>,
+    selectedRegion: YouBikeRegion,
     onSelect: (YouBikeRegion) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -105,12 +107,13 @@ private fun RegionPickerDialog(
                 Text(stringResource(R.string.you_bike_region_picker_description))
                 choices.forEachIndexed { index, region ->
                     if (index > 0) HorizontalDivider()
-                    RegionChoice(stringResource(region.labelRes()), region) { onSelect(region) }
+                    RegionChoice(stringResource(region.labelRes()), region, region == selectedRegion) { onSelect(region) }
                 }
                 HorizontalDivider()
                 RegionChoice(
                     stringResource(R.string.you_bike_region_other),
                     YouBikeRegion.UNSUPPORTED,
+                    selectedRegion == YouBikeRegion.UNSUPPORTED,
                 ) { onSelect(it) }
             }
         },
@@ -127,17 +130,18 @@ private fun RegionPickerDialog(
 private fun RegionChoice(
     label: String,
     region: YouBikeRegion,
+    isSelected: Boolean,
     onSelect: (YouBikeRegion) -> Unit,
 ) {
     Text(
-        text = label,
+        text = if (isSelected) stringResource(R.string.you_bike_region_selected_label, label) else label,
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .hapticClickable(role = Role.RadioButton, effect = HapticEffect.SELECTION) {
                 onSelect(region)
             }
-            .semantics { stateDescription = "未選取" }
+            .semantics { selected = isSelected }
             .padding(horizontal = 8.dp, vertical = 14.dp),
     )
 }
@@ -167,7 +171,7 @@ internal fun youBikeRegionChoices(candidateRegions: Set<YouBikeRegion>): List<Yo
 }
 
 @StringRes
-private fun YouBikeRegion.labelRes(): Int = when (this) {
+internal fun YouBikeRegion.labelRes(): Int = when (this) {
     YouBikeRegion.TAIPEI -> R.string.you_bike_region_taipei
     YouBikeRegion.NEW_TAIPEI -> R.string.you_bike_region_new_taipei
     YouBikeRegion.TAOYUAN -> R.string.you_bike_region_taoyuan
