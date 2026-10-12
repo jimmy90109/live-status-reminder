@@ -2,6 +2,7 @@ package com.github.jimmy90109.livestatus
 
 import android.app.Notification
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ object NotificationDebugPayloadStore {
     private val fourDigitCandidate = Regex("""(?<!\d)\d{4}(?!\d)""")
     private val timeFormatter = SimpleDateFormat("MM/dd HH:mm:ss", Locale.TAIWAN)
     private val _uberPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    private val _linePayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _boltPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _citymapperPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
     private val _taipeiMetroGoPayloads =
@@ -36,6 +38,7 @@ object NotificationDebugPayloadStore {
     private val _stravaPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
 
     val uberPayloads: StateFlow<List<NotificationDebugPayload>> = _uberPayloads
+    val linePayloads: StateFlow<List<NotificationDebugPayload>> = _linePayloads
     val boltPayloads: StateFlow<List<NotificationDebugPayload>> = _boltPayloads
     val citymapperPayloads: StateFlow<List<NotificationDebugPayload>> = _citymapperPayloads
     val taipeiMetroGoPayloads: StateFlow<List<NotificationDebugPayload>> =
@@ -385,6 +388,48 @@ object NotificationDebugPayloadStore {
         _taipeiMetroGoPayloads.update { current ->
             (listOf(payload) + current).take(MAX_ITEMS)
         }
+    }
+
+    internal fun recordLine(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+        removalReason: Int? = null,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val lineVersion = runCatching {
+            context.packageManager.getPackageInfo(statusBarNotification.packageName, 0).versionName
+        }.getOrNull().orEmpty()
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = statusBarNotification.notification.shortCriticalText?.toString(),
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = lifecycle,
+            parsedPin = null,
+            parsedDetails = linkedMapOf(
+                "lifecycle" to lifecycle,
+                "removalReason" to removalReason?.toString().orEmpty(),
+                "manufacturer" to Build.MANUFACTURER,
+                "model" to Build.MODEL,
+                "androidVersion" to Build.VERSION.RELEASE,
+                "sdkInt" to Build.VERSION.SDK_INT.toString(),
+                "systemBuild" to Build.DISPLAY,
+                "lineVersion" to lineVersion,
+                "postTimeEpochMillis" to statusBarNotification.postTime.toString(),
+                "whenEpochMillis" to statusBarNotification.notification.`when`.toString(),
+            ),
+        ).copy(pinCandidates = emptyList())
+        _linePayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
+    fun clearLine() {
+        _linePayloads.value = emptyList()
     }
 
     fun recordBolt(

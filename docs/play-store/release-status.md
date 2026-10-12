@@ -8,12 +8,43 @@
 | --- | --- |
 | Alpha 最新上傳 | `2608060 (1.0.6)`，2026-08-06 已發布 |
 | Alpha 最新通過 | `2608060 (1.0.6)`，2026-08-06 23:46 通過審查並可供測試人員使用 |
-| 公開測試最新發布 | `2610050 (1.2.0)`；2026-10-09 經 Play API 確認為已發布 |
+| 公開測試最新發布 | `2610110 (1.3.0)`；2026-10-12 經 Play API 確認為已發布 |
 | 公開測試待審 | 無 |
-| Production | `2610050 (1.2.0)`；2026-10-09 經 Play API 確認已通過審查並發布 |
+| Production | `2610110 (1.3.0)`；2026-10-12 經 Play API 與 Console 確認已發布，100% 全面推出 |
 | Production 待審 | 無 |
 
 Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>
+
+## 1.3.0 最新發版產物（2610110）
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2610110 (1.3.0)`；2026-10-12 確認 Beta 公開測試與 Production 均已發布，Production 100% 全面推出 |
+| 來源 revision | `5e4a350`；建置時工作目錄另含未提交的版本、YouBike 索引與商店發布說明變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `215e9666263e2165243b48d1ff9c300806afcdcc64f1eaa5fd3a160062b62a62` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play-1.3.0-2610110.zip` |
+| Symbols SHA-256 | `9a6ba4dd3498a98496fc7664a1b7f60871a1355431c4666b6bde64fef6c48a5a` |
+| YouBike 索引 | `generatedAt=2026-10-11T15:12:02+00:00`，TDX 來源 9,677 筆；較 `2610090` 站點內容與服務區域皆無差異，只有產生時間更新 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease` 成功；`jarsigner -verify` 確認 AAB 簽章有效；Beta 的 `gplay validate` 核對 package、版本、minSdk 與 targetSdk，0 blocking、4 warnings、2 manual follow-up，判定 ready；Beta edit 的 `gplay edits validate` 成功 |
+| Play 狀態 | 2026-10-11 Signed AAB 與同一建置的 native debug symbols 已上傳；2026-10-12 Play API 確認 Beta 與 Production 的 `2610110` 均為 `RELEASE_LIFECYCLE_STATE_PUBLISHED`；Console 提交記錄顯示公測於 10 月 11 日 23:22、正式版於 10 月 12 日 00:50 提交，兩者均已發布（提交時間非上線時間） |
+| Production | `2610110 (1.3.0)` 已發布；2026-10-12 Console「最新正式版」確認階段推出比例為 100%，Play API 未再列出空白草稿 |
+| Play 人工確認 | 正式版供應台灣與香港；本版公測的裝置支援變化、測試者設定與完整政策聲明尚待確認 |
+
+## 1.3.0 前次公測產物（2610090）
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2610090 (1.3.0)`；2026-10-11 經 Play API 確認 Beta 公開測試已發布，尚未發布至 Production |
+| 來源 revision | `91f5b77`；建置時工作目錄另含未提交的版本、YouBike 索引與商店發布說明變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `2b5c92a90175e36b4bb34198846f6a36f43530c1f6e5064140047c58afd768fb` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play-1.3.0-2610090.zip` |
+| Symbols SHA-256 | `998ee15bd19f34d65be1167155d7801286a385411797673d8ff1efefe551dd86` |
+| YouBike 索引 | `generatedAt=2026-10-09T04:12:01+00:00`，TDX 來源 9,677 筆；較前版新增 32 筆、移除 2 筆，淨增 30 筆，服務區域未減少 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease` 成功；`jarsigner -verify` 確認 AAB 簽章有效；`gplay validate` 核對 AAB package、版本、minSdk 與 targetSdk，0 blocking、4 warnings、2 manual follow-up，判定 ready；`gplay edits validate` 成功 |
+| Play 狀態 | 2026-10-09 Signed AAB 與同一建置的 native debug symbols 已上傳並送審；2026-10-11 經 Play API 確認為已發布 |
+| Play 人工確認 | 公開測試有效，88 位活躍測試人員，供應台灣與香港並與 Production 地區同步；本版裝置支援變化與完整政策聲明尚待確認 |
 
 ## 1.2.0 發版產物
 
@@ -133,6 +164,9 @@ Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy901
 
 | 日期 | 軌道 | 版本 | 狀態 |
 | --- | --- | --- | --- |
+| 2026-10-12 | Production | `2610110 (1.3.0)` | Play API 與 Console 確認已發布，100% 全面推出；Console 記錄 00:50 提交（非上線時間） |
+| 2026-10-11 | 公開測試 | `2610110 (1.3.0)` | 加入媒體切歌操作優先修正；Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並重新送審；2026-10-12 經 Play API 與 Console 確認公測已發布 |
+| 2026-10-09 | 公開測試 | `2610090 (1.3.0)` | Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；2026-10-11 經 Play API 確認為已發布 |
 | 2026-10-09 | Production | `2610050 (1.2.0)` | 已通過審查並發布；Play API 未回傳實際上線時間或 rollout 百分比 |
 | 2026-10-05 | 公開測試 | `2610050 (1.2.0)` | 加入 Uber Eats 英文取餐與配送狀態修正；Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並重新送審；2026-10-09 經 Play API 確認為已發布 |
 | 2026-09-30 | 公開測試 | `2609300 (1.2.0)` | Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；2026-10-05 經 Play API 確認為已發布 |

@@ -63,6 +63,7 @@ private enum class DebugTarget(val appName: String) {
     TAIWAN_TAXI("55688"),
     UBER("Uber"),
     BOLT("Bolt"),
+    LINE("LINE"),
     CITYMAPPER("Citymapper"),
     TAIPEI_METRO_GO("台北捷運 GO"),
     FOODPANDA("foodpanda"),
@@ -166,6 +167,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.taiwanTaxiPayloads
                     DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
                     DebugTarget.BOLT -> NotificationDebugPayloadStore.boltPayloads
+                    DebugTarget.LINE -> NotificationDebugPayloadStore.linePayloads
                     DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.citymapperPayloads
                     DebugTarget.TAIPEI_METRO_GO ->
                         NotificationDebugPayloadStore.taipeiMetroGoPayloads
@@ -187,6 +189,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiContainer
                     DebugTarget.UBER -> colors.commonContainer
                     DebugTarget.BOLT -> colors.boltContainer
+                    DebugTarget.LINE -> colors.boltContainer
                     DebugTarget.CITYMAPPER -> colors.citymapperContainer
                     DebugTarget.TAIPEI_METRO_GO -> colors.taipeiMetroGoContainer
                     DebugTarget.FOODPANDA -> colors.foodpandaContainer
@@ -206,6 +209,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiText
                     DebugTarget.UBER -> colors.onSurface
                     DebugTarget.BOLT -> colors.boltText
+                    DebugTarget.LINE -> colors.boltText
                     DebugTarget.CITYMAPPER -> colors.citymapperText
                     DebugTarget.TAIPEI_METRO_GO -> colors.taipeiMetroGoText
                     DebugTarget.FOODPANDA -> colors.foodpandaText
@@ -231,6 +235,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.clearTaiwanTaxi()
                         DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
                         DebugTarget.BOLT -> NotificationDebugPayloadStore.clearBolt()
+                        DebugTarget.LINE -> NotificationDebugPayloadStore.clearLine()
                         DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.clearCitymapper()
                         DebugTarget.TAIPEI_METRO_GO ->
                             NotificationDebugPayloadStore.clearTaipeiMetroGo()
@@ -282,6 +287,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
+                        onOpenLineDebug = { debugTarget = DebugTarget.LINE },
                         onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
                         onOpenTaipeiMetroGoDebug = {
                             debugTarget = DebugTarget.TAIPEI_METRO_GO
@@ -322,6 +328,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
                         onOpenUberDebug = { debugTarget = DebugTarget.UBER },
                         onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
+                        onOpenLineDebug = { debugTarget = DebugTarget.LINE },
                         onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
                         onOpenTaipeiMetroGoDebug = {
                             debugTarget = DebugTarget.TAIPEI_METRO_GO

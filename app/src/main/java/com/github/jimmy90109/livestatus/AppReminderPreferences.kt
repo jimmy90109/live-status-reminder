@@ -36,11 +36,14 @@ object AppReminderPreferences {
         TEXPRESS("texpress_enabled"),
         DISCORD_VOICE("discord_voice_enabled"),
         TEAMS_CALL("teams_call_enabled"),
+        LINE_CALL("line_call_enabled"),
         GOOGLE_RECORDER("google_recorder_enabled"),
         ;
 
         fun isEnabled(context: Context, installed: Boolean = true): Boolean {
+            if (this == LINE_CALL && !LineCallPolicy.supportsDevice(Build.MANUFACTURER, Build.BRAND, BuildConfig.DEBUG)) return false
             val defaultEnabled = when (this) {
+                LINE_CALL -> true
                 MEDIA_PLAYBACK -> MediaPlaybackDefaultPolicy.isDefaultEnabled(
                     Build.MANUFACTURER,
                     Build.BRAND,

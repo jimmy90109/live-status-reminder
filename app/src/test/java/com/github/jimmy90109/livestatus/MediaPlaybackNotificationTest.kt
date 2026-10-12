@@ -200,13 +200,66 @@ class MediaPlaybackNotificationTest {
     }
 
     @Test
-    fun timeControlsWithSeekTakePriorityOverTrackSkipping() {
+    fun trackSkippingTakesPriorityOverTimeControlsWithSeek() {
         val controls = MediaPlaybackControlPolicy.select(
             PlaybackState.ACTION_REWIND or
                 PlaybackState.ACTION_FAST_FORWARD or
                 PlaybackState.ACTION_SEEK_TO or
                 PlaybackState.ACTION_SKIP_TO_PREVIOUS or
                 PlaybackState.ACTION_SKIP_TO_NEXT,
+        )
+
+        assertEquals(MediaPlaybackControl.SKIP_PREVIOUS, controls.left)
+        assertEquals(MediaPlaybackControl.SKIP_NEXT, controls.right)
+    }
+
+    @Test
+    fun trackSkippingTakesPriorityOverTimeControlsWithoutSeek() {
+        val controls = MediaPlaybackControlPolicy.select(
+            PlaybackState.ACTION_REWIND or
+                PlaybackState.ACTION_FAST_FORWARD or
+                PlaybackState.ACTION_SKIP_TO_PREVIOUS or
+                PlaybackState.ACTION_SKIP_TO_NEXT,
+        )
+
+        assertEquals(MediaPlaybackControl.SKIP_PREVIOUS, controls.left)
+        assertEquals(MediaPlaybackControl.SKIP_NEXT, controls.right)
+    }
+
+    @Test
+    fun eachSidePrefersItsAvailableTrackSkippingAndKeepsTimeControlFallback() {
+        listOf(false, true).forEach { canSeek ->
+            val timeActions = PlaybackState.ACTION_REWIND or
+                PlaybackState.ACTION_FAST_FORWARD or
+                (if (canSeek) PlaybackState.ACTION_SEEK_TO else 0L)
+            val previousOnly = MediaPlaybackControlPolicy.select(
+                timeActions or PlaybackState.ACTION_SKIP_TO_PREVIOUS,
+            )
+            val nextOnly = MediaPlaybackControlPolicy.select(
+                timeActions or PlaybackState.ACTION_SKIP_TO_NEXT,
+            )
+
+            assertEquals(MediaPlaybackControl.SKIP_PREVIOUS, previousOnly.left)
+            assertEquals(
+                if (canSeek) MediaPlaybackControl.SEEK_FORWARD_15_SECONDS
+                else MediaPlaybackControl.FAST_FORWARD,
+                previousOnly.right,
+            )
+            assertEquals(
+                if (canSeek) MediaPlaybackControl.SEEK_BACK_15_SECONDS
+                else MediaPlaybackControl.REWIND,
+                nextOnly.left,
+            )
+            assertEquals(MediaPlaybackControl.SKIP_NEXT, nextOnly.right)
+        }
+    }
+
+    @Test
+    fun timeControlsWithSeekRemainWhenTrackSkippingIsUnavailable() {
+        val controls = MediaPlaybackControlPolicy.select(
+            PlaybackState.ACTION_REWIND or
+                PlaybackState.ACTION_FAST_FORWARD or
+                PlaybackState.ACTION_SEEK_TO,
         )
 
         assertEquals(MediaPlaybackControl.SEEK_BACK_15_SECONDS, controls.left)

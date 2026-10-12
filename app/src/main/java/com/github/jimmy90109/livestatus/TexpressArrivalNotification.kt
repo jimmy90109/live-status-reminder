@@ -3,9 +3,6 @@ package com.github.jimmy90109.livestatus
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 
 internal data class TexpressArrival(
@@ -57,7 +54,6 @@ internal data class TexpressArrivalUpdate(
     val sourceKey: String,
     val postTime: Long,
     val arrival: TexpressArrival,
-    val picture: Bitmap? = null,
     val contentIntent: PendingIntent? = null,
 )
 
@@ -89,33 +85,7 @@ internal object TexpressArrivalNotificationExtractor {
             sourceKey = source.key,
             postTime = source.postTime,
             arrival = arrival,
-            picture = readStandardPicture(context, notification),
             contentIntent = notification.contentIntent,
-        )
-    }
-
-    private fun readStandardPicture(context: Context, notification: Notification): Bitmap? {
-        val pictureIcon = notification.extras.getParcelable(
-            Notification.EXTRA_PICTURE_ICON,
-            Icon::class.java,
-        )
-        val iconBitmap = pictureIcon?.let { icon ->
-            runCatching { icon.loadDrawable(context) }
-                .getOrNull()
-                ?.let { drawable ->
-                    val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: return@let null
-                    val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: return@let null
-                    Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { bitmap ->
-                        val canvas = Canvas(bitmap)
-                        drawable.setBounds(0, 0, canvas.width, canvas.height)
-                        drawable.draw(canvas)
-                    }
-                }
-        }
-        if (iconBitmap != null) return iconBitmap
-        return notification.extras.getParcelable(
-            Notification.EXTRA_PICTURE,
-            Bitmap::class.java,
         )
     }
 }

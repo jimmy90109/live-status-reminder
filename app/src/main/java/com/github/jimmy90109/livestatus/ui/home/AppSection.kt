@@ -79,6 +79,7 @@ internal fun AppsSection(
     onOpenTaiwanTaxiDebug: () -> Unit,
     onOpenUberDebug: () -> Unit,
     onOpenBoltDebug: () -> Unit,
+    onOpenLineDebug: () -> Unit,
     onOpenCitymapperDebug: () -> Unit,
     onOpenTaipeiMetroGoDebug: () -> Unit,
     onOpenUberEatsDebug: () -> Unit,
@@ -294,14 +295,6 @@ internal fun AppsSection(
                             },
                             onOpenDebug = onOpenCitymapperDebug,
                         )
-                        TexpressCard(
-                            installed = status.texpressInstalled,
-                            enabled = status.texpressEnabled,
-                            interactionEnabled = status.requiredSettingsComplete,
-                            onEnabledChange = {
-                                onAppEnabledChange(AppReminderPreferences.App.TEXPRESS, it)
-                            },
-                        )
                         TaipeiMetroGoCard(
                             installed = status.taipeiMetroGoInstalled,
                             enabled = status.taipeiMetroGoEnabled,
@@ -390,6 +383,18 @@ internal fun AppsSection(
                         )
                     }
                     CATEGORY_MEDIA -> {
+                        if (status.lineCallSupported) {
+                            LineCard(
+                                installed = status.lineInstalled,
+                                supported = status.lineCallSupported,
+                                enabled = status.lineCallEnabled,
+                                onEnabledChange = {
+                                    onAppEnabledChange(AppReminderPreferences.App.LINE_CALL, it)
+                                },
+                                interactionEnabled = status.requiredSettingsComplete,
+                                onOpenDebug = onOpenLineDebug,
+                            )
+                        }
                         DiscordVoiceCard(
                             installed = status.discordInstalled,
                             enabled = status.discordVoiceEnabled,
@@ -433,6 +438,14 @@ internal fun AppsSection(
                                 onAppEnabledChange(AppReminderPreferences.App.TAIWAN_PAY, it)
                             },
                             onOpenDebug = onOpenTaiwanPayDebug,
+                        )
+                        TexpressCard(
+                            installed = status.texpressInstalled,
+                            enabled = status.texpressEnabled,
+                            interactionEnabled = status.requiredSettingsComplete,
+                            onEnabledChange = {
+                                onAppEnabledChange(AppReminderPreferences.App.TEXPRESS, it)
+                            },
                         )
                     }
                     }

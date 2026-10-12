@@ -18,8 +18,10 @@ object XiaomiHyperIslandRenderer {
         context: Context,
         builder: Notification.Builder,
         payload: LiveStatusPayload,
+        manufacturer: String? = Build.MANUFACTURER,
+        brand: String? = Build.BRAND,
     ) {
-        if (!shouldRender(Build.MANUFACTURER, Build.BRAND)) return
+        if (!shouldRender(manufacturer, brand)) return
 
         val iconKey = "live_status_${payload.id}_icon"
         val islandBuilder = HyperIslandNotification.Builder(
@@ -51,6 +53,10 @@ object XiaomiHyperIslandRenderer {
                 pictureKey = iconKey,
                 appPkg = context.packageName,
             )
+
+        payload.countUpStartedAtEpochMillis?.let { startedAt ->
+            islandBuilder.setBigIslandCountUp(startedAt, iconKey)
+        }
 
         payload.progress?.let { progress ->
             islandBuilder.setProgressBar(progress.coerceIn(0, 100), "#06C167")

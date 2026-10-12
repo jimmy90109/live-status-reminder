@@ -49,20 +49,28 @@ internal object MediaPlaybackControlPolicy {
 
         if (hasTimeControlSignal && canSeek) {
             return MediaPlaybackSideControls(
-                left = MediaPlaybackControl.SEEK_BACK_15_SECONDS,
-                right = MediaPlaybackControl.SEEK_FORWARD_15_SECONDS,
+                left = if (canSkipPrevious) {
+                    MediaPlaybackControl.SKIP_PREVIOUS
+                } else {
+                    MediaPlaybackControl.SEEK_BACK_15_SECONDS
+                },
+                right = if (canSkipNext) {
+                    MediaPlaybackControl.SKIP_NEXT
+                } else {
+                    MediaPlaybackControl.SEEK_FORWARD_15_SECONDS
+                },
             )
         }
         if (hasTimeControlSignal) {
             return MediaPlaybackSideControls(
                 left = when {
-                    canRewind -> MediaPlaybackControl.REWIND
                     canSkipPrevious -> MediaPlaybackControl.SKIP_PREVIOUS
+                    canRewind -> MediaPlaybackControl.REWIND
                     else -> null
                 },
                 right = when {
-                    canFastForward -> MediaPlaybackControl.FAST_FORWARD
                     canSkipNext -> MediaPlaybackControl.SKIP_NEXT
+                    canFastForward -> MediaPlaybackControl.FAST_FORWARD
                     else -> null
                 },
             )

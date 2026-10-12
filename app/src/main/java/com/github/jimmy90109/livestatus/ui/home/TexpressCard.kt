@@ -34,13 +34,6 @@ internal fun TexpressCard(
         labelColor = colors.texpressSecondaryContainer,
         foregroundColor = colors.texpressText,
         actionColor = colors.texpressPrimary,
-        additionalTags = {
-            LanguageTag(
-                stringResource(R.string.app_beta_tag),
-                colors.warningContainer,
-                colors.warningText,
-            )
-        },
     ) {
         AppActionDivider(colors.texpressText)
         AppCardActionButton(

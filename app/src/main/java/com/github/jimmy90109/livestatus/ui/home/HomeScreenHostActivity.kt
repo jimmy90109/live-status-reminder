@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import com.github.jimmy90109.livestatus.AppReminderPreferences
+import com.github.jimmy90109.livestatus.LineCallPolicy
 import com.github.jimmy90109.livestatus.BuildConfig
 import com.github.jimmy90109.livestatus.ClockTimerNotificationExtractor
 import com.github.jimmy90109.livestatus.GoogleRecorderNotificationParser
@@ -95,6 +96,8 @@ open class HomeScreenHostActivity : ComponentActivity() {
         val mcDonaldsInstalled = isPackageInstalled(MCDONALDS_PACKAGE)
         val taiwanTaxiInstalled = isPackageInstalled(TAIWAN_TAXI_PACKAGE)
         val uberInstalled = isPackageInstalled(UBER_PACKAGE)
+        val lineCallSupported = LineCallPolicy.supportsDevice(Build.MANUFACTURER, Build.BRAND, BuildConfig.DEBUG)
+        val lineInstalled = lineCallSupported && isPackageInstalled(LINE_PACKAGE)
         val boltInstalled = BuildConfig.DEBUG && isPackageInstalled(BOLT_PACKAGE)
         val citymapperInstalled = isPackageInstalled(CITYMAPPER_PACKAGE)
         val taipeiMetroGoInstalled = isPackageInstalled(TAIPEI_METRO_GO_PACKAGE)
@@ -120,6 +123,9 @@ open class HomeScreenHostActivity : ComponentActivity() {
             taiwanTaxiInstalled = taiwanTaxiInstalled,
             uberInstalled = uberInstalled,
             boltInstalled = boltInstalled,
+            lineInstalled = lineInstalled,
+            lineCallSupported = lineCallSupported,
+            lineCallEnabled = AppReminderPreferences.App.LINE_CALL.isEnabled(this, lineInstalled),
             citymapperInstalled = citymapperInstalled,
             citymapperEnabled = AppReminderPreferences.App.CITYMAPPER.isEnabled(this, citymapperInstalled),
             taipeiMetroGoInstalled = taipeiMetroGoInstalled,
@@ -311,6 +317,7 @@ open class HomeScreenHostActivity : ComponentActivity() {
             AppReminderPreferences.App.TEXPRESS -> LiveStatusReminder.clearTexpressArrival(this)
             AppReminderPreferences.App.DISCORD_VOICE ->
                 LiveStatusReminder.clearDiscordVoice(this)
+            AppReminderPreferences.App.LINE_CALL -> LiveStatusReminder.clearLineCall(this)
             AppReminderPreferences.App.TEAMS_CALL ->
                 LiveStatusReminder.clearTeamsCall(this)
             AppReminderPreferences.App.GOOGLE_RECORDER ->
@@ -483,6 +490,9 @@ internal data class StatusSnapshot(
     val taiwanTaxiInstalled: Boolean = false,
     val uberInstalled: Boolean = false,
     val boltInstalled: Boolean = false,
+    val lineInstalled: Boolean = false,
+    val lineCallSupported: Boolean = false,
+    val lineCallEnabled: Boolean = false,
     val citymapperInstalled: Boolean = false,
     val citymapperEnabled: Boolean = false,
     val taipeiMetroGoInstalled: Boolean = false,
