@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.SystemClock
 import com.github.jimmy90109.livestatus.ui.home.HomeScreenHostActivity
 import com.github.jimmy90109.livestatus.ui.home.YouBikeRegionPickerActivity
+import com.github.jimmy90109.livestatus.ui.home.labelRes
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -1485,7 +1486,13 @@ object LiveStatusReminder {
         }
         val shortCriticalText = youBikeShortCriticalText(estimate)
         val criticalText = shortCriticalText ?: "騎乘中"
-        val contentText = "${session.vehicleType.displayName}・借自 ${session.stationName}"
+        val contentText = buildString {
+            append(context.getString(R.string.you_bike_ride_content, session.vehicleType.displayName, session.stationName))
+            if (session.isRegionReused) {
+                append("\n")
+                append(context.getString(R.string.you_bike_region_reused, context.getString(session.region.labelRes())))
+            }
+        }
         val openYouBike = PendingIntent.getActivity(
             context,
             8,
@@ -1517,7 +1524,7 @@ object LiveStatusReminder {
             .also { YouBikeNotificationStyle.apply(it, session, estimate, nowMillis) }
             .also(::requestPromotedOngoing)
             .also { XiaomiHyperIslandRenderer.apply(context, it, payload) }
-        if (session.region == YouBikeRegion.UNRESOLVED) {
+        if (session.region == YouBikeRegion.UNRESOLVED || session.originalResolutionIssue != null) {
             val chooseRegion = PendingIntent.getActivity(
                 context,
                 session.id.hashCode(),
@@ -1527,7 +1534,10 @@ object LiveStatusReminder {
             builder.addAction(
                 Notification.Action.Builder(
                     Icon.createWithResource(context, R.drawable.ic_bicycle_notification),
-                    context.getString(R.string.you_bike_choose_region_action),
+                    context.getString(
+                        if (session.region == YouBikeRegion.UNRESOLVED) R.string.you_bike_choose_region_action
+                        else R.string.you_bike_change_region_action,
+                    ),
                     chooseRegion,
                 ).build(),
             )

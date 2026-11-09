@@ -8,14 +8,30 @@
 | --- | --- |
 | Alpha 最新上傳 | `2608060 (1.0.6)`，2026-08-06 已發布 |
 | Alpha 最新通過 | `2608060 (1.0.6)`，2026-08-06 23:46 通過審查並可供測試人員使用 |
-| 公開測試最新發布 | `2610110 (1.3.0)`；2026-10-12 經 Play API 確認為已發布 |
+| 公開測試最新發布 | `2610120 (1.3.1)`；2026-11-09 經 Play API 確認為已發布 |
 | 公開測試待審 | 無 |
-| Production | `2610110 (1.3.0)`；2026-10-12 經 Play API 與 Console 確認已發布，100% 全面推出 |
+| Production | `2610120 (1.3.1)`；2026-11-09 經 Play API 確認為已發布；實際上線時間與 rollout 比例未由此 API 回傳 |
 | Production 待審 | 無 |
 
 Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>
 
-## 1.3.0 最新發版產物（2610110）
+## 1.3.1 發版產物（2610120）
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2610120 (1.3.1)`；2026-11-09 確認 Beta 公開測試與 Production 均已發布 |
+| 來源 revision | `2dd469d35bf0edb08b8b730e5e932c2eac8f81c0`；建置時工作目錄另含未提交的版本、YouBike 索引與商店發布說明變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `c67aa7ef197d16f1fea2144b15a238479535053b3d43ca1c230e16791744c01e` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play-1.3.1-2610120.zip` |
+| Symbols SHA-256 | `9a9125c48e53cf3f4433a859bf47668bedfec5fa8eebe5a848effd929cb426da` |
+| YouBike 索引 | `generatedAt=2026-10-12T04:26:02+00:00`，TDX 來源 9,677 筆；較 `2610110` 站點內容與服務區域皆無差異，只有產生時間更新 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease` 成功；`jarsigner -verify` 確認 AAB 簽章有效；Beta 的 `gplay validate` 核對 package、版本、minSdk=36 與 targetSdk=37，0 blocking、4 warnings、2 manual follow-up，判定 ready；`gplay edits validate` 成功 |
+| Play 狀態 | 2026-10-12 Signed AAB 與同一建置的 native debug symbols 已上傳並送交 Beta 審查；2026-11-09 使用者回報已上正式版，Play API 確認 Beta 與 Production 的 `2610120` 均為 `RELEASE_LIFECYCLE_STATE_PUBLISHED`；確認日期非實際上線日期 |
+| Production | `2610120 (1.3.1)` 已發布；Play API 未回傳實際上線時間或 rollout 比例，未另行確認是否為 100% 全面推出 |
+| Play 人工確認 | Safari 電腦操作未獲允許，尚未檢查 Console 發布總覽、裝置支援變化、國家／地區、測試者設定與完整政策聲明；CLI preflight 警告為 exact alarm、notification listener、AGP metadata 及未提供離線 app-content inventory |
+
+## 1.3.0 發版產物（2610110）
 
 | 項目 | 紀錄 |
 | --- | --- |
@@ -164,6 +180,8 @@ Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy901
 
 | 日期 | 軌道 | 版本 | 狀態 |
 | --- | --- | --- | --- |
+| 2026-11-09 | Production／公開測試 | `2610120 (1.3.1)` | 使用者回報已上正式版；Play API 確認兩軌道均已發布，實際上線時間與 Production rollout 比例未由此 API 回傳 |
+| 2026-10-12 | 公開測試 | `2610120 (1.3.1)` | Signed AAB 與 native debug symbols 已上傳，軌道內 100% 推出並送審；2026-11-09 經 Play API 確認為已發布 |
 | 2026-10-12 | Production | `2610110 (1.3.0)` | Play API 與 Console 確認已發布，100% 全面推出；Console 記錄 00:50 提交（非上線時間） |
 | 2026-10-11 | 公開測試 | `2610110 (1.3.0)` | 加入媒體切歌操作優先修正；Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並重新送審；2026-10-12 經 Play API 與 Console 確認公測已發布 |
 | 2026-10-09 | 公開測試 | `2610090 (1.3.0)` | Signed AAB 與 native debug symbols 已上傳，軌道內 100% 全面推出並送審；2026-10-11 經 Play API 確認為已發布 |

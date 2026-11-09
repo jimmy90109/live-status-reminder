@@ -836,6 +836,7 @@ internal fun YouBikeCard(
                 YouBikeNotificationParser.parse(
                     "借車成功！您於${youBikeTestTimestamp()}在龍江錦州街口 09車柱,使用掃碼-信用卡(20) 0000,租借車號0102751。",
                 ),
+                isSimulation = true,
             )
         }
         AppCardActionButton(
@@ -850,6 +851,7 @@ internal fun YouBikeCard(
                 YouBikeNotificationParser.parse(
                     "借車成功！您於${youBikeTestTimestamp()}在龍江錦州街口 09車柱,使用掃碼-信用卡(20) 0000,租借車號0162898。",
                 ),
+                isSimulation = true,
             )
         }
         AppCardActionButton(
@@ -864,6 +866,7 @@ internal fun YouBikeCard(
                 YouBikeNotificationParser.parse(
                     "借車成功！您於${youBikeTestTimestamp()}在測試未知站 01車柱,使用掃碼 0000,租借車號TEST200。",
                 ),
+                isSimulation = true,
             )
         }
         if (BuildConfig.DEBUG) {
@@ -879,6 +882,7 @@ internal fun YouBikeCard(
                     YouBikeNotificationParser.parse(
                         "借車成功！您於${youBikeTestTimestamp(29 * 60L + 50L)}在龍江錦州街口 09車柱,使用掃碼 0000,租借車號TEST030。",
                     ),
+                    isSimulation = true,
                 )
             }
         }

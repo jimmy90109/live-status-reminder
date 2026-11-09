@@ -78,6 +78,8 @@ data class YouBikeRideSession(
     val candidateRegions: Set<YouBikeRegion> = emptySet(),
     val manuallySelectedRegion: YouBikeRegion? = null,
     val originalResolutionIssue: YouBikeStationResolutionIssue? = null,
+    val isRegionReused: Boolean = false,
+    val isSimulation: Boolean = false,
 ) {
     val vehicleType: YouBikeVehicleType
         get() = YouBikeVehicleClassifier.classify(bikeNumber)
