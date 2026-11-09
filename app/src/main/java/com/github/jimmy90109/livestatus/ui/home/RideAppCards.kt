@@ -328,6 +328,7 @@ internal fun PikminBloomCard(
     enabled: Boolean,
     interactionEnabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
+    onOpenDebug: () -> Unit,
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
@@ -337,7 +338,7 @@ internal fun PikminBloomCard(
         fallbackIconRes = R.drawable.ic_pikmin_flower_notification,
         title = "種花背景提醒",
         description = "偵測到背景種花通知時，立刻升級成即時提醒。",
-        supportedLanguages = listOf("中文 / En"),
+        supportedLanguages = listOf(stringResource(R.string.pikmin_bloom_languages)),
         installed = installed,
         enabled = enabled,
         interactionEnabled = interactionEnabled,
@@ -364,6 +365,14 @@ internal fun PikminBloomCard(
             supportingText = stringResource(R.string.monitoring_pikmin_stopped),
         ) {
             LiveStatusReminder.clearPikminBloom(context)
+        }
+        if (BuildConfig.DEBUG) {
+            AppCardActionButton(
+                stringResource(R.string.pikmin_bloom_debug_open_payload),
+                colors.pikminPrimary,
+                colors.pikminText,
+                onClick = onOpenDebug,
+            )
         }
     }
 }

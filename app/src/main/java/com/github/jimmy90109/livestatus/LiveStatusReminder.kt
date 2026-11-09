@@ -492,10 +492,11 @@ object LiveStatusReminder {
             .addAction(
                 Notification.Action.Builder(
                     Icon.createWithResource(context, payload.leftIconRes),
-                    if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
-                        "Open Pikmin Bloom"
-                    } else {
-                        "開啟 Pikmin Bloom"
+                    when (language) {
+                        LiveStatusNotificationParser.PikminLanguage.ENGLISH -> "Open Pikmin Bloom"
+                        LiveStatusNotificationParser.PikminLanguage.JAPANESE ->
+                            context.getString(R.string.pikmin_bloom_open_japanese)
+                        LiveStatusNotificationParser.PikminLanguage.CHINESE -> "開啟 Pikmin Bloom"
                     },
                     openPikminBloom,
                 ).build(),
@@ -1887,20 +1888,26 @@ object LiveStatusReminder {
             appName = "Pikmin Bloom",
             smallIconRes = R.drawable.ic_pikmin_flower_notification,
             leftIconRes = R.drawable.ic_pikmin_flower_notification,
-            criticalText = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
-                "Planting"
-            } else {
-                "種花中"
+            criticalText = when (language) {
+                LiveStatusNotificationParser.PikminLanguage.ENGLISH ->
+                    "Planting"
+                LiveStatusNotificationParser.PikminLanguage.JAPANESE ->
+                    "花植え中"
+                LiveStatusNotificationParser.PikminLanguage.CHINESE -> "種花中"
             },
-            title = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
-                "Planting flowers in the background"
-            } else {
-                "Pikmin Bloom 正在種花"
+            title = when (language) {
+                LiveStatusNotificationParser.PikminLanguage.ENGLISH ->
+                    "Planting flowers in the background"
+                LiveStatusNotificationParser.PikminLanguage.JAPANESE ->
+                    "バックグラウンドで花を植えています"
+                LiveStatusNotificationParser.PikminLanguage.CHINESE -> "Pikmin Bloom 正在種花"
             },
-            contentText = if (language == LiveStatusNotificationParser.PikminLanguage.ENGLISH) {
-                "Remember to stop planting flowers so you don't use up petals in one place."
-            } else {
-                "記得結束種花，避免花瓣在原地耗盡。"
+            contentText = when (language) {
+                LiveStatusNotificationParser.PikminLanguage.ENGLISH ->
+                    "Remember to stop planting flowers so you don't use up petals in one place."
+                LiveStatusNotificationParser.PikminLanguage.JAPANESE ->
+                    "同じ場所で花びらを使い切らないよう、花植えの終了を忘れずに。"
+                LiveStatusNotificationParser.PikminLanguage.CHINESE -> "記得結束種花，避免花瓣在原地耗盡。"
             },
             contentIntent = contentIntent,
         )

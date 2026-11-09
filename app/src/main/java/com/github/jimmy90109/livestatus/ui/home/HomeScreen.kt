@@ -71,6 +71,7 @@ private enum class DebugTarget(val appName: String) {
     UBER_EATS("Uber Eats"),
     YPT("YPT - Yeolpumta"),
     HEVY("Hevy"),
+    PIKMIN_BLOOM("Pikmin Bloom"),
     STRAVA("Strava"),
     DISCORD("Discord"),
     TEAMS("Microsoft Teams"),
@@ -176,6 +177,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
                     DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
                     DebugTarget.HEVY -> NotificationDebugPayloadStore.hevyPayloads
+                    DebugTarget.PIKMIN_BLOOM -> NotificationDebugPayloadStore.pikminBloomPayloads
                     DebugTarget.STRAVA -> NotificationDebugPayloadStore.stravaPayloads
                     DebugTarget.DISCORD -> NotificationDebugPayloadStore.discordPayloads
                     DebugTarget.TEAMS -> NotificationDebugPayloadStore.teamsPayloads
@@ -197,6 +199,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER_EATS -> colors.uberEatsContainer
                     DebugTarget.YPT -> colors.yptContainer
                     DebugTarget.HEVY -> colors.commonContainer
+                    DebugTarget.PIKMIN_BLOOM -> colors.pikminContainer
                     DebugTarget.STRAVA -> colors.stravaContainer
                     DebugTarget.DISCORD -> colors.discordContainer
                     DebugTarget.TEAMS -> colors.teamsContainer
@@ -217,6 +220,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                     DebugTarget.UBER_EATS -> colors.uberEatsText
                     DebugTarget.YPT -> colors.yptText
                     DebugTarget.HEVY -> colors.onSurface
+                    DebugTarget.PIKMIN_BLOOM -> colors.pikminPrimary
                     DebugTarget.STRAVA -> colors.stravaText
                     DebugTarget.DISCORD -> colors.discordText
                     DebugTarget.TEAMS -> colors.teamsPrimary
@@ -244,6 +248,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
                         DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
                         DebugTarget.HEVY -> NotificationDebugPayloadStore.clearHevy()
+                        DebugTarget.PIKMIN_BLOOM -> NotificationDebugPayloadStore.clearPikminBloom()
                         DebugTarget.STRAVA -> NotificationDebugPayloadStore.clearStrava()
                         DebugTarget.DISCORD -> NotificationDebugPayloadStore.clearDiscord()
                         DebugTarget.TEAMS -> NotificationDebugPayloadStore.clearTeams()
@@ -295,6 +300,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                         onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                         onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                        onOpenPikminBloomDebug = { debugTarget = DebugTarget.PIKMIN_BLOOM },
                         onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
                         onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
                         onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },
@@ -336,6 +342,7 @@ internal fun HomeScreenHostActivity.MainScreen(
                         onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
                         onOpenYptDebug = { debugTarget = DebugTarget.YPT },
                         onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                        onOpenPikminBloomDebug = { debugTarget = DebugTarget.PIKMIN_BLOOM },
                         onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
                         onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
                         onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },

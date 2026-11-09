@@ -84,6 +84,7 @@ object LiveStatusNotificationParser {
     enum class PikminLanguage {
         CHINESE,
         ENGLISH,
+        JAPANESE,
     }
 
     data class PikminUpdate(
@@ -452,6 +453,10 @@ object LiveStatusNotificationParser {
 
         val normalized = notificationText.lowercase(Locale.ROOT)
         return when {
+            normalized.contains("花植えが終了しました") ->
+                PikminUpdate(PikminEvent.NONE, PikminLanguage.JAPANESE)
+            normalized.contains("バックグラウンドで花を植えています") ->
+                PikminUpdate(PikminEvent.FLOWER_PLANTING, PikminLanguage.JAPANESE)
             normalized.contains("正在背景執行時種花") ||
                 normalized.contains("正在背景执行时种花") ->
                 PikminUpdate(PikminEvent.FLOWER_PLANTING)

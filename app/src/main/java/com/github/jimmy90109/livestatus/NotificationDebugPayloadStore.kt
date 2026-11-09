@@ -58,6 +58,37 @@ object NotificationDebugPayloadStore {
         _googleRecorderPayloads
     val stravaPayloads: StateFlow<List<NotificationDebugPayload>> = _stravaPayloads
 
+    private val _pikminBloomPayloads = MutableStateFlow<List<NotificationDebugPayload>>(emptyList())
+    val pikminBloomPayloads: StateFlow<List<NotificationDebugPayload>> = _pikminBloomPayloads
+
+    internal fun recordPikminBloom(
+        context: Context,
+        statusBarNotification: StatusBarNotification,
+        notificationText: String,
+        notificationTitle: String?,
+        notificationContentText: String?,
+        lifecycle: String,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val update = LiveStatusNotificationParser.parsePikminBloom(notificationText)
+        val payload = createPayload(
+            context = context,
+            statusBarNotification = statusBarNotification,
+            notificationText = notificationText,
+            shortCriticalText = null,
+            notificationTitle = notificationTitle,
+            notificationContentText = notificationContentText,
+            parsedEvent = if (lifecycle == "REMOVED") lifecycle else update.event.name,
+            parsedPin = null,
+            parsedDetails = linkedMapOf("lifecycle" to lifecycle),
+        )
+        _pikminBloomPayloads.update { current -> (listOf(payload) + current).take(MAX_ITEMS) }
+    }
+
+    fun clearPikminBloom() {
+        _pikminBloomPayloads.value = emptyList()
+    }
+
     internal fun recordStrava(
         context: Context,
         statusBarNotification: StatusBarNotification,

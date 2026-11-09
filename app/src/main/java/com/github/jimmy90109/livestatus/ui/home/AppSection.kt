@@ -85,6 +85,7 @@ internal fun AppsSection(
     onOpenUberEatsDebug: () -> Unit,
     onOpenYptDebug: () -> Unit,
     onOpenHevyDebug: () -> Unit,
+    onOpenPikminBloomDebug: () -> Unit,
     onOpenStravaDebug: () -> Unit,
     onOpenDiscordDebug: () -> Unit,
     onOpenTeamsDebug: () -> Unit,
@@ -341,6 +342,7 @@ internal fun AppsSection(
                             onEnabledChange = {
                                 onAppEnabledChange(AppReminderPreferences.App.PIKMIN_BLOOM, it)
                             },
+                            onOpenDebug = onOpenPikminBloomDebug,
                         )
                     }
                     CATEGORY_TOOL -> {
