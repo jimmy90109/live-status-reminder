@@ -661,6 +661,16 @@ class LiveStatusPayloadTest {
     }
 
     @Test
+    fun japanesePikminBloomPayloadUsesJapaneseWordingWithoutProgress() {
+        val payload = LiveStatusReminder.pikminBloomPayload(PikminLanguage.JAPANESE)
+
+        assertEquals("花植え中", payload.criticalText)
+        assertEquals("バックグラウンドで花を植えています", payload.title)
+        assertEquals("同じ場所で花びらを使い切らないよう、花植えの終了を忘れずに。", payload.contentText)
+        assertEquals(null, payload.progress)
+    }
+
+    @Test
     fun runningClockPayloadCarriesDynamicTimerWithoutActions() {
         val payload = LiveStatusReminder.clockTimerPayload(
             update = ClockTimerUpdate(

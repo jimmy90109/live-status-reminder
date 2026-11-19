@@ -486,8 +486,20 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
                     }
                 }
             }
-            PIKMIN_BLOOM_PACKAGE -> if (AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this)) {
-                handlePikminBloomNotification(notificationText)
+            PIKMIN_BLOOM_PACKAGE -> {
+                if (BuildConfig.DEBUG) {
+                    NotificationDebugPayloadStore.recordPikminBloom(
+                        this,
+                        statusBarNotification,
+                        notificationText,
+                        readNotificationTitle(notification),
+                        readNotificationContentText(notification),
+                        "POSTED",
+                    )
+                }
+                if (AppReminderPreferences.App.PIKMIN_BLOOM.isEnabled(this)) {
+                    handlePikminBloomNotification(notificationText)
+                }
             }
             YPT_PACKAGE -> {
                 val extraction = YptStudyNotificationExtractor.extract(statusBarNotification)
@@ -840,6 +852,16 @@ class LiveStatusNotificationListenerService : NotificationListenerService() {
         if (statusBarNotification.packageName != PIKMIN_BLOOM_PACKAGE) return
 
         val notificationText = readNotificationText(statusBarNotification.notification)
+        if (BuildConfig.DEBUG) {
+            NotificationDebugPayloadStore.recordPikminBloom(
+                this,
+                statusBarNotification,
+                notificationText,
+                readNotificationTitle(statusBarNotification.notification),
+                readNotificationContentText(statusBarNotification.notification),
+                "REMOVED",
+            )
+        }
         if (
             LiveStatusNotificationParser.parsePikminBloom(notificationText).event ==
             LiveStatusNotificationParser.PikminEvent.FLOWER_PLANTING

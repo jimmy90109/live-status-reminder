@@ -968,6 +968,44 @@ class LiveStatusNotificationParserTest {
         assertEquals(PikminLanguage.ENGLISH, update.language)
     }
 
+    // Official Android notification wording: https://community.pikminbloom.com/t/android/9746
+    @Test
+    fun japanesePikminBloomNotificationStartsReminder() {
+        val update = LiveStatusNotificationParser.parsePikminBloom(
+            "  Pikmin Bloom\nバックグラウンドで花を植えています  ",
+        )
+        assertEquals(PikminEvent.FLOWER_PLANTING, update.event)
+        assertEquals(PikminLanguage.JAPANESE, update.language)
+    }
+
+    @Test
+    fun japanesePikminBloomFinishedNotificationClearsReminderBeforeActiveText() {
+        listOf(
+            "Pikmin Bloom\n花植えが終了しました",
+            "花植えが終了しました\nバックグラウンドで花を植えています",
+        ).forEach { text ->
+            val update = LiveStatusNotificationParser.parsePikminBloom(text)
+            assertEquals(PikminEvent.NONE, update.event)
+            assertEquals(PikminLanguage.JAPANESE, update.language)
+        }
+    }
+
+    @Test
+    fun emptyAndUnrelatedJapanesePikminBloomNotificationsAreIgnored() {
+        listOf(null, "", "  \n ", "花植えを始めましょう", "おつかいが完了しました", "花植え中").forEach {
+            assertEquals(PikminEvent.NONE, LiveStatusNotificationParser.parsePikminBloom(it).event)
+        }
+    }
+
+    @Test
+    fun englishPikminBloomMatchingIgnoresCaseAndOuterWhitespace() {
+        val update = LiveStatusNotificationParser.parsePikminBloom(
+            "  PIKMIN BLOOM\nPLANTING FLOWERS IN THE BACKGROUND  ",
+        )
+        assertEquals(PikminEvent.FLOWER_PLANTING, update.event)
+        assertEquals(PikminLanguage.ENGLISH, update.language)
+    }
+
     @Test
     fun similarEnglishPikminBloomNotificationIsIgnored() {
         assertEquals(
