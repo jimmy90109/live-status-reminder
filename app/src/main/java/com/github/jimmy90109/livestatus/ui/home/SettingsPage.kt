@@ -3,6 +3,7 @@ package com.github.jimmy90109.livestatus.ui.home
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -41,51 +44,57 @@ internal fun SettingsPage(
     onOpenPrivacyPolicy: () -> Unit,
 ) {
     val colors = LocalAppColors.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-            .padding(top = topPadding, bottom = bottomPadding),
-        verticalArrangement = Arrangement.Top,
+    Box(
+        modifier = Modifier.fillMaxSize().background(colors.background).testTag("settings_page"),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = rememberHapticAction(action = onBack)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "返回",
-                    tint = colors.onSurfaceVariant,
-                )
+        Column(
+            modifier = Modifier
+                .widthIn(max = HOME_SINGLE_PANE_MAX_WIDTH)
+                .fillMaxSize()
+                .background(colors.background)
+                .verticalScroll(LocalHomeUiState.current?.settingsScroll ?: rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(top = topPadding, bottom = bottomPadding),
+            verticalArrangement = Arrangement.Top,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = rememberHapticAction(action = onBack)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = stringResource(R.string.action_back),
+                        tint = colors.onSurfaceVariant,
+                    )
+                }
+                Spacer(Modifier.padding(horizontal = 4.dp))
+                AppText(stringResource(R.string.settings_title), 28, colors.onSurface, true)
             }
-            Spacer(Modifier.padding(horizontal = 4.dp))
-            AppText("設定", 28, colors.onSurface, true)
-        }
-        Spacer(Modifier.height(20.dp))
-        RequiredSettingsSection(
-            status = status,
-            expanded = true,
-            collapsible = false,
-            onToggle = {},
-            onOpenNotificationAccess = onOpenNotificationAccess,
-            onRequestNotificationPermission = onRequestNotificationPermission,
-        )
-        status.brandWarning?.let { brandWarning ->
-            Spacer(Modifier.height(10.dp))
-            BrandWarningCard(
-                brandWarning = brandWarning,
-                onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
-                onOpenAppSettings = onOpenAppSettings,
+            Spacer(Modifier.height(20.dp))
+            RequiredSettingsSection(
+                status = status,
+                expanded = true,
+                collapsible = false,
+                onToggle = {},
+                onOpenNotificationAccess = onOpenNotificationAccess,
+                onRequestNotificationPermission = onRequestNotificationPermission,
             )
-            Spacer(Modifier.height(10.dp))
+            status.brandWarning?.let { brandWarning ->
+                Spacer(Modifier.height(10.dp))
+                BrandWarningCard(
+                    brandWarning = brandWarning,
+                    onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                    onOpenAppSettings = onOpenAppSettings,
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+            Spacer(Modifier.height(14.dp))
+            ActionButton(
+                stringResource(R.string.privacy_policy_link),
+                colors.commonSurface,
+                colors.onSurface,
+                onClick = onOpenPrivacyPolicy,
+            )
         }
-        Spacer(Modifier.height(14.dp))
-        ActionButton(
-            "隱私權政策  →",
-            colors.commonSurface,
-            colors.onSurface,
-            onClick = onOpenPrivacyPolicy,
-        )
     }
 }
 
@@ -166,7 +175,7 @@ internal fun BrandWarningCard(
                 IconButton(onClick = rememberHapticAction(action = onDismiss)) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
-                        contentDescription = "關閉",
+                        contentDescription = stringResource(R.string.brand_warning_dismiss),
                         tint = colors.warningText,
                     )
                 }
