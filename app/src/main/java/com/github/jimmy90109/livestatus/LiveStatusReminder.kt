@@ -1761,8 +1761,8 @@ object LiveStatusReminder {
         LiveStatusPayload(
             id = RIDE_NOTIFICATION_ID,
             appName = "iPASS MONEY",
-            smallIconRes = R.drawable.ic_notification,
-            leftIconRes = R.drawable.ic_notification,
+            smallIconRes = R.drawable.ic_transit_code_notification,
+            leftIconRes = R.drawable.ic_transit_code_notification,
             criticalText = "乘車中",
             title = "乘車中：準備下車時開啟乘車碼",
             contentText = "點一下立即開啟 iPASS MONEY",
@@ -1775,8 +1775,8 @@ object LiveStatusReminder {
         LiveStatusPayload(
             id = TAIWAN_PAY_NOTIFICATION_ID,
             appName = "台灣 Pay",
-            smallIconRes = R.drawable.ic_notification,
-            leftIconRes = R.drawable.ic_notification,
+            smallIconRes = R.drawable.ic_transit_code_notification,
+            leftIconRes = R.drawable.ic_transit_code_notification,
             criticalText = "乘車中",
             title = "乘車中：準備下車時開啟乘車碼",
             contentText = "點一下立即開啟台灣 Pay",

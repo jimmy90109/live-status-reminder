@@ -227,8 +227,8 @@ class LiveStatusPayloadTest {
     fun ridePayloadUsesQrIconAppNameAndCriticalText() {
         val payload = LiveStatusReminder.ridePayload()
 
-        assertEquals(R.drawable.ic_notification, payload.smallIconRes)
-        assertEquals(R.drawable.ic_notification, payload.leftIconRes)
+        assertEquals(R.drawable.ic_transit_code_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_transit_code_notification, payload.leftIconRes)
         assertEquals("iPASS MONEY", payload.appName)
         assertEquals("乘車中", payload.criticalText)
     }
@@ -237,8 +237,8 @@ class LiveStatusPayloadTest {
     fun taiwanPayRidePayloadMatchesIpassWordingAndUsesTaiwanPayAppName() {
         val payload = LiveStatusReminder.taiwanPayRidePayload()
 
-        assertEquals(R.drawable.ic_notification, payload.smallIconRes)
-        assertEquals(R.drawable.ic_notification, payload.leftIconRes)
+        assertEquals(R.drawable.ic_transit_code_notification, payload.smallIconRes)
+        assertEquals(R.drawable.ic_transit_code_notification, payload.leftIconRes)
         assertEquals("台灣 Pay", payload.appName)
         assertEquals("乘車中", payload.criticalText)
         assertEquals("乘車中：準備下車時開啟乘車碼", payload.title)
