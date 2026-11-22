@@ -8,12 +8,29 @@
 | --- | --- |
 | Alpha 最新上傳 | `2608060 (1.0.6)`，2026-08-06 已發布 |
 | Alpha 最新通過 | `2608060 (1.0.6)`，2026-08-06 23:46 通過審查並可供測試人員使用 |
-| 公開測試最新發布 | `2611090 (1.3.2)`；2026-11-19 經 Play API 確認為已發布 |
+| 公開測試最新發布 | `2611210 (1.4.0)`；2026-11-22 經 Play API 確認為已發布 |
 | 公開測試待審 | 無 |
-| Production | `2611090 (1.3.2)`；2026-11-19 經 Play API 確認為已發布；實際上線時間與 rollout 比例未由此 API 回傳 |
+| Production | `2611210 (1.4.0)`；2026-11-22 經 Play API 確認為已發布；實際上線時間與 rollout 比例未由此 API 回傳 |
 | Production 待審 | 無 |
 
 Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy90109.livestatus>
+
+## 1.4.0 發版產物（2611210）
+
+| 項目 | 紀錄 |
+| --- | --- |
+| 版本 | `2611210 (1.4.0)`；2026-11-22 確認 Beta 公開測試與 Production 均已發布 |
+| 來源 revision | `9bfb2a41a5f68505e5d8da2f6bfe775482e0786b`；建置時工作目錄另含未提交的版本、YouBike 索引、README 與商店發布說明變更 |
+| AAB | `app/build/outputs/bundle/release/app-release.aab` |
+| AAB SHA-256 | `2fc663149db9c38b512f2c934a86cf112927680dc43c1a306a750d90ad117587` |
+| Native debug symbols | `app/build/outputs/native-debug-symbols/release/native-debug-symbols-play-1.4.0-2611210.zip` |
+| Symbols SHA-256 | `ddd62dcb16fd8b671ba03b40c24d57d91a8159384af5197c1e3232a009729e95` |
+| YouBike 索引 | `generatedAt=2026-11-21T14:46:01+00:00`，TDX 來源 9,859 筆；較前版新增 98 筆、移除 1 筆，淨增 97 筆，服務區域未減少 |
+| 本機驗證 | `./gradlew verifyReleaseSigning test lintRelease bundleRelease assembleDebug lintDebug` 成功；370 項 JVM 測試無失敗；Debug／Release lint 無錯誤、各 14 項警告；`jarsigner -verify` 確認 AAB 簽章有效；Beta 的 `gplay validate` 核對 package、版本、minSdk=36 與 targetSdk=37，0 blocking、4 warnings、2 manual follow-up，判定 ready；`gplay edits validate` 成功；`git diff --check` 通過 |
+| Play 狀態 | Signed AAB 與同一建置的 native debug symbols 已上傳，Beta 軌道內設定 100% 推出，繁體中文發布說明已套用；2026-11-21 edit commit 成功並進入審查；2026-11-22 使用者回報已過審，Play API 確認 Beta 與 Production 的 `2611210` 均為 `RELEASE_LIFECYCLE_STATE_PUBLISHED`；確認日期非實際上線日期 |
+| 發布地區 | Beta API 確認為台灣與香港，與 Production 同步 |
+| Production | `2611210 (1.4.0)` 已發布；Play API 未回傳實際上線時間或 rollout 比例，未另行確認是否為 100% 全面推出 |
+| Play 人工確認 | Safari 電腦操作未獲允許，尚未檢查 Console 發布總覽、裝置支援變化、測試者設定與完整政策聲明；CLI preflight 警告為 exact alarm、notification listener、AGP metadata 及未提供離線 app-content inventory |
 
 ## 1.3.2 發版產物（2611090）
 
@@ -196,6 +213,8 @@ Google Play：<https://play.google.com/store/apps/details?id=com.github.jimmy901
 
 | 日期 | 軌道 | 版本 | 狀態 |
 | --- | --- | --- | --- |
+| 2026-11-22 | Production／公開測試 | `2611210 (1.4.0)` | 使用者回報已過審；Play API 確認兩軌道均已發布，實際上線時間與 Production rollout 比例未由此 API 回傳 |
+| 2026-11-21 | 公開測試 | `2611210 (1.4.0)` | Signed AAB 與 native debug symbols 已上傳，設定軌道內 100% 推出並送審；2026-11-22 經 Play API 確認為已發布 |
 | 2026-11-19 | Production／公開測試 | `2611090 (1.3.2)` | 使用者回報已過審；Play API 確認兩軌道均已發布，實際上線時間與 Production rollout 比例未由此 API 回傳 |
 | 2026-11-09 | 公開測試 | `2611090 (1.3.2)` | Signed AAB 與 native debug symbols 已上傳，設定軌道內 100% 推出並送審；2026-11-19 經 Play API 確認為已發布 |
 | 2026-11-09 | Production／公開測試 | `2610120 (1.3.1)` | 使用者回報已上正式版；Play API 確認兩軌道均已發布，實際上線時間與 Production rollout 比例未由此 API 回傳 |
