@@ -18,13 +18,13 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,10 +42,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -79,7 +87,7 @@ private enum class DebugTarget(val appName: String) {
 }
 
 @Composable
-internal fun HomeScreenHostActivity.MainScreen(
+internal fun MainScreen(
     status: StatusSnapshot,
     onOpenNotificationAccess: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
@@ -88,13 +96,20 @@ internal fun HomeScreenHostActivity.MainScreen(
     onOpenPrivacyPolicy: () -> Unit,
     onDismissBrandWarning: () -> Unit,
     onAppEnabledChange: (AppReminderPreferences.App, Boolean) -> Unit,
+    uiState: HomeUiState = rememberHomeUiState(status.requiredSettingsComplete),
+    safeDrawingInsets: WindowInsets = WindowInsets.safeDrawing,
+    verticalHinge: HomeVerticalHinge? = null,
 ) {
-    var settingsExpanded by rememberSaveable { mutableStateOf(true) }
+    var windowOrigin by remember { mutableStateOf<Offset?>(null) }
+    var settingsExpanded by rememberSaveable { mutableStateOf(!status.requiredSettingsComplete) }
+    var previousSettingsComplete by rememberSaveable {
+        mutableStateOf(status.requiredSettingsComplete)
+    }
     var showNotificationAccessDisclosure by rememberSaveable { mutableStateOf(false) }
     var settingsLayerVisible by rememberSaveable { mutableStateOf(false) }
     var debugTarget by rememberSaveable { mutableStateOf<DebugTarget?>(null) }
     val settingsProgress = remember {
-        Animatable(SETTINGS_CLOSED_PROGRESS)
+        Animatable(if (settingsLayerVisible) SETTINGS_OPEN_PROGRESS else SETTINGS_CLOSED_PROGRESS)
     }
     val coroutineScope = rememberCoroutineScope()
 
@@ -120,7 +135,10 @@ internal fun HomeScreenHostActivity.MainScreen(
     }
 
     LaunchedEffect(status.requiredSettingsComplete) {
-        settingsExpanded = !status.requiredSettingsComplete
+        if (previousSettingsComplete != status.requiredSettingsComplete) {
+            settingsExpanded = !status.requiredSettingsComplete
+            previousSettingsComplete = status.requiredSettingsComplete
+        }
     }
     PredictiveSettingsBackHandler(
         enabled = settingsLayerVisible,
@@ -141,242 +159,286 @@ internal fun HomeScreenHostActivity.MainScreen(
             settingsLayerVisible = false
         },
     )
-    val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
+    val safeDrawingPadding = safeDrawingInsets.asPaddingValues()
     val safeTopPadding = safeDrawingPadding.calculateTopPadding()
     val scrollTopPadding = maxOf(safeTopPadding, 20.dp)
     val heroTopPadding = scrollTopPadding
     val scrollBottomPadding =
         maxOf(
-            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+            safeDrawingPadding.calculateBottomPadding(),
             20.dp,
         )
     val appPagerBottomPadding = scrollBottomPadding
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = LocalAppColors.current.background,
-    ) {
-        val currentDebugTarget = debugTarget
-        if (currentDebugTarget != null) {
-            val colors = LocalAppColors.current
-            NotificationDebugPage(
-                appName = currentDebugTarget.appName,
-                payloadsFlow = when (currentDebugTarget) {
-                    DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.taiwanPayPayloads
-                    DebugTarget.CLOCK -> NotificationDebugPayloadStore.clockPayloads
-                    DebugTarget.YOU_BIKE -> NotificationDebugPayloadStore.youBikePayloads
-                    DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.taiwanTaxiPayloads
-                    DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
-                    DebugTarget.BOLT -> NotificationDebugPayloadStore.boltPayloads
-                    DebugTarget.LINE -> NotificationDebugPayloadStore.linePayloads
-                    DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.citymapperPayloads
-                    DebugTarget.TAIPEI_METRO_GO ->
-                        NotificationDebugPayloadStore.taipeiMetroGoPayloads
-                    DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
-                    DebugTarget.MCDONALDS -> NotificationDebugPayloadStore.mcDonaldsPayloads
-                    DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
-                    DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
-                    DebugTarget.HEVY -> NotificationDebugPayloadStore.hevyPayloads
-                    DebugTarget.PIKMIN_BLOOM -> NotificationDebugPayloadStore.pikminBloomPayloads
-                    DebugTarget.STRAVA -> NotificationDebugPayloadStore.stravaPayloads
-                    DebugTarget.DISCORD -> NotificationDebugPayloadStore.discordPayloads
-                    DebugTarget.TEAMS -> NotificationDebugPayloadStore.teamsPayloads
-                    DebugTarget.GOOGLE_RECORDER ->
-                        NotificationDebugPayloadStore.googleRecorderPayloads
-                },
-                cardColor = when (currentDebugTarget) {
-                    DebugTarget.TAIWAN_PAY -> colors.taiwanPayContainer
-                    DebugTarget.CLOCK -> colors.clockContainer
-                    DebugTarget.YOU_BIKE -> colors.youBikeContainer
-                    DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiContainer
-                    DebugTarget.UBER -> colors.commonContainer
-                    DebugTarget.BOLT -> colors.boltContainer
-                    DebugTarget.LINE -> colors.boltContainer
-                    DebugTarget.CITYMAPPER -> colors.citymapperContainer
-                    DebugTarget.TAIPEI_METRO_GO -> colors.taipeiMetroGoContainer
-                    DebugTarget.FOODPANDA -> colors.foodpandaContainer
-                    DebugTarget.MCDONALDS -> colors.mcDonaldsContainer
-                    DebugTarget.UBER_EATS -> colors.uberEatsContainer
-                    DebugTarget.YPT -> colors.yptContainer
-                    DebugTarget.HEVY -> colors.commonContainer
-                    DebugTarget.PIKMIN_BLOOM -> colors.pikminContainer
-                    DebugTarget.STRAVA -> colors.stravaContainer
-                    DebugTarget.DISCORD -> colors.discordContainer
-                    DebugTarget.TEAMS -> colors.teamsContainer
-                    DebugTarget.GOOGLE_RECORDER -> colors.recorderContainer
-                },
-                actionColor = when (currentDebugTarget) {
-                    DebugTarget.TAIWAN_PAY -> colors.taiwanPayPrimary
-                    DebugTarget.CLOCK -> colors.onSurface
-                    DebugTarget.YOU_BIKE -> colors.youBikeText
-                    DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiText
-                    DebugTarget.UBER -> colors.onSurface
-                    DebugTarget.BOLT -> colors.boltText
-                    DebugTarget.LINE -> colors.boltText
-                    DebugTarget.CITYMAPPER -> colors.citymapperText
-                    DebugTarget.TAIPEI_METRO_GO -> colors.taipeiMetroGoText
-                    DebugTarget.FOODPANDA -> colors.foodpandaText
-                    DebugTarget.MCDONALDS -> colors.mcDonaldsText
-                    DebugTarget.UBER_EATS -> colors.uberEatsText
-                    DebugTarget.YPT -> colors.yptText
-                    DebugTarget.HEVY -> colors.onSurface
-                    DebugTarget.PIKMIN_BLOOM -> colors.pikminPrimary
-                    DebugTarget.STRAVA -> colors.stravaText
-                    DebugTarget.DISCORD -> colors.discordText
-                    DebugTarget.TEAMS -> colors.teamsPrimary
-                    DebugTarget.GOOGLE_RECORDER -> colors.recorderText
-                },
-                showPinDetails = currentDebugTarget == DebugTarget.UBER ||
-                    currentDebugTarget == DebugTarget.UBER_EATS,
-                topPadding = scrollTopPadding,
-                bottomPadding = scrollBottomPadding,
-                onBack = { debugTarget = null },
-                onClear = {
-                    when (currentDebugTarget) {
-                        DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.clearTaiwanPay()
-                        DebugTarget.CLOCK -> NotificationDebugPayloadStore.clearClock()
-                        DebugTarget.YOU_BIKE -> NotificationDebugPayloadStore.clearYouBike()
-                        DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.clearTaiwanTaxi()
-                        DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
-                        DebugTarget.BOLT -> NotificationDebugPayloadStore.clearBolt()
-                        DebugTarget.LINE -> NotificationDebugPayloadStore.clearLine()
-                        DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.clearCitymapper()
-                        DebugTarget.TAIPEI_METRO_GO ->
-                            NotificationDebugPayloadStore.clearTaipeiMetroGo()
-                        DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
-                        DebugTarget.MCDONALDS -> NotificationDebugPayloadStore.clearMcDonalds()
-                        DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
-                        DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
-                        DebugTarget.HEVY -> NotificationDebugPayloadStore.clearHevy()
-                        DebugTarget.PIKMIN_BLOOM -> NotificationDebugPayloadStore.clearPikminBloom()
-                        DebugTarget.STRAVA -> NotificationDebugPayloadStore.clearStrava()
-                        DebugTarget.DISCORD -> NotificationDebugPayloadStore.clearDiscord()
-                        DebugTarget.TEAMS -> NotificationDebugPayloadStore.clearTeams()
-                        DebugTarget.GOOGLE_RECORDER ->
-                            NotificationDebugPayloadStore.clearGoogleRecorder()
-                    }
-                },
-            )
-            StatusBarProtection()
-            return@Surface
-        }
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
-            contentAlignment = Alignment.TopStart,
+    CompositionLocalProvider(LocalHomeUiState provides uiState) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = LocalAppColors.current.background,
         ) {
-            if (maxWidth > maxHeight) {
-                HomeBackgroundLayer(progress = settingsProgress.value) {
-                    HomeContentWide(
-                        status = status,
-                        settingsExpanded = settingsExpanded,
-                        scrollTopPadding = scrollTopPadding,
-                        scrollBottomPadding = scrollBottomPadding,
-                        appPagerBottomPadding = appPagerBottomPadding,
-                        onOpenSettings = { openSettingsPage() },
-                        onToggleSettings = { settingsExpanded = !settingsExpanded },
-                        onOpenNotificationAccess = {
-                            showNotificationAccessDisclosure = true
-                        },
-                        onRequestNotificationPermission = onRequestNotificationPermission,
-                        onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
-                        onOpenAppSettings = onOpenAppSettings,
-                        onDismissBrandWarning = onDismissBrandWarning,
-                        onAppEnabledChange = onAppEnabledChange,
-                        onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
-                        onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
-                        onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
-                        onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
-                        onOpenMcDonaldsDebug = { debugTarget = DebugTarget.MCDONALDS },
-                        onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
-                        onOpenUberDebug = { debugTarget = DebugTarget.UBER },
-                        onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
-                        onOpenLineDebug = { debugTarget = DebugTarget.LINE },
-                        onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
-                        onOpenTaipeiMetroGoDebug = {
-                            debugTarget = DebugTarget.TAIPEI_METRO_GO
-                        },
-                        onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
-                        onOpenYptDebug = { debugTarget = DebugTarget.YPT },
-                        onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
-                        onOpenPikminBloomDebug = { debugTarget = DebugTarget.PIKMIN_BLOOM },
-                        onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
-                        onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
-                        onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },
-                        onOpenGoogleRecorderDebug = {
-                            debugTarget = DebugTarget.GOOGLE_RECORDER
-                        },
-                    )
-                }
-            } else {
-                HomeBackgroundLayer(progress = settingsProgress.value) {
-                    HomeContentNarrow(
-                        status = status,
-                        settingsExpanded = settingsExpanded,
-                        scrollTopPadding = heroTopPadding,
-                        appPagerBottomPadding = appPagerBottomPadding,
-                        onOpenSettings = { openSettingsPage() },
-                        onToggleSettings = { settingsExpanded = !settingsExpanded },
-                        onOpenNotificationAccess = {
-                            showNotificationAccessDisclosure = true
-                        },
-                        onRequestNotificationPermission = onRequestNotificationPermission,
-                        onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
-                        onOpenAppSettings = onOpenAppSettings,
-                        onDismissBrandWarning = onDismissBrandWarning,
-                        onAppEnabledChange = onAppEnabledChange,
-                        onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
-                        onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
-                        onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
-                        onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
-                        onOpenMcDonaldsDebug = { debugTarget = DebugTarget.MCDONALDS },
-                        onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
-                        onOpenUberDebug = { debugTarget = DebugTarget.UBER },
-                        onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
-                        onOpenLineDebug = { debugTarget = DebugTarget.LINE },
-                        onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
-                        onOpenTaipeiMetroGoDebug = {
-                            debugTarget = DebugTarget.TAIPEI_METRO_GO
-                        },
-                        onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
-                        onOpenYptDebug = { debugTarget = DebugTarget.YPT },
-                        onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
-                        onOpenPikminBloomDebug = { debugTarget = DebugTarget.PIKMIN_BLOOM },
-                        onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
-                        onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
-                        onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },
-                        onOpenGoogleRecorderDebug = {
-                            debugTarget = DebugTarget.GOOGLE_RECORDER
-                        },
-                    )
-                }
+            val currentDebugTarget = debugTarget
+            if (currentDebugTarget != null) {
+                val colors = LocalAppColors.current
+                NotificationDebugPage(
+                    appName = currentDebugTarget.appName,
+                    payloadsFlow = when (currentDebugTarget) {
+                        DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.taiwanPayPayloads
+                        DebugTarget.CLOCK -> NotificationDebugPayloadStore.clockPayloads
+                        DebugTarget.YOU_BIKE -> NotificationDebugPayloadStore.youBikePayloads
+                        DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.taiwanTaxiPayloads
+                        DebugTarget.UBER -> NotificationDebugPayloadStore.uberPayloads
+                        DebugTarget.BOLT -> NotificationDebugPayloadStore.boltPayloads
+                        DebugTarget.LINE -> NotificationDebugPayloadStore.linePayloads
+                        DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.citymapperPayloads
+                        DebugTarget.TAIPEI_METRO_GO ->
+                            NotificationDebugPayloadStore.taipeiMetroGoPayloads
+                        DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.foodpandaPayloads
+                        DebugTarget.MCDONALDS -> NotificationDebugPayloadStore.mcDonaldsPayloads
+                        DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.uberEatsPayloads
+                        DebugTarget.YPT -> NotificationDebugPayloadStore.yptPayloads
+                        DebugTarget.HEVY -> NotificationDebugPayloadStore.hevyPayloads
+                        DebugTarget.PIKMIN_BLOOM -> NotificationDebugPayloadStore.pikminBloomPayloads
+                        DebugTarget.STRAVA -> NotificationDebugPayloadStore.stravaPayloads
+                        DebugTarget.DISCORD -> NotificationDebugPayloadStore.discordPayloads
+                        DebugTarget.TEAMS -> NotificationDebugPayloadStore.teamsPayloads
+                        DebugTarget.GOOGLE_RECORDER ->
+                            NotificationDebugPayloadStore.googleRecorderPayloads
+                    },
+                    cardColor = when (currentDebugTarget) {
+                        DebugTarget.TAIWAN_PAY -> colors.taiwanPayContainer
+                        DebugTarget.CLOCK -> colors.clockContainer
+                        DebugTarget.YOU_BIKE -> colors.youBikeContainer
+                        DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiContainer
+                        DebugTarget.UBER -> colors.commonContainer
+                        DebugTarget.BOLT -> colors.boltContainer
+                        DebugTarget.LINE -> colors.boltContainer
+                        DebugTarget.CITYMAPPER -> colors.citymapperContainer
+                        DebugTarget.TAIPEI_METRO_GO -> colors.taipeiMetroGoContainer
+                        DebugTarget.FOODPANDA -> colors.foodpandaContainer
+                        DebugTarget.MCDONALDS -> colors.mcDonaldsContainer
+                        DebugTarget.UBER_EATS -> colors.uberEatsContainer
+                        DebugTarget.YPT -> colors.yptContainer
+                        DebugTarget.HEVY -> colors.commonContainer
+                        DebugTarget.PIKMIN_BLOOM -> colors.pikminContainer
+                        DebugTarget.STRAVA -> colors.stravaContainer
+                        DebugTarget.DISCORD -> colors.discordContainer
+                        DebugTarget.TEAMS -> colors.teamsContainer
+                        DebugTarget.GOOGLE_RECORDER -> colors.recorderContainer
+                    },
+                    actionColor = when (currentDebugTarget) {
+                        DebugTarget.TAIWAN_PAY -> colors.taiwanPayPrimary
+                        DebugTarget.CLOCK -> colors.onSurface
+                        DebugTarget.YOU_BIKE -> colors.youBikeText
+                        DebugTarget.TAIWAN_TAXI -> colors.taiwanTaxiText
+                        DebugTarget.UBER -> colors.onSurface
+                        DebugTarget.BOLT -> colors.boltText
+                        DebugTarget.LINE -> colors.boltText
+                        DebugTarget.CITYMAPPER -> colors.citymapperText
+                        DebugTarget.TAIPEI_METRO_GO -> colors.taipeiMetroGoText
+                        DebugTarget.FOODPANDA -> colors.foodpandaText
+                        DebugTarget.MCDONALDS -> colors.mcDonaldsText
+                        DebugTarget.UBER_EATS -> colors.uberEatsText
+                        DebugTarget.YPT -> colors.yptText
+                        DebugTarget.HEVY -> colors.onSurface
+                        DebugTarget.PIKMIN_BLOOM -> colors.pikminPrimary
+                        DebugTarget.STRAVA -> colors.stravaText
+                        DebugTarget.DISCORD -> colors.discordText
+                        DebugTarget.TEAMS -> colors.teamsPrimary
+                        DebugTarget.GOOGLE_RECORDER -> colors.recorderText
+                    },
+                    showPinDetails = currentDebugTarget == DebugTarget.UBER ||
+                        currentDebugTarget == DebugTarget.UBER_EATS,
+                    topPadding = scrollTopPadding,
+                    bottomPadding = scrollBottomPadding,
+                    onBack = { debugTarget = null },
+                    onClear = {
+                        when (currentDebugTarget) {
+                            DebugTarget.TAIWAN_PAY -> NotificationDebugPayloadStore.clearTaiwanPay()
+                            DebugTarget.CLOCK -> NotificationDebugPayloadStore.clearClock()
+                            DebugTarget.YOU_BIKE -> NotificationDebugPayloadStore.clearYouBike()
+                            DebugTarget.TAIWAN_TAXI -> NotificationDebugPayloadStore.clearTaiwanTaxi()
+                            DebugTarget.UBER -> NotificationDebugPayloadStore.clearUber()
+                            DebugTarget.BOLT -> NotificationDebugPayloadStore.clearBolt()
+                            DebugTarget.LINE -> NotificationDebugPayloadStore.clearLine()
+                            DebugTarget.CITYMAPPER -> NotificationDebugPayloadStore.clearCitymapper()
+                            DebugTarget.TAIPEI_METRO_GO ->
+                                NotificationDebugPayloadStore.clearTaipeiMetroGo()
+                            DebugTarget.FOODPANDA -> NotificationDebugPayloadStore.clearFoodpanda()
+                            DebugTarget.MCDONALDS -> NotificationDebugPayloadStore.clearMcDonalds()
+                            DebugTarget.UBER_EATS -> NotificationDebugPayloadStore.clearUberEats()
+                            DebugTarget.YPT -> NotificationDebugPayloadStore.clearYpt()
+                            DebugTarget.HEVY -> NotificationDebugPayloadStore.clearHevy()
+                            DebugTarget.PIKMIN_BLOOM -> NotificationDebugPayloadStore.clearPikminBloom()
+                            DebugTarget.STRAVA -> NotificationDebugPayloadStore.clearStrava()
+                            DebugTarget.DISCORD -> NotificationDebugPayloadStore.clearDiscord()
+                            DebugTarget.TEAMS -> NotificationDebugPayloadStore.clearTeams()
+                            DebugTarget.GOOGLE_RECORDER ->
+                                NotificationDebugPayloadStore.clearGoogleRecorder()
+                        }
+                    },
+                )
+                StatusBarProtection(safeDrawingInsets)
+                return@Surface
             }
-            if (settingsLayerVisible) {
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxSize().onGloballyPositioned {
+                    windowOrigin = it.positionInWindow()
+                },
+                contentAlignment = Alignment.TopStart,
+            ) {
+                val horizontalInsets = safeDrawingInsets.only(WindowInsetsSides.Horizontal)
+                val horizontalPadding = horizontalInsets.asPaddingValues()
+                val layoutDirection = LocalLayoutDirection.current
+                val availableWidth = maxWidth - horizontalPadding.calculateLeftPadding(layoutDirection) -
+                    horizontalPadding.calculateRightPadding(layoutDirection)
+                val twoPane = useTwoPaneHome(availableWidth)
+                val density = LocalDensity.current
+                // Await the local coordinate origin before measuring restored content across a fold.
+                if (twoPane && verticalHinge != null && windowOrigin == null) return@BoxWithConstraints
+                val paneSplit = if (twoPane) windowOrigin?.let { origin ->
+                    resolveHomePaneSplit(
+                        verticalHinge, origin,
+                        with(density) { IntSize(maxWidth.roundToPx(), maxHeight.roundToPx()) },
+                        density,
+                    )
+                } else null
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            translationX = size.width * settingsProgress.value
-                        },
+                        .align(Alignment.TopCenter)
+                        .then(if (twoPane) Modifier else Modifier.windowInsetsPadding(horizontalInsets))
+                        .testTag(if (twoPane) "home_two_pane" else "home_single_pane")
+                        .widthIn(max = if (twoPane) Dp.Infinity else HOME_SINGLE_PANE_MAX_WIDTH)
+                        .fillMaxSize(),
                 ) {
-                    SettingsPage(
-                        status = status,
-                        topPadding = scrollTopPadding,
-                        bottomPadding = scrollBottomPadding,
-                        onBack = { closeSettingsPage() },
-                        onOpenNotificationAccess = {
-                            showNotificationAccessDisclosure = true
-                        },
-                        onRequestNotificationPermission = onRequestNotificationPermission,
-                        onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
-                        onOpenAppSettings = onOpenAppSettings,
-                        onOpenPrivacyPolicy = onOpenPrivacyPolicy,
-                    )
+                    if (twoPane) {
+                        HomeBackgroundLayer(progress = SETTINGS_CLOSED_PROGRESS) {
+                            HomeContentWide(
+                                safeDrawingInsets = safeDrawingInsets,
+                                paneSplit = paneSplit,
+                                status = status,
+                                settingsExpanded = settingsExpanded,
+                                scrollTopPadding = scrollTopPadding,
+                                settingsVisible = settingsLayerVisible,
+                                onSelectCategory = { settingsLayerVisible = false },
+                                settingsContent = {
+                                    SettingsPage(
+                                        status = status,
+                                        topPadding = scrollTopPadding,
+                                        bottomPadding = scrollBottomPadding,
+                                        onBack = { closeSettingsPage() },
+                                        onOpenNotificationAccess = { showNotificationAccessDisclosure = true },
+                                        onRequestNotificationPermission = onRequestNotificationPermission,
+                                        onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                                        onOpenAppSettings = onOpenAppSettings,
+                                        onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+                                    )
+                                },
+                                appPagerBottomPadding = appPagerBottomPadding,
+                                onOpenSettings = { openSettingsPage() },
+                                onToggleSettings = { settingsExpanded = !settingsExpanded },
+                                onOpenNotificationAccess = {
+                                    showNotificationAccessDisclosure = true
+                                },
+                                onRequestNotificationPermission = onRequestNotificationPermission,
+                                onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                                onOpenAppSettings = onOpenAppSettings,
+                                onDismissBrandWarning = onDismissBrandWarning,
+                                onAppEnabledChange = onAppEnabledChange,
+                                onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
+                                onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
+                                onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
+                                onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
+                                onOpenMcDonaldsDebug = { debugTarget = DebugTarget.MCDONALDS },
+                                onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
+                                onOpenUberDebug = { debugTarget = DebugTarget.UBER },
+                                onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
+                                onOpenLineDebug = { debugTarget = DebugTarget.LINE },
+                                onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
+                                onOpenTaipeiMetroGoDebug = {
+                                    debugTarget = DebugTarget.TAIPEI_METRO_GO
+                                },
+                                onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
+                                onOpenYptDebug = { debugTarget = DebugTarget.YPT },
+                                onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                                onOpenPikminBloomDebug = { debugTarget = DebugTarget.PIKMIN_BLOOM },
+                                onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
+                                onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
+                                onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },
+                                onOpenGoogleRecorderDebug = {
+                                    debugTarget = DebugTarget.GOOGLE_RECORDER
+                                },
+                            )
+                        }
+                    } else {
+                        HomeBackgroundLayer(progress = settingsProgress.value) {
+                            HomeContentNarrow(
+                                status = status,
+                                settingsExpanded = settingsExpanded,
+                                scrollTopPadding = heroTopPadding,
+                                appPagerBottomPadding = appPagerBottomPadding,
+                                onOpenSettings = { openSettingsPage() },
+                                onToggleSettings = { settingsExpanded = !settingsExpanded },
+                                onOpenNotificationAccess = {
+                                    showNotificationAccessDisclosure = true
+                                },
+                                onRequestNotificationPermission = onRequestNotificationPermission,
+                                onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                                onOpenAppSettings = onOpenAppSettings,
+                                onDismissBrandWarning = onDismissBrandWarning,
+                                onAppEnabledChange = onAppEnabledChange,
+                                onOpenTaiwanPayDebug = { debugTarget = DebugTarget.TAIWAN_PAY },
+                                onOpenClockDebug = { debugTarget = DebugTarget.CLOCK },
+                                onOpenYouBikeDebug = { debugTarget = DebugTarget.YOU_BIKE },
+                                onOpenFoodpandaDebug = { debugTarget = DebugTarget.FOODPANDA },
+                                onOpenMcDonaldsDebug = { debugTarget = DebugTarget.MCDONALDS },
+                                onOpenTaiwanTaxiDebug = { debugTarget = DebugTarget.TAIWAN_TAXI },
+                                onOpenUberDebug = { debugTarget = DebugTarget.UBER },
+                                onOpenBoltDebug = { debugTarget = DebugTarget.BOLT },
+                                onOpenLineDebug = { debugTarget = DebugTarget.LINE },
+                                onOpenCitymapperDebug = { debugTarget = DebugTarget.CITYMAPPER },
+                                onOpenTaipeiMetroGoDebug = {
+                                    debugTarget = DebugTarget.TAIPEI_METRO_GO
+                                },
+                                onOpenUberEatsDebug = { debugTarget = DebugTarget.UBER_EATS },
+                                onOpenYptDebug = { debugTarget = DebugTarget.YPT },
+                                onOpenHevyDebug = { debugTarget = DebugTarget.HEVY },
+                                onOpenPikminBloomDebug = { debugTarget = DebugTarget.PIKMIN_BLOOM },
+                                onOpenStravaDebug = { debugTarget = DebugTarget.STRAVA },
+                                onOpenDiscordDebug = { debugTarget = DebugTarget.DISCORD },
+                                onOpenTeamsDebug = { debugTarget = DebugTarget.TEAMS },
+                                onOpenGoogleRecorderDebug = {
+                                    debugTarget = DebugTarget.GOOGLE_RECORDER
+                                },
+                            )
+                        }
+                    }
                 }
+                if (settingsLayerVisible && !twoPane) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .windowInsetsPadding(horizontalInsets)
+                            .graphicsLayer {
+                                translationX = size.width * settingsProgress.value
+                            },
+                    ) {
+                        SettingsPage(
+                            status = status,
+                            topPadding = scrollTopPadding,
+                            bottomPadding = scrollBottomPadding,
+                            onBack = { closeSettingsPage() },
+                            onOpenNotificationAccess = {
+                                showNotificationAccessDisclosure = true
+                            },
+                            onRequestNotificationPermission = onRequestNotificationPermission,
+                            onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                            onOpenAppSettings = onOpenAppSettings,
+                            onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+                        )
+                    }
+                }
+                if (!twoPane) StatusBarProtection(safeDrawingInsets)
             }
         }
-        StatusBarProtection()
     }
 
     if (showNotificationAccessDisclosure) {
@@ -391,14 +453,14 @@ internal fun HomeScreenHostActivity.MainScreen(
 }
 
 @Composable
-private fun StatusBarProtection() {
+internal fun StatusBarProtection(safeDrawingInsets: WindowInsets) {
     val color = LocalAppColors.current.background
 
     Box(Modifier.fillMaxSize()) {
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .windowInsetsTopHeight(WindowInsets.statusBars)
+                .windowInsetsTopHeight(safeDrawingInsets)
                 .background(
                     Brush.verticalGradient(
                         colorStops = arrayOf(

@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,9 +24,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -32,6 +37,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +52,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -64,9 +72,15 @@ import kotlin.math.abs
 internal fun AppsSection(
     modifier: Modifier = Modifier,
     containingScrollState: ScrollState? = null,
-    wideLeadingContent: (@Composable () -> Unit)? = null,
+    wide: Boolean = false,
+    widePaneSplit: HomePaneSplit? = null,
+    wideSafeDrawingInsets: WindowInsets = WindowInsets(0, 0, 0, 0),
+    settingsVisible: Boolean = false,
+    settingsContent: @Composable () -> Unit = {},
+    onSelectCategory: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
+    widePageHeader: @Composable () -> Unit = {},
     wideTopPadding: Dp = 0.dp,
-    wideBottomPadding: Dp = 0.dp,
     pageBottomPadding: Dp,
     status: StatusSnapshot,
     horizontalContentPadding: Dp,
@@ -91,9 +105,8 @@ internal fun AppsSection(
     onOpenTeamsDebug: () -> Unit,
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
-    val pagerState = rememberPagerState(initialPage = CATEGORY_TRANSIT_CODE) {
-        APP_CATEGORY_PAGE_COUNT
-    }
+    val uiState = checkNotNull(LocalHomeUiState.current)
+    val pagerState = uiState.pager
     val coroutineScope = rememberCoroutineScope()
     val tabTransitionProgress = remember { Animatable(1f) }
     var tabTransitionFromPage by remember { mutableIntStateOf(CATEGORY_TRANSIT_CODE) }
@@ -115,7 +128,6 @@ internal fun AppsSection(
             }
         }
     }
-    val wideLeadingScrollState = rememberScrollState()
 
     val onSelectPage: (Int) -> Unit = selectPage@{ page ->
         if (tabTransitionActive && page == tabTransitionToPage) return@selectPage
@@ -189,13 +201,13 @@ internal fun AppsSection(
             }
             HorizontalPager(
                 state = pagerState,
-                modifier = resolvedPagerModifier.fillMaxWidth(),
+                modifier = resolvedPagerModifier.fillMaxWidth().testTag("app_pager"),
                 pageSpacing = 12.dp,
                 verticalAlignment = Alignment.Top,
                 beyondViewportPageCount = APP_CATEGORY_PAGE_COUNT - 1,
                 userScrollEnabled = swipeEnabled && !pageTransitionActive,
             ) { page ->
-                val pageScrollState = rememberScrollState()
+                val pageScrollState = uiState.pageScrolls[page]
                 val transitionPageStep = (
                     pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing
                 ).toFloat()
@@ -225,10 +237,21 @@ internal fun AppsSection(
                         .graphicsLayer {
                             translationX = transitionTranslationX
                         }
+                        .testTag("category_scroll_$page")
                         .verticalScroll(pageScrollState)
                         .padding(top = pageTopPadding, bottom = pageBottomPadding),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.Top,
                 ) {
+                    if (wide) {
+                        Text(
+                            stringResource(APP_CATEGORIES[page].labelRes),
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.testTag("category_title"),
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        widePageHeader()
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     when (page) {
                     CATEGORY_DELIVERY -> {
                         UberEatsCard(
@@ -451,40 +474,46 @@ internal fun AppsSection(
                         )
                     }
                     }
+                    }
                 }
             }
         }
 
-    if (wideLeadingContent != null) {
-        Row(
-            modifier = modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .verticalScroll(
-                        state = wideLeadingScrollState,
-                        reverseScrolling = true,
-                    )
-                    .padding(top = wideTopPadding, bottom = wideBottomPadding),
-            ) {
-                wideLeadingContent()
-                Spacer(Modifier.height(12.dp))
-                SectionHeader(
-                    title = "App",
-                    subtitle = "檢查安裝狀態，並分別測試各 App 的即時通知。",
-                )
-                Spacer(Modifier.height(12.dp))
-                tabsContent(0.dp)
+    if (wide) {
+        Row(modifier.fillMaxSize()) {
+            HomeNavigationRail(
+                safeDrawingInsets = wideSafeDrawingInsets,
+                paneWidth = widePaneSplit?.leadingWidth,
+                topPadding = wideTopPadding,
+                bottomPadding = pageBottomPadding,
+                settingsSelected = settingsVisible,
+                onOpenSettings = onOpenSettings,
+                onSelect = { page ->
+                    onSelectCategory()
+                    onSelectPage(page)
+                },
+            )
+            if (widePaneSplit != null) {
+                Spacer(Modifier.width(widePaneSplit.hingeWidth).fillMaxHeight().testTag("home_hinge_gap"))
             }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
+            Box(
+                Modifier.weight(1f).fillMaxHeight().testTag("home_content_pane")
+                    .windowInsetsPadding(wideSafeDrawingInsets.only(WindowInsetsSides.End)),
             ) {
-                pagerContent(Modifier.weight(1f), true, wideTopPadding, false)
+                Box(
+                    Modifier.fillMaxSize().padding(horizontal = 20.dp)
+                        .then(if (settingsVisible) {
+                            Modifier.clearAndSetSemantics {}.focusProperties { canFocus = false }
+                        } else Modifier),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    pagerContent(
+                        Modifier.widthIn(max = HOME_SINGLE_PANE_MAX_WIDTH).fillMaxSize(),
+                        true, wideTopPadding, false,
+                    )
+                }
+                if (settingsVisible) settingsContent()
+                StatusBarProtection(wideSafeDrawingInsets)
             }
         }
     } else {
@@ -527,7 +556,7 @@ private fun AppTabs(
     onSelect: (Int) -> Unit,
 ) {
     val colors = LocalAppColors.current
-    val scrollState = rememberScrollState()
+    val scrollState = checkNotNull(LocalHomeUiState.current).tabsScroll
     val leftFadeAlpha by animateFloatAsState(
         targetValue = if (scrollState.canScrollBackward) 1f else 0f,
         animationSpec = tween(APP_TABS_EDGE_FADE_ANIMATION_MILLIS),
@@ -538,7 +567,7 @@ private fun AppTabs(
         animationSpec = tween(APP_TABS_EDGE_FADE_ANIMATION_MILLIS),
         label = "App tabs right edge fade",
     )
-    Box(Modifier.fillMaxWidth()) {
+    Box(Modifier.fillMaxWidth().testTag("app_tabs")) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -546,110 +575,14 @@ private fun AppTabs(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Spacer(Modifier.width(horizontalContentPadding))
-            AppTab(
-                stringResource(R.string.app_category_transit_code),
-                CATEGORY_TRANSIT_CODE,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
-            AppTab(
-                stringResource(R.string.app_category_delivery),
-                CATEGORY_DELIVERY,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
-            AppTab(
-                stringResource(R.string.app_category_ride),
-                CATEGORY_RIDE,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
-            AppTab(
-                stringResource(R.string.app_category_navigation),
-                CATEGORY_NAVIGATION,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
-            AppTab(
-                stringResource(R.string.app_category_rental),
-                CATEGORY_RENTAL,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
-            AppTab(
-                stringResource(R.string.app_category_sport),
-                CATEGORY_SPORT,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
-            AppTab(
-                stringResource(R.string.app_category_tool),
-                CATEGORY_TOOL,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
-            AppTab(
-                stringResource(R.string.app_category_media),
-                CATEGORY_MEDIA,
-                currentPage,
-                currentPageOffsetFraction,
-                transitionFromPage,
-                transitionToPage,
-                transitionProgress,
-                transitionActive,
-                colors.commonPrimary,
-                colors.commonOnPrimary,
-                onSelect,
-            )
+            APP_CATEGORIES.forEach { category ->
+                AppTab(
+                    stringResource(category.labelRes), category.page,
+                    currentPage, currentPageOffsetFraction,
+                    transitionFromPage, transitionToPage, transitionProgress, transitionActive,
+                    colors.commonPrimary, colors.commonOnPrimary, onSelect,
+                )
+            }
             Spacer(Modifier.width(horizontalContentPadding))
         }
         Canvas(Modifier.matchParentSize()) {
@@ -706,7 +639,7 @@ private fun AppTab(
     val shape = RoundedCornerShape(100.dp)
     Box(
         modifier = Modifier
-            .heightIn(min = 44.dp)
+            .heightIn(min = 48.dp)
             .background(
                 lerp(colors.commonSurface, selectedColor, selectionFraction),
                 shape,
@@ -737,15 +670,6 @@ private fun AppTab(
 
 
 
-private const val CATEGORY_TRANSIT_CODE = 0
-private const val CATEGORY_DELIVERY = 1
-private const val CATEGORY_RIDE = 2
-private const val CATEGORY_NAVIGATION = 3
-private const val CATEGORY_RENTAL = 4
-private const val CATEGORY_SPORT = 5
-private const val CATEGORY_TOOL = 6
-private const val CATEGORY_MEDIA = 7
-private const val APP_CATEGORY_PAGE_COUNT = 8
 private const val APP_PAGE_ANIMATION_MILLIS = 300
 private const val APP_TABS_EDGE_FADE_ANIMATION_MILLIS = 180
 private val APP_TABS_EDGE_FADE_OVERLAP = 24.dp

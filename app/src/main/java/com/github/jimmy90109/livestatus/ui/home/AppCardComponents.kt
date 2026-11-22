@@ -47,6 +47,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -84,7 +85,9 @@ internal fun AppCard(
 ) {
     val colors = LocalAppColors.current
     val darkTheme = isSystemInDarkTheme()
-    var expanded by rememberSaveable(appPackageName) { mutableStateOf(false) }
+    val homeUiState = LocalHomeUiState.current
+    var standaloneExpanded by rememberSaveable(appPackageName) { mutableStateOf(false) }
+    val expanded = homeUiState?.expandedPackages?.contains(appPackageName) ?: standaloneExpanded
     val stateDescription = stringResource(
         if (expanded) R.string.app_card_expanded else R.string.app_card_collapsed,
     )
@@ -98,7 +101,7 @@ internal fun AppCard(
         background = cardColor,
         radius = 30,
         padding = 18,
-        modifier = Modifier.clip(RoundedCornerShape(30.dp)),
+        modifier = Modifier.clip(RoundedCornerShape(30.dp)).testTag("app_card_$appPackageName"),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -170,7 +173,11 @@ internal fun AppCard(
                 onClick = rememberHapticAction(
                     effect = toggleHapticEffect(!expanded),
                 ) {
-                    expanded = !expanded
+                    if (homeUiState != null) {
+                        homeUiState.setCardExpanded(appPackageName, !expanded)
+                    } else {
+                        standaloneExpanded = !expanded
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

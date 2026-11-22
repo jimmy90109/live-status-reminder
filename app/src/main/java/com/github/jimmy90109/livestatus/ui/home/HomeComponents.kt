@@ -3,6 +3,7 @@ package com.github.jimmy90109.livestatus.ui.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -24,30 +25,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.jimmy90109.livestatus.R
 import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 @Composable
 internal fun HeroCard(onOpenSettings: () -> Unit) {
     val colors = LocalAppColors.current
-    CardSurface(background = colors.commonContainer, radius = 36) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    CardSurface(
+        modifier = Modifier.testTag("home_hero_card"),
+        background = colors.commonContainer,
+        radius = 36,
+    ) {
+        Row(
+            modifier = Modifier.testTag("home_hero_header"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             LabelPill("LIVE STATUS", colors.commonPrimary, colors.commonOnPrimary)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = rememberHapticAction(action = onOpenSettings)) {
                 Icon(
                     imageVector = Icons.Rounded.Settings,
-                    contentDescription = "設定",
+                    contentDescription = stringResource(R.string.settings_title),
                     tint = colors.onSurfaceVariant,
                 )
             }
         }
         Spacer(Modifier.height(34.dp))
-        AppText("重要狀態，\n留在最前面。", 34, colors.onSurface, true)
+        Box(Modifier.testTag("home_hero_title")) {
+            AppText(stringResource(R.string.home_hero_title), 34, colors.onSurface, true)
+        }
     }
 }
 

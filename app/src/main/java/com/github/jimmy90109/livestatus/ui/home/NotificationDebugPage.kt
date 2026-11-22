@@ -8,13 +8,20 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -29,7 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,107 +70,114 @@ internal fun NotificationDebugPage(
     val colors = LocalAppColors.current
     val context = LocalContext.current
     val payloads by payloadsFlow.collectAsState()
-    var expandedIndex by remember(payloads.firstOrNull()?.key) { mutableIntStateOf(0) }
+    var expandedIndex by rememberSaveable(payloads.firstOrNull()?.key) { mutableIntStateOf(0) }
 
     BackHandler(onBack = onBack)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, top = topPadding, end = 20.dp, bottom = bottomPadding),
+    Box(
+        modifier = Modifier.fillMaxSize().background(colors.background)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = rememberHapticAction(action = onBack)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "返回",
-                    tint = colors.onSurface,
-                )
-            }
-            Column(Modifier.weight(1f)) {
-                AppText("$appName payload", 26, colors.onSurface, true)
-                Spacer(Modifier.height(3.dp))
-                AppText(
-                    if (showPinDetails) {
-                        "檢查通知 extras、shortCriticalText 與 PIN 候選值。"
-                    } else {
-                        "檢查 notification fields、extras 與 parser 結果。"
-                    },
-                    14,
-                    colors.onSurfaceVariant,
-                )
-            }
-        }
-        Spacer(Modifier.height(18.dp))
-        CardSurface(background = cardColor, radius = 28, padding = 18) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = HOME_SINGLE_PANE_MAX_WIDTH)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 20.dp, top = topPadding, end = 20.dp, bottom = bottomPadding),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = rememberHapticAction(action = onBack)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = stringResource(R.string.action_back),
+                        tint = colors.onSurface,
+                    )
+                }
                 Column(Modifier.weight(1f)) {
-                    AppText("最近通知", 20, colors.onSurface, true)
-                    Spacer(Modifier.height(4.dp))
+                    AppText("$appName payload", 26, colors.onSurface, true)
+                    Spacer(Modifier.height(3.dp))
                     AppText(
-                        if (payloads.isEmpty()) {
-                            "尚未收到 $appName 通知；收到後會顯示最近 30 筆。"
+                        if (showPinDetails) {
+                            "檢查通知 extras、shortCriticalText 與 PIN 候選值。"
                         } else {
-                            "已記錄 ${payloads.size} 筆，只保留在目前 App 程序記憶體。"
+                            "檢查 notification fields、extras 與 parser 結果。"
                         },
                         14,
                         colors.onSurfaceVariant,
                     )
                 }
-                if (payloads.isNotEmpty()) {
-                    IconButton(
-                        onClick = rememberHapticAction {
-                            val clip = ClipData.newPlainText(
-                                "$appName payload",
-                                payloads.toDebugText(showPinDetails),
-                            ).apply {
-                                description.extras = PersistableBundle().apply {
-                                    putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
-                                }
-                            }
-                            context.getSystemService(ClipboardManager::class.java)
-                                .setPrimaryClip(clip)
-                            Toast.makeText(
-                                context,
-                                R.string.notification_debug_payload_copied,
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ContentCopy,
-                            contentDescription = stringResource(
-                                R.string.notification_debug_copy_payload,
-                            ),
-                            tint = actionColor,
+            }
+            Spacer(Modifier.height(18.dp))
+            CardSurface(background = cardColor, radius = 28, padding = 18) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        AppText("最近通知", 20, colors.onSurface, true)
+                        Spacer(Modifier.height(4.dp))
+                        AppText(
+                            if (payloads.isEmpty()) {
+                                "尚未收到 $appName 通知；收到後會顯示最近 30 筆。"
+                            } else {
+                                "已記錄 ${payloads.size} 筆，只保留在目前 App 程序記憶體。"
+                            },
+                            14,
+                            colors.onSurfaceVariant,
                         )
                     }
-                    Text(
-                        text = "清除",
-                        color = actionColor,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(100.dp))
-                            .hapticClickable(role = Role.Button, effect = HapticEffect.CONFIRM) {
-                                expandedIndex = 0
-                                onClear()
-                            }
-                            .padding(horizontal = 10.dp, vertical = 7.dp),
-                    )
+                    if (payloads.isNotEmpty()) {
+                        IconButton(
+                            onClick = rememberHapticAction {
+                                val clip = ClipData.newPlainText(
+                                    "$appName payload",
+                                    payloads.toDebugText(showPinDetails),
+                                ).apply {
+                                    description.extras = PersistableBundle().apply {
+                                        putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+                                    }
+                                }
+                                context.getSystemService(ClipboardManager::class.java)
+                                    .setPrimaryClip(clip)
+                                Toast.makeText(
+                                    context,
+                                    R.string.notification_debug_payload_copied,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.ContentCopy,
+                                contentDescription = stringResource(
+                                    R.string.notification_debug_copy_payload,
+                                ),
+                                tint = actionColor,
+                            )
+                        }
+                        Text(
+                            text = "清除",
+                            color = actionColor,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .hapticClickable(role = Role.Button, effect = HapticEffect.CONFIRM) {
+                                    expandedIndex = 0
+                                    onClear()
+                                }
+                                .padding(horizontal = 10.dp, vertical = 7.dp),
+                        )
+                    }
                 }
-            }
-            Spacer(Modifier.height(12.dp))
-            payloads.forEachIndexed { index, payload ->
-                NotificationDebugPayloadRow(
-                    payload = payload,
-                    actionColor = actionColor,
-                    showPinDetails = showPinDetails,
-                    expanded = index == expandedIndex,
-                    onToggle = { expandedIndex = if (expandedIndex == index) -1 else index },
-                )
-                if (index != payloads.lastIndex) Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
+                payloads.forEachIndexed { index, payload ->
+                    NotificationDebugPayloadRow(
+                        payload = payload,
+                        actionColor = actionColor,
+                        showPinDetails = showPinDetails,
+                        expanded = index == expandedIndex,
+                        onToggle = { expandedIndex = if (expandedIndex == index) -1 else index },
+                    )
+                    if (index != payloads.lastIndex) Spacer(Modifier.height(8.dp))
+                }
             }
         }
     }

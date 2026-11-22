@@ -1,6 +1,11 @@
 package com.github.jimmy90109.livestatus.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -10,16 +15,17 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.snapTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -30,7 +36,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
@@ -42,6 +50,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -52,8 +61,9 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.R
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -76,10 +86,14 @@ internal fun HomeBackgroundLayer(
 
 @Composable
 internal fun HomeContentWide(
+    safeDrawingInsets: WindowInsets,
+    paneSplit: HomePaneSplit?,
     status: StatusSnapshot,
     settingsExpanded: Boolean,
     scrollTopPadding: Dp,
-    scrollBottomPadding: Dp,
+    settingsVisible: Boolean,
+    settingsContent: @Composable () -> Unit,
+    onSelectCategory: () -> Unit,
     appPagerBottomPadding: Dp,
     onOpenSettings: () -> Unit,
     onToggleSettings: () -> Unit,
@@ -110,24 +124,40 @@ internal fun HomeContentWide(
     onOpenGoogleRecorderDebug: () -> Unit,
 ) {
     AppsSection(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp),
-        wideLeadingContent = {
-            HomeIntroColumn(
-                status = status,
-                settingsExpanded = settingsExpanded,
-                onOpenSettings = onOpenSettings,
-                onToggleSettings = onToggleSettings,
-                onOpenNotificationAccess = onOpenNotificationAccess,
-                onRequestNotificationPermission = onRequestNotificationPermission,
-                onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
-                onOpenAppSettings = onOpenAppSettings,
-                onDismissBrandWarning = onDismissBrandWarning,
-            )
-        },
+        modifier = Modifier.fillMaxSize(),
+        wide = true,
+        widePaneSplit = paneSplit,
+        wideSafeDrawingInsets = safeDrawingInsets,
+        settingsVisible = settingsVisible,
+        settingsContent = settingsContent,
+        onSelectCategory = onSelectCategory,
+        onOpenSettings = onOpenSettings,
         wideTopPadding = scrollTopPadding,
-        wideBottomPadding = scrollBottomPadding,
+        widePageHeader = {
+            if (!status.requiredSettingsComplete) {
+                RequiredSettingsSection(
+                    status = status,
+                    expanded = settingsExpanded,
+                    onToggle = onToggleSettings,
+                    onOpenNotificationAccess = onOpenNotificationAccess,
+                    onRequestNotificationPermission = onRequestNotificationPermission,
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+            BrandWarningVisibility(visible = status.brandWarning != null && !status.brandWarningDismissed) {
+                Column {
+                    status.brandWarning?.let { brandWarning ->
+                        BrandWarningCard(
+                            brandWarning = brandWarning,
+                            onOpenSamsungNowBarGuide = onOpenSamsungNowBarGuide,
+                            onOpenAppSettings = onOpenAppSettings,
+                            onDismiss = onDismissBrandWarning,
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+        },
         pageBottomPadding = appPagerBottomPadding,
         status = status,
         horizontalContentPadding = 0.dp,
@@ -191,14 +221,21 @@ internal fun HomeContentNarrow(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val appsViewportHeight =
             (maxHeight - scrollTopPadding).coerceAtLeast(1.dp)
-        val homeScrollState = rememberScrollState()
+        val uiState = checkNotNull(LocalHomeUiState.current)
+        val homeScrollState = uiState.homeScroll
         val requiredSettingsComplete = status.requiredSettingsComplete
-        val heroRevealState = remember {
-            AnchoredDraggableState(
-                initialValue = initialHeroRevealValue(requiredSettingsComplete),
-            )
-        }
         var heroHeightPx by remember { mutableIntStateOf(0) }
+        val heroRevealState = remember(requiredSettingsComplete) {
+            AnchoredDraggableState(
+                initialValue = uiState.heroValue,
+            ).apply {
+                // Permission changes recreate this state without necessarily resizing the card.
+                // Reuse its measured height so offset reads are valid before the next layout.
+                if (heroHeightPx > 0) {
+                    updateAnchors(heroRevealAnchors(heroHeightPx), newTarget = uiState.heroValue)
+                }
+            }
+        }
         val velocityThresholdPx = with(LocalDensity.current) {
             HERO_REVEAL_FLING_THRESHOLD.toPx()
         }
@@ -251,13 +288,16 @@ internal fun HomeContentNarrow(
             )
         }
 
-        LaunchedEffect(requiredSettingsComplete, heroHeightPx) {
-            if (heroHeightPx <= 0) return@LaunchedEffect
-
-            heroRevealState.animateTo(
-                targetValue = initialHeroRevealValue(requiredSettingsComplete),
-                animationSpec = heroRevealSpring(),
-            )
+        LaunchedEffect(heroRevealState, uiState) {
+            snapshotFlow { heroRevealState.settledValue }.collectLatest { value ->
+                uiState.heroValue = value
+            }
+        }
+        LaunchedEffect(requiredSettingsComplete) {
+            if (!requiredSettingsComplete) {
+                uiState.heroValue = HeroRevealValue.Expanded
+                heroRevealState.snapTo(HeroRevealValue.Expanded)
+            }
         }
 
         val heroAccessibilityModifier = if (requiredSettingsComplete) {
@@ -286,6 +326,7 @@ internal fun HomeContentNarrow(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .testTag("home_intro_scroll")
                 .then(heroAccessibilityModifier)
                 .nestedScroll(heroRevealConnection)
                 .verticalScroll(homeScrollState)
@@ -330,10 +371,8 @@ internal fun HomeContentNarrow(
                         if (heightPx != heroHeightPx) {
                             heroHeightPx = heightPx
                             heroRevealState.updateAnchors(
-                                DraggableAnchors {
-                                    HeroRevealValue.Hidden at 0f
-                                    HeroRevealValue.Expanded at heightPx.toFloat()
-                                },
+                                heroRevealAnchors(heightPx),
+                                newTarget = uiState.heroValue,
                             )
                         }
                     },
@@ -418,9 +457,8 @@ private fun HomeIntroColumn(
             )
         }
     }
-    AnimatedVisibility(
+    BrandWarningVisibility(
         visible = status.brandWarning != null && !status.brandWarningDismissed,
-        modifier = Modifier.clip(RoundedCornerShape(26.dp)),
     ) {
         Column {
             Spacer(Modifier.height(10.dp))
@@ -434,6 +472,24 @@ private fun HomeIntroColumn(
             }
             Spacer(Modifier.height(10.dp))
         }
+    }
+}
+
+@Composable
+private fun BrandWarningVisibility(visible: Boolean, content: @Composable () -> Unit) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = Modifier.clip(RoundedCornerShape(26.dp)).testTag("brand_warning_visibility"),
+        enter = expandVertically(
+            expandFrom = Alignment.Top,
+            animationSpec = tween(300, easing = FastOutSlowInEasing),
+        ) + fadeIn(tween(180)),
+        exit = shrinkVertically(
+            shrinkTowards = Alignment.Top,
+            animationSpec = tween(300, easing = FastOutSlowInEasing),
+        ) + fadeOut(tween(180)),
+    ) {
+        content()
     }
 }
 
@@ -531,6 +587,11 @@ private fun RevealingHeroCard(
             )
         }
     }
+}
+
+private fun heroRevealAnchors(heightPx: Int) = DraggableAnchors {
+    HeroRevealValue.Hidden at 0f
+    HeroRevealValue.Expanded at heightPx.toFloat()
 }
 
 private fun heroRevealNestedScrollConnection(

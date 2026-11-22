@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="MissingTranslation">
+    <string name="settings_title">設定</string>
+    <string name="home_hero_title">重要狀態，\n留在最前面。</string>
+    <string name="action_back">返回</string>
+    <string name="privacy_policy_link">隱私權政策  →</string>
     <string name="app_name">即時狀態提醒</string>
     <string name="notification_app_name">LiveStatus</string>
     <string name="notification_channel_name">即時狀態提醒</string>
@@ -337,4 +341,6 @@
     <string name="pikmin_bloom_debug_open_payload">查看 Pikmin Bloom 通知 payload</string>
     <string name="pikmin_bloom_languages">中 / 日 / En</string>
     <string name="pikmin_bloom_open_japanese">Pikmin Bloom を開く</string>
+    <string name="rail_app_name">LiveStatus</string>
+    <string name="brand_warning_dismiss">關閉品牌提示</string>
 </resources>

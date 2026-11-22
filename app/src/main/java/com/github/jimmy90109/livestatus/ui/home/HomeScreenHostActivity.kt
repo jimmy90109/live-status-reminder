@@ -18,7 +18,16 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
+import kotlinx.coroutines.launch
 import com.github.jimmy90109.livestatus.AppReminderPreferences
 import com.github.jimmy90109.livestatus.LineCallPolicy
 import com.github.jimmy90109.livestatus.BuildConfig
@@ -31,9 +40,12 @@ import com.github.jimmy90109.livestatus.TaiwanTaxiRideManager
 import com.github.jimmy90109.livestatus.YouBikeRideManager
 import com.github.jimmy90109.livestatus.YptStudyNotificationParser
 import com.github.jimmy90109.livestatus.ui.theme.LiveStatusTheme
+import com.github.jimmy90109.livestatus.ui.theme.LocalAppColors
 
 open class HomeScreenHostActivity : ComponentActivity() {
     private var statusSnapshot by mutableStateOf(StatusSnapshot())
+    private var verticalHinge by mutableStateOf<HomeVerticalHinge?>(null)
+    private var windowLayoutReady by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,10 +73,33 @@ open class HomeScreenHostActivity : ComponentActivity() {
             ACTION_OPEN_TEAMS -> openTeams()
             ACTION_OPEN_GOOGLE_RECORDER -> openGoogleRecorder()
             else -> {
+                // Restore UI against the actual permissions, not a transient empty snapshot.
+                refreshStatus()
+                lifecycleScope.launch {
+                    repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        WindowInfoTracker.getOrCreate(this@HomeScreenHostActivity)
+                            .windowLayoutInfo(this@HomeScreenHostActivity).collect { layout ->
+                                val fold = layout.displayFeatures.filterIsInstance<FoldingFeature>()
+                                    .firstOrNull {
+                                        it.orientation == FoldingFeature.Orientation.VERTICAL && it.isSeparating
+                                    }
+                                verticalHinge = fold?.bounds?.let {
+                                    HomeVerticalHinge(it.left, it.top, it.right, it.bottom)
+                                }
+                                windowLayoutReady = true
+                            }
+                    }
+                }
                 setContent {
                     LiveStatusTheme {
+                        // Do not clamp restored scroll offsets against a temporary flat layout.
+                        if (!windowLayoutReady) {
+                            Surface(Modifier.fillMaxSize(), color = LocalAppColors.current.background) {}
+                            return@LiveStatusTheme
+                        }
                         MainScreen(
                             status = statusSnapshot,
+                            verticalHinge = verticalHinge,
                             onOpenNotificationAccess = ::openNotificationListenerSettings,
                             onRequestNotificationPermission = ::requestNotificationPermission,
                             onOpenSamsungNowBarGuide = ::openSamsungNowBarGuide,

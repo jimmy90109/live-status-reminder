@@ -597,7 +597,7 @@ internal fun IpassCard(
     AppCard(
         appName = "iPASS MONEY",
         appPackageName = IPASS_PACKAGE,
-        fallbackIconRes = R.drawable.ic_notification,
+        fallbackIconRes = R.drawable.ic_transit_code_notification,
         title = stringResource(R.string.transit_code_card_title),
         description = stringResource(R.string.transit_code_status_description),
         supportedLanguages = listOf("繁中"),
@@ -644,7 +644,7 @@ internal fun TaiwanPayCard(
     AppCard(
         appName = "台灣 Pay",
         appPackageName = TAIWAN_PAY_PACKAGE,
-        fallbackIconRes = R.drawable.ic_notification,
+        fallbackIconRes = R.drawable.ic_transit_code_notification,
         title = stringResource(R.string.transit_code_card_title),
         description = stringResource(R.string.transit_code_status_description),
         supportedLanguages = listOf("繁中"),
